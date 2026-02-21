@@ -110,7 +110,7 @@ app.get('/api/data', async (req, res) => {
 app.post('/api/data', async (req, res) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
   try {
-    const { answers, messages, stage, step, lang, mirror } = req.body;
+    const { answers, messages, stage, step, lang, mirror, identity_profile, memories, mood_log, thread_summaries, last_active_date } = req.body;
     const updateFields = { updatedAt: new Date() };
     if (answers !== undefined) updateFields.answers = answers;
     if (messages !== undefined) updateFields.messages = messages;
@@ -118,6 +118,11 @@ app.post('/api/data', async (req, res) => {
     if (step !== undefined) updateFields.step = String(step);
     if (lang !== undefined) updateFields.lang = lang;
     if (mirror !== undefined) updateFields.mirror = mirror;
+    if (identity_profile !== undefined) updateFields.identityProfile = identity_profile;
+    if (memories !== undefined) updateFields.memories = memories;
+    if (mood_log !== undefined) updateFields.moodLog = mood_log;
+    if (thread_summaries !== undefined) updateFields.threadSummaries = thread_summaries;
+    if (last_active_date !== undefined) updateFields.lastActiveDate = last_active_date;
 
     const existing = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
     if (existing.length === 0) {

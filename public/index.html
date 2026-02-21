@@ -659,7 +659,7 @@ function sectionName(s) {
   return UI[lang] && UI[lang].sections && UI[lang].sections[s] ? UI[lang].sections[s] : s;
 }
 
-var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0 };
+var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '' };
 var AUTH = { loggedIn: false, email: '', checked: false, guest: false, tier: 'guest' };
 var savePending = null;
 var checkinDismissed = false;
@@ -776,7 +776,12 @@ function save() {
           stage: ST.stage,
           step: ST.step,
           lang: ST.lang || 'en',
-          mirror: ST.mirror || ''
+          mirror: ST.mirror || '',
+          identity_profile: ST.identityProfile || {},
+          memories: ST.memories || [],
+          mood_log: ST.moodLog || [],
+          thread_summaries: ST.threadSummaries || {},
+          last_active_date: ST.lastActiveDate || ''
         })
       }).catch(function(){});
     }, 500);
@@ -830,6 +835,11 @@ async function loadServerData() {
       if (data.lang) ST.lang = data.lang;
       if (data.mirror) ST.mirror = data.mirror;
       if (data.lastCheckin) ST.lastCheckin = data.lastCheckin;
+      if (data.identityProfile) ST.identityProfile = data.identityProfile;
+      if (data.memories) ST.memories = data.memories;
+      if (data.moodLog) ST.moodLog = data.moodLog;
+      if (data.threadSummaries) ST.threadSummaries = data.threadSummaries;
+      if (data.lastActiveDate) ST.lastActiveDate = data.lastActiveDate;
       try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
     }
   } catch(e) {}
@@ -964,6 +974,10 @@ function compressContext(msgs) {
   if (topics.length > 0) {
     summary += 'Earlier topics discussed: ' + topics.slice(-5).join('; ') + '. ';
   }
+  if (!ST.threadSummaries) ST.threadSummaries = {};
+  var threadId = ST.activeThread || 0;
+  var prevSummary = ST.threadSummaries[threadId] || '';
+  ST.threadSummaries[threadId] = (prevSummary ? prevSummary + ' | ' : '') + topics.slice(-5).join('; ');
   summary += '(' + oldMsgs.length + ' older messages compressed)';
   return [{ role: 'user', content: summary }, { role: 'assistant', content: 'Understood, I have context from our earlier conversation.' }].concat(recentMsgs);
 }
@@ -974,8 +988,151 @@ function insecStr() {
   return Array.isArray(ST.ans.insec) && ST.ans.insec.length > 0 ? ST.ans.insec.join(', ') : 'not specified';
 }
 
+function buildIdentityProfile() {
+  var p = {
+    core: { name: g('name', ''), location: g('location', ''), job: g('job', ''), industry: g('industry', '') },
+    personality: { style: g('style', ''), decisions: g('decisions', ''), execute: g('execute', ''), selfTalk: g('self_talk', ''), identity: g('identity', '') },
+    goals: { tenYear: g('goal10', ''), mastering: g('mastering', ''), strategy: g('horizon', ''), ifConfident: g('if_conf', '') },
+    strengths: { proudOf: g('proud', ''), uniqueSkills: g('unique_sk', ''), confidence: g('conf_num', '') },
+    challenges: { tiredOf: g('tired', ''), insecurities: insecStr(), blockers: g('blockers', ''), timeWaste: g('time_waste', ''), badHabit: g('bad_habit', ''), avoiding: g('avoiding', ''), keystone: g('domino', '') },
+    resources: { financial: g('fin_level', ''), capital: g('capital', ''), constraint: g('constraint', '') },
+    system: { focusHours: g('focus_hrs', ''), sleep: g('sleep', ''), screenTime: g('screens', '') },
+    preferences: { tone: g('tone', ''), coachingMode: g('pressure', ''), chasing: g('feeling', '') }
+  };
+  ST.identityProfile = p;
+  return p;
+}
+
+function identityPromptBlock() {
+  var p = ST.identityProfile && ST.identityProfile.core && ST.identityProfile.core.name ? ST.identityProfile : buildIdentityProfile();
+  var lines = [];
+  lines.push('USER IDENTITY:');
+  lines.push('Name: ' + p.core.name + ' | Location: ' + p.core.location + ' | Work: ' + p.core.job + ' in ' + p.core.industry);
+  lines.push('Personality: ' + p.personality.style + ' style, decides ' + p.personality.decisions + ', executes best ' + p.personality.execute);
+  lines.push('Goals: 10yr=' + p.goals.tenYear + ', mastering=' + p.goals.mastering + ', strategy=' + p.goals.strategy);
+  lines.push('Strengths: proud of ' + p.strengths.proudOf + ', skills=' + p.strengths.uniqueSkills + ', confidence=' + p.strengths.confidence + '/10');
+  lines.push('Challenges: tired of ' + p.challenges.tiredOf + ', blockers=' + p.challenges.blockers + ', keystone=' + p.challenges.keystone);
+  lines.push('System: focus=' + p.system.focusHours + 'hrs, sleep=' + p.system.sleep + ', screens=' + p.system.screenTime + 'hrs');
+  lines.push('Preferences: tone=' + p.preferences.tone + ', mode=' + p.preferences.coachingMode);
+  return lines.join('\n');
+}
+
 function buildProfile() {
-  return 'USER PROFILE: Name/Age: ' + g('name') + ' Location: ' + g('location') + ' Occupation: ' + g('job') + ' in ' + g('industry') + ' Daily work: ' + g('work_day') + ' Proud of: ' + g('proud') + ' Tired of: ' + g('tired') + ' Feeling chasing: ' + g('feeling') + ' Insecurities: ' + insecStr() + ' What blocks them: ' + g('blockers') + ' Compares to: ' + g('compare') + ' Work confidence: ' + g('conf_num') + '/10 If confident would: ' + g('if_conf') + ' 10-year goal: ' + g('goal10') + ' Mastering: ' + g('mastering') + ' Strategy: ' + g('horizon') + ' Wastes time on: ' + g('time_waste') + ' Bad habit: ' + g('bad_habit') + ' Avoiding: ' + g('avoiding') + ' Past failures: ' + g('failed') + ' Keystone problem: ' + g('domino') + ' Financial: ' + g('fin_level') + ' Capital: ' + g('capital') + ' Unique skills: ' + g('unique_sk') + ' Constraint: ' + g('constraint') + ' Focused hours/day: ' + g('focus_hrs') + ' Sleep/wake: ' + g('sleep') + ' Screen time: ' + g('screens') + ' hrs/day Style: ' + g('style') + ' Decision style: ' + g('decisions') + ' Executes best: ' + g('execute') + ' Identity priority: ' + g('identity') + ' Self-talk: ' + g('self_talk') + ' Preferred tone: ' + g('tone') + ' Coaching mode: ' + g('pressure');
+  return identityPromptBlock();
+}
+
+function scoreMood(text) {
+  var pos = /happy|great|good|amazing|wonderful|excited|love|proud|grateful|thank|confident|progress|better|awesome|fantastic/i;
+  var neg = /sad|angry|frustrated|tired|stressed|anxious|worried|scared|lost|stuck|confused|overwhelmed|hate|bad|terrible|hopeless|depressed|exhausted/i;
+  var posMatch = (text.match(pos) || []).length;
+  var negMatch = (text.match(neg) || []).length;
+  if (negMatch > posMatch) return -1;
+  if (posMatch > negMatch) return 1;
+  return 0;
+}
+
+function trackMood(userText) {
+  var score = scoreMood(userText);
+  if (score === 0) return;
+  var today = new Date().toISOString().slice(0, 10);
+  if (!ST.moodLog) ST.moodLog = [];
+  var existing = ST.moodLog.find(function(m) { return m.date === today; });
+  if (existing) {
+    existing.score = Math.round((existing.score + score) / 2);
+  } else {
+    ST.moodLog.push({ date: today, score: score, note: userText.substring(0, 60) });
+  }
+  if (ST.moodLog.length > 30) ST.moodLog = ST.moodLog.slice(-30);
+}
+
+function getMoodTrend() {
+  if (!ST.moodLog || ST.moodLog.length < 3) return null;
+  var recent = ST.moodLog.slice(-5);
+  var avg = recent.reduce(function(s, m) { return s + m.score; }, 0) / recent.length;
+  if (avg <= -0.6) return 'declining';
+  if (avg >= 0.6) return 'positive';
+  return 'stable';
+}
+
+function extractMemories(userText, aiText) {
+  if (!ST.memories) ST.memories = [];
+  var patterns = [
+    { re: /(?:my goal|i want to|i plan to|i'm going to|i will|i need to)\s+(.{10,80})/i, tag: 'goal' },
+    { re: /(?:i decided|i chose|i'm choosing|decision|i'll go with)\s+(.{10,80})/i, tag: 'decision' },
+    { re: /(?:i feel|i'm feeling|i am feeling)\s+(.{10,60})/i, tag: 'emotion' },
+    { re: /(?:i started|i began|i'm starting|i launched|i created)\s+(.{10,80})/i, tag: 'milestone' },
+    { re: /(?:i struggle with|my problem is|i can't|i'm stuck on|i keep)\s+(.{10,80})/i, tag: 'challenge' },
+    { re: /(?:i learned|i realized|insight|i discovered|i found out)\s+(.{10,80})/i, tag: 'insight' }
+  ];
+  var today = new Date().toISOString().slice(0, 10);
+  for (var i = 0; i < patterns.length; i++) {
+    var match = userText.match(patterns[i].re);
+    if (match) {
+      var fact = match[0].substring(0, 120);
+      var isDuplicate = ST.memories.some(function(m) { return m.fact === fact; });
+      if (!isDuplicate) {
+        ST.memories.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), fact: fact, tags: [patterns[i].tag], date: today, source: 'chat' });
+      }
+    }
+  }
+  if (ST.memories.length > 100) ST.memories = ST.memories.slice(-100);
+}
+
+function retrieveRelevantMemories(userText) {
+  if (!ST.memories || ST.memories.length === 0) return '';
+  var words = userText.toLowerCase().split(/\s+/).filter(function(w) { return w.length > 3; });
+  var scored = ST.memories.map(function(m) {
+    var s = 0;
+    var factLower = m.fact.toLowerCase();
+    for (var i = 0; i < words.length; i++) {
+      if (factLower.indexOf(words[i]) >= 0) s += 2;
+    }
+    for (var j = 0; j < m.tags.length; j++) {
+      if (userText.toLowerCase().indexOf(m.tags[j]) >= 0) s += 3;
+    }
+    return { memory: m, score: s };
+  }).filter(function(x) { return x.score > 0; }).sort(function(a, b) { return b.score - a.score; }).slice(0, 3);
+  if (scored.length === 0) return '';
+  var lines = scored.map(function(x) { return '- [' + x.memory.date + '] ' + x.memory.fact + ' (tags: ' + x.memory.tags.join(', ') + ')'; });
+  return '\n\nRELEVANT MEMORIES FROM PAST CONVERSATIONS:\n' + lines.join('\n');
+}
+
+function getThreadSummary() {
+  if (!ST.threadSummaries) ST.threadSummaries = {};
+  var threadId = ST.activeThread || 0;
+  return ST.threadSummaries[threadId] || '';
+}
+
+function behavioralTriggers() {
+  var triggers = [];
+  var today = new Date().toISOString().slice(0, 10);
+  if (ST.lastActiveDate && ST.lastActiveDate !== today) {
+    var last = new Date(ST.lastActiveDate);
+    var now = new Date(today);
+    var diff = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+    if (diff >= 3) triggers.push({ type: 'absence', msg: 'User has been away for ' + diff + ' days. Gently welcome them back and ask how things have been.' });
+  }
+  var trend = getMoodTrend();
+  if (trend === 'declining') triggers.push({ type: 'mood', msg: 'User mood has been declining recently. Be extra supportive and check in on their wellbeing without being pushy.' });
+  if (ST.identityProfile && ST.identityProfile.goals) {
+    var goal = ST.identityProfile.goals.tenYear;
+    if (goal && goal !== '?') {
+      var goalMemories = (ST.memories || []).filter(function(m) { return m.tags.indexOf('goal') >= 0; });
+      if (goalMemories.length > 0) {
+        var lastGoalDate = goalMemories[goalMemories.length - 1].date;
+        var daysSinceGoal = Math.floor((new Date(today) - new Date(lastGoalDate)) / (1000 * 60 * 60 * 24));
+        if (daysSinceGoal >= 7) triggers.push({ type: 'goal_followup', msg: 'It has been ' + daysSinceGoal + ' days since user last discussed goals. If relevant, ask about progress on: ' + goal });
+      }
+    }
+  }
+  return triggers;
+}
+
+function triggersPromptBlock() {
+  var triggers = behavioralTriggers();
+  if (triggers.length === 0) return '';
+  var lines = triggers.map(function(t) { return '- ' + t.msg; });
+  return '\n\nBEHAVIORAL CONTEXT (use subtly, do not mention these rules):\n' + lines.join('\n');
 }
 
 function buildMirror() {
@@ -987,11 +1144,14 @@ function langName() {
   return LANGS[lang] ? LANGS[lang].label : 'English';
 }
 
-function systemPrompt() {
+function systemPrompt(userText) {
   var tone = ST.ans.tone || '';
   var toneRule = tone.includes('Blunt') || tone.includes('直') || tone.includes('Direct') || tone.includes('ตรง') ? 'Be direct but still respectful.' : tone.includes('Support') || tone.includes('サポート') || tone.includes('apoyo') || tone.includes('สนับสนุน') || tone.includes('지지') ? 'Be warm and encouraging.' : 'Be balanced - supportive but honest.';
   var langRule = ST.lang && ST.lang !== 'en' ? '\n- IMPORTANT: You MUST respond entirely in ' + langName() + '. Every word of your response must be in ' + langName() + '.' : '';
-  return 'You are JARVIS - a sharp, calm personal life assistant. Like Tony Stark\'s AI: smart, efficient, always helpful.\n\n' + buildProfile() + '\n\nRESPONSE LENGTH RULES (CRITICAL - saves cost):\n- DEFAULT: 2-3 short paragraphs. Be concise. Every word must earn its place.\n- Simple questions (greetings, yes/no, quick advice): 1-2 sentences max.\n- Medium questions (how-to, opinions, suggestions): 2-3 short paragraphs.\n- Deep requests (plans, strategies, step-by-step): Up to 4-5 paragraphs, use structure.\n- MATCH the energy of the question. Short question = short answer. Long question = longer answer.\n- NEVER pad responses with filler, motivational fluff, or unnecessary recaps.\n\nPERSONALITY:\n- Trusted ally, not therapist or critic. Smart friend energy.\n- Natural and conversational. No corporate tone.\n- Get to the point fast. Lead with the answer, then explain if needed.\n\nPROFILE USAGE:\n- Use their profile SILENTLY to personalize advice. Do NOT quote it back.\n- NEVER say "you told me X" or "your confidence is Y/10" or list their problems.\n- NEVER criticize short answers or analyze what answers "reveal."\n- Good: Know they work in agriculture, so suggest farming-relevant advice naturally.\n- Bad: "You said you feel behind in life and your confidence is 4/10."\n\nBEHAVIOR:\n- Answer what was asked. Do not redirect to goals/insecurities.\n- Focus on solutions, not problems. Forward movement always.\n- If they just chat casually, chat back casually. Not everything needs deep advice.\n\nTone: ' + toneRule + langRule;
+  var memoryBlock = userText ? retrieveRelevantMemories(userText) : '';
+  var triggerBlock = triggersPromptBlock();
+  var summaryBlock = getThreadSummary() ? '\n\nPREVIOUS CONVERSATION SUMMARY:\n' + getThreadSummary() : '';
+  return 'You are JARVIS - a sharp, calm personal life assistant. Like Tony Stark\'s AI: smart, efficient, always helpful.\n\n' + buildProfile() + summaryBlock + memoryBlock + triggerBlock + '\n\nRESPONSE LENGTH RULES (CRITICAL - saves cost):\n- DEFAULT: 2-3 short paragraphs. Be concise. Every word must earn its place.\n- Simple questions (greetings, yes/no, quick advice): 1-2 sentences max.\n- Medium questions (how-to, opinions, suggestions): 2-3 short paragraphs.\n- Deep requests (plans, strategies, step-by-step): Up to 4-5 paragraphs, use structure.\n- MATCH the energy of the question. Short question = short answer. Long question = longer answer.\n- NEVER pad responses with filler, motivational fluff, or unnecessary recaps.\n\nPERSONALITY:\n- Trusted ally, not therapist or critic. Smart friend energy.\n- Natural and conversational. No corporate tone.\n- Get to the point fast. Lead with the answer, then explain if needed.\n\nPROFILE USAGE:\n- Use their profile SILENTLY to personalize advice. Do NOT quote it back.\n- NEVER say "you told me X" or "your confidence is Y/10" or list their problems.\n- NEVER criticize short answers or analyze what answers "reveal."\n- Good: Know they work in agriculture, so suggest farming-relevant advice naturally.\n- Bad: "You said you feel behind in life and your confidence is 4/10."\n\nMEMORY USAGE:\n- If RELEVANT MEMORIES are provided, use them to provide continuity and personalized advice.\n- Reference past conversations naturally, like a friend who remembers. Do NOT say "according to my records."\n- If no memories are relevant, ignore them.\n\nBEHAVIOR:\n- Answer what was asked. Do not redirect to goals/insecurities.\n- Focus on solutions, not problems. Forward movement always.\n- If they just chat casually, chat back casually. Not everything needs deep advice.\n\nTone: ' + toneRule + langRule;
 }
 
 function chatGreeting() {
@@ -1005,6 +1165,7 @@ function chatGreeting() {
 }
 
 async function sendMsg(userText) {
+  trackMood(userText);
   var activeMsgs = getActiveMsgs();
   activeMsgs.push({ role: 'user', content: userText });
   activeMsgs.push({ role: 'assistant', content: '' });
@@ -1023,7 +1184,7 @@ async function sendMsg(userText) {
     var res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stream: true, system: systemPrompt(), messages: msgsForApi })
+      body: JSON.stringify({ stream: true, system: systemPrompt(userText), messages: msgsForApi })
     });
     if (res.status === 429) {
       var curMsgs2 = getActiveMsgs();
@@ -1069,6 +1230,11 @@ async function sendMsg(userText) {
   ST.streaming = false;
   var finalMsgs = getActiveMsgs();
   var lastMsg = finalMsgs[finalMsgs.length - 1];
+  var userMsg = finalMsgs.length >= 2 ? finalMsgs[finalMsgs.length - 2] : null;
+  if (userMsg && userMsg.role === 'user' && lastMsg && lastMsg.role === 'assistant') {
+    extractMemories(userMsg.content, lastMsg.content);
+  }
+  ST.lastActiveDate = new Date().toISOString().slice(0, 10);
   save();
   render();
   setTimeout(function() { var el = document.getElementById('chat-end'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100);
@@ -1271,7 +1437,7 @@ function renderQuestion(root) {
 function advance() {
   save();
   if (ST.step < Q.length - 1) { ST.step++; render(); }
-  else { ST.stage = 'mirror'; render(); }
+  else { buildIdentityProfile(); ST.stage = 'mirror'; render(); }
 }
 
 function renderMirror(root) {

@@ -21,6 +21,11 @@ export const userData = pgTable("user_data", {
   tier: text("tier").default("free").notNull(),
   msgCount: integer("msg_count").default(0).notNull(),
   msgCountDate: text("msg_count_date").default(""),
+  identityProfile: jsonb("identity_profile").default({}),
+  memories: jsonb("memories").default([]),
+  moodLog: jsonb("mood_log").default([]),
+  threadSummaries: jsonb("thread_summaries").default({}),
+  lastActiveDate: text("last_active_date").default(""),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
