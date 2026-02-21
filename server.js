@@ -1,14 +1,134 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import session from 'express-session';
+import bcrypt from 'bcrypt';
+import pg from 'pg';
+import connectPgSimple from 'connect-pg-simple';
+import { db } from './db/index.js';
+import { users, userData } from './shared/schema.js';
+import { eq } from 'drizzle-orm';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static('public'));
+
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const PgSession = connectPgSimple(session);
+
+const isProduction = process.env.NODE_ENV === 'production';
+app.set('trust proxy', 1);
+app.use(session({
+  store: new PgSession({ pool, createTableIfMissing: true }),
+  secret: process.env.SESSION_SECRET || 'life-assistant-dev-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isProduction
+  }
+}));
+
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+    const existing = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim()));
+    if (existing.length > 0) return res.status(409).json({ error: 'Account already exists' });
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const [user] = await db.insert(users).values({
+      email: email.toLowerCase().trim(),
+      passwordHash
+    }).returning();
+
+    await db.insert(userData).values({ userId: user.id });
+
+    req.session.userId = user.id;
+    res.json({ ok: true, email: user.email });
+  } catch(e) {
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
+    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim()));
+    if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
+
+    req.session.userId = user.id;
+    res.json({ ok: true, email: user.email });
+  } catch(e) {
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy(() => res.json({ ok: true }));
+});
+
+app.get('/api/auth/me', async (req, res) => {
+  if (!req.session.userId) return res.json({ loggedIn: false });
+  try {
+    const [user] = await db.select().from(users).where(eq(users.id, req.session.userId));
+    if (!user) return res.json({ loggedIn: false });
+    res.json({ loggedIn: true, email: user.email });
+  } catch(e) {
+    res.json({ loggedIn: false });
+  }
+});
+
+app.get('/api/data', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
+  try {
+    const [data] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+    if (!data) {
+      const [newData] = await db.insert(userData).values({ userId: req.session.userId }).returning();
+      return res.json(newData);
+    }
+    res.json(data);
+  } catch(e) {
+    res.status(500).json({ error: 'Failed to load data' });
+  }
+});
+
+app.post('/api/data', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
+  try {
+    const { answers, messages, stage, step, lang, mirror } = req.body;
+    const updateFields = { updatedAt: new Date() };
+    if (answers !== undefined) updateFields.answers = answers;
+    if (messages !== undefined) updateFields.messages = messages;
+    if (stage !== undefined) updateFields.stage = stage;
+    if (step !== undefined) updateFields.step = String(step);
+    if (lang !== undefined) updateFields.lang = lang;
+    if (mirror !== undefined) updateFields.mirror = mirror;
+
+    const existing = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+    if (existing.length === 0) {
+      updateFields.userId = req.session.userId;
+      await db.insert(userData).values(updateFields);
+    } else {
+      await db.update(userData).set(updateFields).where(eq(userData.userId, req.session.userId));
+    }
+    res.json({ ok: true });
+  } catch(e) {
+    res.status(500).json({ error: 'Failed to save data' });
+  }
+});
 
 app.post('/api/chat', async (req, res) => {
   try {
@@ -22,14 +142,10 @@ app.post('/api/chat', async (req, res) => {
     let maxTokens = 300;
     if (wordCount > 30 || isDeepQuestion) maxTokens = 600;
     if (wordCount > 80) maxTokens = 800;
-
     if (req.body.max_tokens) maxTokens = Math.min(req.body.max_tokens, 1000);
 
     const messages = req.body.messages || [];
-    const trimmedMessages = messages.length > 16
-      ? messages.slice(messages.length - 16)
-      : messages;
-
+    const trimmedMessages = messages.length > 16 ? messages.slice(messages.length - 16) : messages;
     const wantStream = req.body.stream === true;
 
     if (wantStream) {
@@ -70,10 +186,8 @@ app.post('/api/chat', async (req, res) => {
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
-
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const dataStr = line.slice(6).trim();
@@ -106,7 +220,6 @@ app.post('/api/chat', async (req, res) => {
 
       res.write('data: [DONE]\n\n');
       res.end();
-
     } else {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',

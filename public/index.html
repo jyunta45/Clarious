@@ -63,6 +63,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .lang-mini{padding:6px 10px;font-size:0.75rem;background:none;border:1px solid transparent;border-radius:8px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;}
 .lang-mini:hover{color:var(--text);}
 .lang-mini.active{background:rgba(155,109,255,0.2);border-color:var(--accent);color:#fff;}
+.auth-form{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
+.auth-form input{width:100%;padding:16px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);outline:none;}
+.auth-form input:focus{border-color:var(--accent);}
+.auth-toggle{text-align:center;color:var(--muted);font-size:0.9rem;margin-top:12px;}
+.auth-toggle span{color:var(--accent);cursor:pointer;}
+.auth-toggle span:hover{text-decoration:underline;}
+.auth-error{background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.3);color:#ff6b6b;padding:12px 16px;border-radius:12px;font-size:0.9rem;text-align:center;}
+.auth-info{display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--muted);}
+.auth-info .email{color:var(--accent);font-weight:500;}
+.auth-info .logout-btn{color:var(--muted);cursor:pointer;font-size:0.8rem;background:none;border:none;font-family:'DM Sans',sans-serif;padding:0;}
+.auth-info .logout-btn:hover{color:var(--accent2);}
+.guest-link{text-align:center;color:var(--muted);font-size:0.85rem;margin-top:8px;cursor:pointer;}
+.guest-link:hover{color:var(--accent);}
 @media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}}
 </style>
 </head>
@@ -108,6 +121,14 @@ const UI = {
     reset: 'Reset',
     deleteConfirm: 'Delete everything?',
     errorMsg: 'Something went wrong. Please refresh.',
+    login: 'Log In',
+    signup: 'Create Account',
+    email: 'Email',
+    password: 'Password',
+    noAccount: "Don't have an account?",
+    hasAccount: 'Already have an account?',
+    continueGuest: 'Continue without account',
+    logOut: 'Log out',
     sections: {
       'Basic Context': 'Basic Context',
       'Dreams & Pain': 'Dreams & Pain',
@@ -142,6 +163,14 @@ const UI = {
     reset: 'リセット',
     deleteConfirm: 'すべて削除しますか？',
     errorMsg: 'エラーが発生しました。更新してください。',
+    login: 'ログイン',
+    signup: 'アカウント作成',
+    email: 'メール',
+    password: 'パスワード',
+    noAccount: 'アカウントをお持ちでないですか？',
+    hasAccount: 'すでにアカウントをお持ちですか？',
+    continueGuest: 'アカウントなしで続ける',
+    logOut: 'ログアウト',
     sections: {
       'Basic Context': '基本情報',
       'Dreams & Pain': '夢と悩み',
@@ -176,6 +205,14 @@ const UI = {
     reset: 'Restablecer',
     deleteConfirm: '¿Eliminar todo?',
     errorMsg: 'Algo salió mal. Por favor actualiza.',
+    login: 'Iniciar Sesión',
+    signup: 'Crear Cuenta',
+    email: 'Correo electrónico',
+    password: 'Contraseña',
+    noAccount: '¿No tienes cuenta?',
+    hasAccount: '¿Ya tienes cuenta?',
+    continueGuest: 'Continuar sin cuenta',
+    logOut: 'Cerrar sesión',
     sections: {
       'Basic Context': 'Contexto Básico',
       'Dreams & Pain': 'Sueños y Dolor',
@@ -210,6 +247,14 @@ const UI = {
     reset: 'รีเซ็ต',
     deleteConfirm: 'ลบทั้งหมด?',
     errorMsg: 'เกิดข้อผิดพลาด กรุณารีเฟรช',
+    login: 'เข้าสู่ระบบ',
+    signup: 'สร้างบัญชี',
+    email: 'อีเมล',
+    password: 'รหัสผ่าน',
+    noAccount: 'ยังไม่มีบัญชี?',
+    hasAccount: 'มีบัญชีแล้ว?',
+    continueGuest: 'ดำเนินต่อโดยไม่ต้องมีบัญชี',
+    logOut: 'ออกจากระบบ',
     sections: {
       'Basic Context': 'ข้อมูลพื้นฐาน',
       'Dreams & Pain': 'ความฝันและความเจ็บปวด',
@@ -244,6 +289,14 @@ const UI = {
     reset: '초기화',
     deleteConfirm: '모든 것을 삭제하시겠습니까?',
     errorMsg: '문제가 발생했습니다. 새로고침해주세요.',
+    login: '로그인',
+    signup: '계정 만들기',
+    email: '이메일',
+    password: '비밀번호',
+    noAccount: '계정이 없으신가요?',
+    hasAccount: '이미 계정이 있으신가요?',
+    continueGuest: '계정 없이 계속하기',
+    logOut: '로그아웃',
     sections: {
       'Basic Context': '기본 정보',
       'Dreams & Pain': '꿈과 고통',
@@ -512,9 +565,28 @@ function sectionName(s) {
 }
 
 var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '' };
+var AUTH = { loggedIn: false, email: '', checked: false, guest: false };
+var savePending = null;
 
 function save() {
   try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
+  if (AUTH.loggedIn) {
+    if (savePending) clearTimeout(savePending);
+    savePending = setTimeout(function() {
+      fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: ST.ans,
+          messages: ST.msgs,
+          stage: ST.stage,
+          step: ST.step,
+          lang: ST.lang || 'en',
+          mirror: ST.mirror || ''
+        })
+      }).catch(function(){});
+    }, 500);
+  }
 }
 
 function load() {
@@ -523,6 +595,72 @@ function load() {
     if (d) ST = JSON.parse(d);
     if (!ST.lang) ST.lang = '';
   } catch(e) {}
+}
+
+async function checkAuth() {
+  try {
+    var res = await fetch('/api/auth/me');
+    var data = await res.json();
+    AUTH.checked = true;
+    if (data.loggedIn) {
+      AUTH.loggedIn = true;
+      AUTH.email = data.email;
+      await loadServerData();
+    }
+  } catch(e) {
+    AUTH.checked = true;
+  }
+  render();
+}
+
+async function loadServerData() {
+  try {
+    var res = await fetch('/api/data');
+    var data = await res.json();
+    if (data && data.id) {
+      if (data.answers && Object.keys(data.answers).length > 0) ST.ans = data.answers;
+      if (data.messages && data.messages.length > 0) ST.msgs = data.messages;
+      if (data.stage) ST.stage = data.stage;
+      if (data.step) ST.step = parseInt(data.step) || 0;
+      if (data.lang) ST.lang = data.lang;
+      if (data.mirror) ST.mirror = data.mirror;
+      try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
+    }
+  } catch(e) {}
+}
+
+async function doAuth(mode) {
+  var email = document.getElementById('auth-email').value.trim();
+  var pass = document.getElementById('auth-pass').value;
+  var errEl = document.getElementById('auth-err');
+  if (!email || !pass) { errEl.textContent = 'Please fill in both fields'; errEl.style.display = 'block'; return; }
+  try {
+    var res = await fetch('/api/auth/' + mode, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: pass })
+    });
+    var data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Something went wrong'; errEl.style.display = 'block'; return; }
+    AUTH.loggedIn = true;
+    AUTH.email = data.email;
+    AUTH.guest = false;
+    await loadServerData();
+    if (ST.ans && Object.keys(ST.ans).length > 0) save();
+    render();
+  } catch(e) { errEl.textContent = 'Connection error'; errEl.style.display = 'block'; }
+}
+
+async function doLogout() {
+  try { await fetch('/api/auth/logout', { method: 'POST' }); } catch(e) {}
+  AUTH.loggedIn = false;
+  AUTH.email = '';
+  render();
+}
+
+function enterGuest() {
+  AUTH.guest = true;
+  render();
 }
 
 function g(k, f) { return ST.ans[k] || f || '?'; }
@@ -618,8 +756,10 @@ function updateStreamBubble() {
 
 function reset() {
   if (!confirm(ui('deleteConfirm'))) return;
+  var keepLang = ST.lang;
   try { localStorage.removeItem('la'); } catch(e) {}
-  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '' };
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang };
+  save();
   render();
 }
 
@@ -651,14 +791,18 @@ function bindLangSwitcher() {
 
 function render() {
   var root = document.getElementById('root');
+  if (!AUTH.checked) return;
+  if (!AUTH.loggedIn && !AUTH.guest) { renderAuth(root); return; }
   if (ST.stage === 'welcome') { renderWelcome(root); }
   else if (ST.stage === 'questions') { renderQuestion(root); }
   else if (ST.stage === 'mirror') { renderMirror(root); }
   else { renderChat(root); }
 }
 
-function renderWelcome(root) {
-  var hasLang = ST.lang && ST.lang.length > 0;
+function renderAuth(root) {
+  var lang = ST.lang || 'en';
+  var isSignup = root.dataset.authMode === 'signup';
+  var hasLang = lang && lang.length > 0;
   if (!hasLang) {
     root.innerHTML = '<div class="page"><div class="card">' +
       '<div class="brand">Life Assistant</div>' +
@@ -671,7 +815,7 @@ function renderWelcome(root) {
     document.querySelectorAll('.lang-btn').forEach(function(btn) {
       btn.onclick = function() {
         ST.lang = btn.dataset.lang;
-        save();
+        try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
         render();
       };
     });
@@ -680,6 +824,28 @@ function renderWelcome(root) {
   root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
     '<div class="brand">Life Assistant</div>' +
     '<p class="tagline">' + ui('tagline') + '</p>' +
+    '<div class="auth-error" id="auth-err" style="display:none" data-testid="text-auth-error"></div>' +
+    '<div class="auth-form">' +
+    '<input type="email" id="auth-email" placeholder="' + ui('email') + '" data-testid="input-auth-email">' +
+    '<input type="password" id="auth-pass" placeholder="' + ui('password') + '" data-testid="input-auth-password">' +
+    '</div>' +
+    '<button class="btn-primary" id="auth-submit" data-testid="button-auth-submit">' + (isSignup ? ui('signup') : ui('login')) + '</button>' +
+    '<div class="auth-toggle">' + (isSignup ? ui('hasAccount') : ui('noAccount')) + ' <span id="auth-switch" data-testid="link-auth-switch">' + (isSignup ? ui('login') : ui('signup')) + '</span></div>' +
+    '<div class="guest-link" id="guest-btn" data-testid="link-guest">' + ui('continueGuest') + '</div>' +
+    '</div></div>';
+  document.getElementById('auth-submit').onclick = function() { doAuth(isSignup ? 'signup' : 'login'); };
+  document.getElementById('auth-switch').onclick = function() { root.dataset.authMode = isSignup ? '' : 'signup'; render(); };
+  document.getElementById('guest-btn').onclick = enterGuest;
+  document.getElementById('auth-pass').onkeydown = function(e) { if (e.key === 'Enter') doAuth(isSignup ? 'signup' : 'login'); };
+  bindLangSwitcher();
+}
+
+function renderWelcome(root) {
+  var authHtml = AUTH.loggedIn ? '<div class="auth-info" style="justify-content:center;margin-bottom:16px"><span class="email">' + esc(AUTH.email) + '</span> <button class="logout-btn" id="logout-btn" data-testid="button-logout">' + ui('logOut') + '</button></div>' : '';
+  root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
+    '<div class="brand">Life Assistant</div>' +
+    '<p class="tagline">' + ui('tagline') + '</p>' +
+    authHtml +
     '<div class="meta-list">' +
     '<p><strong>' + ui('meta1') + '</strong></p>' +
     '<p>' + ui('meta2') + '</p>' +
@@ -689,6 +855,7 @@ function renderWelcome(root) {
     '<button class="btn-primary" id="sb" data-testid="button-start">' + ui('startBtn') + '</button>' +
     '</div></div>';
   document.getElementById('sb').onclick = function() { ST.stage = 'questions'; save(); render(); };
+  if (document.getElementById('logout-btn')) document.getElementById('logout-btn').onclick = doLogout;
   bindLangSwitcher();
 }
 
@@ -802,6 +969,7 @@ function renderChat(root) {
     '<div style="font-size:0.8rem;color:var(--muted)">' + ui('knows') + ' ' + esc(ST.ans.name || 'you') + ' ' + ui('completely') + '</div>' +
     '</div>' +
     '<div style="display:flex;gap:12px;align-items:center">' +
+    (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span>' : '') +
     Object.keys(LANGS).map(function(k) {
       var active = (ST.lang || 'en') === k ? ' active' : '';
       return '<button class="lang-mini' + active + '" data-lang="' + k + '" data-testid="lang-chat-' + k + '" style="font-size:0.9rem;padding:4px 8px">' + LANGS[k].flag + '</button>';
@@ -841,7 +1009,7 @@ function renderChat(root) {
 }
 
 load();
-render();
+checkAuth();
 
 } catch(e) {
   console.error('App error:', e);
