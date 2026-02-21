@@ -153,6 +153,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .habit-add-submit{background:var(--accent);border:none;color:#fff;border-radius:6px;padding:6px 12px;font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
 .habit-add-submit:hover{opacity:0.85;}
 .habit-completion{font-size:0.82rem;color:var(--accent);margin-top:8px;padding:6px 8px;background:rgba(155,109,255,0.06);border-radius:8px;text-align:center;font-weight:500;}
+.growth-panel{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(13,13,20,0.98);overflow-y:auto;z-index:110;animation:fadeGrowth 0.3s ease;}
+@keyframes fadeGrowth{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.growth-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(13,13,20,0.98);z-index:2;}
+.growth-title{font-family:'Playfair Display',serif;font-size:1.3rem;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.growth-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all 0.15s;}
+.growth-close:hover{color:#fff;background:rgba(255,255,255,0.08);}
+.growth-section{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.growth-section-title{font-size:0.75rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600;}
+.growth-summary{font-size:0.88rem;color:var(--text);line-height:1.7;white-space:pre-wrap;}
+.growth-empty{font-size:0.85rem;color:var(--muted);font-style:italic;padding:8px 0;}
+.insight-card{background:rgba(155,109,255,0.06);border:1px solid rgba(155,109,255,0.15);border-radius:12px;padding:10px 14px;margin-bottom:8px;}
+.insight-icon{font-size:0.85rem;margin-right:6px;}
+.insight-text{font-size:0.85rem;color:var(--text);line-height:1.5;}
+.insight-meta{font-size:0.72rem;color:var(--muted);margin-top:4px;}
+.habit-week-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.habit-week-label{font-size:0.78rem;color:var(--text);width:100px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.habit-week-bars{display:flex;gap:3px;flex:1;align-items:flex-end;height:24px;}
+.habit-week-bar{flex:1;border-radius:3px;min-height:2px;transition:all 0.2s;cursor:pointer;}
+.habit-week-bar:hover{opacity:0.8;transform:scaleY(1.15);}
+.habit-week-pct{font-size:0.72rem;color:var(--muted);width:36px;text-align:right;flex-shrink:0;}
+.milestone-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(245,200,66,0.12),rgba(255,109,181,0.08));border:1px solid rgba(245,200,66,0.2);border-radius:100px;padding:6px 14px;margin:0 6px 8px 0;font-size:0.82rem;color:var(--gold);}
+.milestone-icon{font-size:0.9rem;}
+.milestone-text{font-weight:500;}
+.mood-trend-line{display:flex;align-items:flex-end;gap:2px;height:48px;padding:4px 0;}
+.mood-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:all 0.15s;cursor:pointer;}
+.mood-dot:hover{transform:scale(1.5);}
+.mood-connector{height:2px;flex:1;min-width:4px;opacity:0.3;}
+.growth-btn{background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);color:var(--gold);font-size:0.72rem;padding:4px 10px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;white-space:nowrap;}
+.growth-btn:hover{background:rgba(245,200,66,0.25);border-color:var(--gold);}
 .challenge-text{font-size:0.82rem;color:var(--text);display:block;}
 .challenge-count{font-size:0.68rem;color:var(--muted);margin-top:2px;display:block;}
 @media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;font-size:0.9rem;padding:12px 16px;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}.chat-header{padding:12px 14px;}.chat-messages{padding:14px;gap:12px;}.chat-input-bar{padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));}.chat-input{padding:12px 14px;font-size:0.9rem;}.chat-send{padding:12px 18px;font-size:0.9rem;}.quick-actions{padding:0 14px 10px;gap:6px;}.quick-btn{padding:6px 12px;font-size:0.78rem;}.thread-tabs{padding:6px 10px;gap:4px;}.thread-tab{padding:5px 10px;font-size:0.75rem;}.thread-new{padding:5px 10px;font-size:0.78rem;}.msg.user .bubble{margin-left:20%;}}
@@ -227,6 +256,30 @@ const UI = {
     habitsEmpty: 'No habits yet -- add one to start building streaks',
     habitRemove: 'Remove',
     habitProgress: 'completed today',
+    growthBtn: 'Growth',
+    growthTitle: 'Your Evolution',
+    growthSummaryTitle: 'Monthly Summary',
+    growthInsightsTitle: 'Pattern Insights',
+    growthHabitTrends: 'Habit Consistency',
+    growthMoodTrends: 'Mood Journey',
+    growthMilestones: 'Milestones',
+    growthEmpty: 'Keep using the app -- your growth story will appear here as data builds up',
+    growthNoHabits: 'Add habits to see consistency trends',
+    growthNoMood: 'Chat more to build your mood journey',
+    growthWeek: 'week',
+    growthThisWeek: 'This week',
+    growthLastWeek: 'Last week',
+    growthWeeksAgo: 'weeks ago',
+    growthCompletionRate: 'completion',
+    growthMoodUp: 'Your mood has been trending upward recently',
+    growthMoodDown: 'Your mood has had some tough days recently',
+    growthMoodStable: 'Your mood has been steady and stable',
+    growthDaysActive: 'days active',
+    growthMessages: 'messages sent',
+    growthTopicsExplored: 'topics explored',
+    growthMemories: 'memories stored',
+    growthHabitStreak: 'day habit streak',
+    growthAllHabits: 'All habits done today',
     voiceListening: 'Listening...',
     voicePlay: 'Listen',
     voiceStop: 'Stop',
@@ -297,6 +350,30 @@ const UI = {
     habitsEmpty: 'まだ習慣がありません -- 追加して連続記録を始めましょう',
     habitRemove: '削除',
     habitProgress: '今日完了',
+    growthBtn: '成長',
+    growthTitle: 'あなたの進化',
+    growthSummaryTitle: '月間サマリー',
+    growthInsightsTitle: 'パターンの洞察',
+    growthHabitTrends: '習慣の一貫性',
+    growthMoodTrends: '気分の推移',
+    growthMilestones: 'マイルストーン',
+    growthEmpty: 'アプリを使い続けてください -- データが蓄積されると成長の物語がここに表示されます',
+    growthNoHabits: '習慣を追加して一貫性のトレンドを確認しましょう',
+    growthNoMood: 'もっとチャットして気分の推移を記録しましょう',
+    growthWeek: '週',
+    growthThisWeek: '今週',
+    growthLastWeek: '先週',
+    growthWeeksAgo: '週間前',
+    growthCompletionRate: '達成率',
+    growthMoodUp: '最近気分が上向きです',
+    growthMoodDown: '最近つらい日がありました',
+    growthMoodStable: '気分は安定しています',
+    growthDaysActive: '日間アクティブ',
+    growthMessages: '件のメッセージ',
+    growthTopicsExplored: 'トピック探索',
+    growthMemories: '件の記憶',
+    growthHabitStreak: '日間連続',
+    growthAllHabits: '今日の習慣全て完了',
     voiceListening: '聞いています...',
     voicePlay: '聴く',
     voiceStop: '停止',
@@ -367,6 +444,30 @@ const UI = {
     habitsEmpty: 'Sin hábitos aún -- agrega uno para empezar a construir rachas',
     habitRemove: 'Eliminar',
     habitProgress: 'completados hoy',
+    growthBtn: 'Crecimiento',
+    growthTitle: 'Tu Evolución',
+    growthSummaryTitle: 'Resumen Mensual',
+    growthInsightsTitle: 'Perspectivas de Patrones',
+    growthHabitTrends: 'Consistencia de Hábitos',
+    growthMoodTrends: 'Trayectoria del Ánimo',
+    growthMilestones: 'Logros',
+    growthEmpty: 'Sigue usando la app -- tu historia de crecimiento aparecerá aquí a medida que se acumulen datos',
+    growthNoHabits: 'Agrega hábitos para ver tendencias de consistencia',
+    growthNoMood: 'Chatea más para construir tu trayectoria emocional',
+    growthWeek: 'semana',
+    growthThisWeek: 'Esta semana',
+    growthLastWeek: 'Semana pasada',
+    growthWeeksAgo: 'semanas atrás',
+    growthCompletionRate: 'completado',
+    growthMoodUp: 'Tu ánimo ha estado mejorando recientemente',
+    growthMoodDown: 'Tu ánimo ha tenido días difíciles recientemente',
+    growthMoodStable: 'Tu ánimo ha estado estable y constante',
+    growthDaysActive: 'días activo',
+    growthMessages: 'mensajes enviados',
+    growthTopicsExplored: 'temas explorados',
+    growthMemories: 'recuerdos guardados',
+    growthHabitStreak: 'días de racha',
+    growthAllHabits: 'Todos los hábitos completados hoy',
     voiceListening: 'Escuchando...',
     voicePlay: 'Escuchar',
     voiceStop: 'Parar',
@@ -437,6 +538,30 @@ const UI = {
     habitsEmpty: 'ยังไม่มีนิสัย -- เพิ่มเพื่อเริ่มสร้างสถิติต่อเนื่อง',
     habitRemove: 'ลบ',
     habitProgress: 'สำเร็จวันนี้',
+    growthBtn: 'การเติบโต',
+    growthTitle: 'วิวัฒนาการของคุณ',
+    growthSummaryTitle: 'สรุปรายเดือน',
+    growthInsightsTitle: 'ข้อมูลเชิงลึกของรูปแบบ',
+    growthHabitTrends: 'ความสม่ำเสมอของนิสัย',
+    growthMoodTrends: 'เส้นทางอารมณ์',
+    growthMilestones: 'เป้าหมายที่บรรลุ',
+    growthEmpty: 'ใช้แอปต่อไป -- เรื่องราวการเติบโตของคุณจะปรากฏที่นี่เมื่อมีข้อมูลสะสม',
+    growthNoHabits: 'เพิ่มนิสัยเพื่อดูแนวโน้มความสม่ำเสมอ',
+    growthNoMood: 'แชทเพิ่มเพื่อสร้างเส้นทางอารมณ์',
+    growthWeek: 'สัปดาห์',
+    growthThisWeek: 'สัปดาห์นี้',
+    growthLastWeek: 'สัปดาห์ที่แล้ว',
+    growthWeeksAgo: 'สัปดาห์ก่อน',
+    growthCompletionRate: 'สำเร็จ',
+    growthMoodUp: 'อารมณ์ของคุณมีแนวโน้มดีขึ้นเมื่อเร็วๆ นี้',
+    growthMoodDown: 'อารมณ์ของคุณมีวันที่ยากลำบากเมื่อเร็วๆ นี้',
+    growthMoodStable: 'อารมณ์ของคุณมั่นคงและสม่ำเสมอ',
+    growthDaysActive: 'วันที่ใช้งาน',
+    growthMessages: 'ข้อความที่ส่ง',
+    growthTopicsExplored: 'หัวข้อที่สำรวจ',
+    growthMemories: 'ความทรงจำที่เก็บ',
+    growthHabitStreak: 'วันต่อเนื่อง',
+    growthAllHabits: 'ทำนิสัยทั้งหมดครบวันนี้',
     voiceListening: 'กำลังฟัง...',
     voicePlay: 'ฟัง',
     voiceStop: 'หยุด',
@@ -507,6 +632,30 @@ const UI = {
     habitsEmpty: '아직 습관이 없어요 -- 추가해서 연속 기록을 시작하세요',
     habitRemove: '삭제',
     habitProgress: '오늘 완료',
+    growthBtn: '성장',
+    growthTitle: '당신의 진화',
+    growthSummaryTitle: '월간 요약',
+    growthInsightsTitle: '패턴 인사이트',
+    growthHabitTrends: '습관 일관성',
+    growthMoodTrends: '기분 여정',
+    growthMilestones: '이정표',
+    growthEmpty: '앱을 계속 사용하세요 -- 데이터가 쌓이면 성장 이야기가 여기에 나타납니다',
+    growthNoHabits: '습관을 추가하여 일관성 추이를 확인하세요',
+    growthNoMood: '더 많이 대화하여 기분 여정을 만들어보세요',
+    growthWeek: '주',
+    growthThisWeek: '이번 주',
+    growthLastWeek: '지난 주',
+    growthWeeksAgo: '주 전',
+    growthCompletionRate: '달성',
+    growthMoodUp: '최근 기분이 좋아지고 있습니다',
+    growthMoodDown: '최근 힘든 날이 있었습니다',
+    growthMoodStable: '기분이 안정적이고 꾸준합니다',
+    growthDaysActive: '일 활동',
+    growthMessages: '개 메시지',
+    growthTopicsExplored: '개 주제 탐색',
+    growthMemories: '개 기억 저장',
+    growthHabitStreak: '일 연속',
+    growthAllHabits: '오늘 모든 습관 완료',
     voiceListening: '듣고 있습니다...',
     voicePlay: '듣기',
     voiceStop: '중지',
@@ -1467,6 +1616,229 @@ function habitsPromptBlock() {
   return lines.join('\n');
 }
 
+function getHabitWeeklyStats() {
+  initHabits();
+  var habits = ST.patterns.habits.filter(function(h) { return h.active; });
+  if (habits.length === 0) return [];
+  var today = new Date();
+  var weeks = [];
+  for (var w = 0; w < 4; w++) {
+    var weekData = [];
+    for (var d = 6; d >= 0; d--) {
+      var date = new Date(today);
+      date.setDate(date.getDate() - (w * 7 + d));
+      var key = date.toISOString().slice(0, 10);
+      var dayLog = ST.patterns.habitLog[key] || {};
+      var done = 0;
+      for (var hi = 0; hi < habits.length; hi++) {
+        if (dayLog[habits[hi].id]) done++;
+      }
+      weekData.push({ date: key, done: done, total: habits.length });
+    }
+    var totalDone = weekData.reduce(function(s, d) { return s + d.done; }, 0);
+    var totalPossible = weekData.reduce(function(s, d) { return s + d.total; }, 0);
+    var rate = totalPossible > 0 ? Math.round((totalDone / totalPossible) * 100) : 0;
+    var label = w === 0 ? ui('growthThisWeek') : w === 1 ? ui('growthLastWeek') : w + ' ' + ui('growthWeeksAgo');
+    weeks.push({ label: label, days: weekData, rate: rate });
+  }
+  return weeks;
+}
+
+function detectMilestones() {
+  var milestones = [];
+  initHabits();
+  var habits = ST.patterns.habits.filter(function(h) { return h.active; });
+  for (var i = 0; i < habits.length; i++) {
+    var h = habits[i];
+    if (h.streak >= 30) milestones.push({ type: 'streak', text: h.name + ': 30+ ' + ui('growthHabitStreak'), priority: 3 });
+    else if (h.streak >= 14) milestones.push({ type: 'streak', text: h.name + ': 14+ ' + ui('growthHabitStreak'), priority: 2 });
+    else if (h.streak >= 7) milestones.push({ type: 'streak', text: h.name + ': 7+ ' + ui('growthHabitStreak'), priority: 1 });
+  }
+  var comp = getHabitCompletionToday();
+  if (comp && comp.total > 0 && comp.done === comp.total) {
+    milestones.push({ type: 'allDone', text: ui('growthAllHabits'), priority: 1 });
+  }
+  var uniqueDays = {};
+  if (ST.patterns && ST.patterns.activityLog) {
+    for (var a = 0; a < ST.patterns.activityLog.length; a++) {
+      uniqueDays[ST.patterns.activityLog[a].date] = true;
+    }
+  }
+  var dayCount = Object.keys(uniqueDays).length;
+  if (dayCount >= 30) milestones.push({ type: 'active', text: '30+ ' + ui('growthDaysActive'), priority: 2 });
+  else if (dayCount >= 7) milestones.push({ type: 'active', text: dayCount + ' ' + ui('growthDaysActive'), priority: 1 });
+  var memCount = (ST.memories || []).length;
+  if (memCount >= 50) milestones.push({ type: 'memories', text: '50+ ' + ui('growthMemories'), priority: 2 });
+  else if (memCount >= 10) milestones.push({ type: 'memories', text: memCount + ' ' + ui('growthMemories'), priority: 1 });
+  var topicCount = ST.patterns && ST.patterns.topics ? Object.keys(ST.patterns.topics).length : 0;
+  if (topicCount >= 5) milestones.push({ type: 'topics', text: topicCount + ' ' + ui('growthTopicsExplored'), priority: 1 });
+  milestones.sort(function(a, b) { return b.priority - a.priority; });
+  return milestones;
+}
+
+function getPatternInsights() {
+  var insights = [];
+  var topTopics = getTopTopics(3);
+  if (topTopics.length >= 2) {
+    var topName = topTopics[0].topic;
+    insights.push({ text: topName.charAt(0).toUpperCase() + topName.slice(1) + ' (' + topTopics[0].count + 'x) — ' + topTopics.slice(1).map(function(t) { return t.topic + ' (' + t.count + 'x)'; }).join(', '), type: 'topics' });
+  }
+  if (ST.patterns && ST.patterns.weeklyTopics) {
+    var months = Object.keys(ST.patterns.weeklyTopics).sort();
+    if (months.length >= 2) {
+      var prev = ST.patterns.weeklyTopics[months[months.length - 2]] || {};
+      var curr = ST.patterns.weeklyTopics[months[months.length - 1]] || {};
+      var newTopics = [];
+      for (var t in curr) {
+        if (!prev[t] || curr[t] > prev[t] * 1.5) newTopics.push(t);
+      }
+      if (newTopics.length > 0) {
+        insights.push({ text: newTopics.join(', ') + ' — trending up recently', type: 'trend' });
+      }
+    }
+  }
+  if (ST.patterns && ST.patterns.recurringChallenges) {
+    var resolved = ST.patterns.recurringChallenges.filter(function(c) {
+      if (c.count < 2) return false;
+      var daysSince = Math.floor((new Date() - new Date(c.lastSeen)) / (1000 * 60 * 60 * 24));
+      return daysSince > 14;
+    });
+    for (var r = 0; r < Math.min(resolved.length, 2); r++) {
+      insights.push({ text: '"' + resolved[r].text.substring(0, 50) + '..." — not mentioned in 2+ weeks', type: 'resolved' });
+    }
+    var active = ST.patterns.recurringChallenges.filter(function(c) { return c.count >= 3; });
+    for (var ac = 0; ac < Math.min(active.length, 2); ac++) {
+      insights.push({ text: '"' + active[ac].text.substring(0, 50) + '..." — mentioned ' + active[ac].count + ' times', type: 'challenge' });
+    }
+  }
+  initHabits();
+  var bestHabit = null;
+  var habits = ST.patterns.habits.filter(function(h) { return h.active; });
+  for (var hi = 0; hi < habits.length; hi++) {
+    if (!bestHabit || habits[hi].streak > bestHabit.streak) bestHabit = habits[hi];
+  }
+  if (bestHabit && bestHabit.streak > 0) {
+    insights.push({ text: bestHabit.name + ' — ' + bestHabit.streak + '-day streak (best: ' + (bestHabit.bestStreak || bestHabit.streak) + ')', type: 'habit' });
+  }
+  var trend = getMoodTrend();
+  if (trend === 'positive') insights.push({ text: ui('growthMoodUp'), type: 'mood' });
+  else if (trend === 'declining') insights.push({ text: ui('growthMoodDown'), type: 'mood' });
+  else if (trend === 'stable' && ST.moodLog && ST.moodLog.length >= 5) insights.push({ text: ui('growthMoodStable'), type: 'mood' });
+  return insights;
+}
+
+function generateEvolutionSummary() {
+  var lines = [];
+  var uniqueDays = {};
+  var totalMsgs = 0;
+  if (ST.patterns && ST.patterns.activityLog) {
+    for (var a = 0; a < ST.patterns.activityLog.length; a++) {
+      uniqueDays[ST.patterns.activityLog[a].date] = true;
+      totalMsgs += ST.patterns.activityLog[a].msgCount;
+    }
+  }
+  var dayCount = Object.keys(uniqueDays).length;
+  if (dayCount > 0) lines.push(dayCount + ' ' + ui('growthDaysActive') + ' · ' + totalMsgs + ' ' + ui('growthMessages'));
+  var topTopics = getTopTopics(3);
+  if (topTopics.length > 0) {
+    lines.push(topTopics.map(function(t) { return t.topic; }).join(', ') + ' — ' + topTopics.length + ' ' + ui('growthTopicsExplored'));
+  }
+  initHabits();
+  var habits = ST.patterns.habits.filter(function(h) { return h.active; });
+  if (habits.length > 0) {
+    var weekStats = getHabitWeeklyStats();
+    if (weekStats.length > 0) {
+      var thisWeekRate = weekStats[0].rate;
+      var lastWeekRate = weekStats.length > 1 ? weekStats[1].rate : 0;
+      var diff = thisWeekRate - lastWeekRate;
+      var arrow = diff > 5 ? ' ^' : diff < -5 ? ' v' : ' =';
+      lines.push(habits.length + ' habits · ' + thisWeekRate + '% ' + ui('growthCompletionRate') + arrow);
+    }
+  }
+  var memCount = (ST.memories || []).length;
+  if (memCount > 0) lines.push(memCount + ' ' + ui('growthMemories'));
+  var trend = getMoodTrend();
+  if (trend) {
+    lines.push(trend === 'positive' ? ui('growthMoodUp') : trend === 'declining' ? ui('growthMoodDown') : ui('growthMoodStable'));
+  }
+  return lines.length > 0 ? lines.join('\n') : ui('growthEmpty');
+}
+
+function renderGrowthPanel() {
+  var html = '<div class="growth-panel" id="growth-panel" data-testid="growth-panel">';
+  html += '<div class="growth-header"><span class="growth-title">' + ui('growthTitle') + '</span><button class="growth-close" id="close-growth" data-testid="button-close-growth">\u2715</button></div>';
+  html += '<div class="growth-section"><div class="growth-section-title">' + ui('growthSummaryTitle') + '</div>';
+  html += '<div class="growth-summary">' + esc(generateEvolutionSummary()) + '</div>';
+  html += '</div>';
+  var milestones = detectMilestones();
+  if (milestones.length > 0) {
+    html += '<div class="growth-section"><div class="growth-section-title">' + ui('growthMilestones') + '</div>';
+    for (var mi = 0; mi < Math.min(milestones.length, 6); mi++) {
+      var mIcon = milestones[mi].type === 'streak' ? '*' : milestones[mi].type === 'allDone' ? 'v' : milestones[mi].type === 'active' ? '#' : milestones[mi].type === 'memories' ? '~' : '+';
+      html += '<span class="milestone-badge" data-testid="milestone-' + mi + '"><span class="milestone-icon">' + mIcon + '</span><span class="milestone-text">' + esc(milestones[mi].text) + '</span></span>';
+    }
+    html += '</div>';
+  }
+  var insights = getPatternInsights();
+  if (insights.length > 0) {
+    html += '<div class="growth-section"><div class="growth-section-title">' + ui('growthInsightsTitle') + '</div>';
+    for (var ii = 0; ii < insights.length; ii++) {
+      var iIcon = insights[ii].type === 'topics' ? '#' : insights[ii].type === 'trend' ? '^' : insights[ii].type === 'resolved' ? 'v' : insights[ii].type === 'challenge' ? '!' : insights[ii].type === 'habit' ? '*' : '~';
+      html += '<div class="insight-card" data-testid="insight-' + ii + '"><span class="insight-icon">' + iIcon + '</span><span class="insight-text">' + esc(insights[ii].text) + '</span></div>';
+    }
+    html += '</div>';
+  }
+  html += '<div class="growth-section"><div class="growth-section-title">' + ui('growthMoodTrends') + '</div>';
+  if (!ST.moodLog || ST.moodLog.length < 2) {
+    html += '<div class="growth-empty">' + ui('growthNoMood') + '</div>';
+  } else {
+    html += '<div class="mood-trend-line" data-testid="mood-trend-line">';
+    var moods = ST.moodLog.slice(-21);
+    for (var mj = 0; mj < moods.length; mj++) {
+      var mv = moods[mj].score;
+      var mColor = mv > 0 ? '#a78bfa' : mv < 0 ? '#f87171' : '#6b7280';
+      var dotBottom = (mv + 1) * 20;
+      html += '<div class="mood-dot" style="background:' + mColor + ';margin-bottom:' + dotBottom + 'px;" title="' + moods[mj].date + ': ' + (mv > 0 ? '+' : '') + mv + '"></div>';
+      if (mj < moods.length - 1) {
+        html += '<div class="mood-connector" style="background:' + mColor + '"></div>';
+      }
+    }
+    html += '</div>';
+    var trend = getMoodTrend();
+    if (trend) {
+      var trendColor = trend === 'positive' ? 'var(--accent)' : trend === 'declining' ? '#f87171' : 'var(--muted)';
+      html += '<div style="font-size:0.82rem;color:' + trendColor + ';margin-top:6px;">' + (trend === 'positive' ? ui('growthMoodUp') : trend === 'declining' ? ui('growthMoodDown') : ui('growthMoodStable')) + '</div>';
+    }
+  }
+  html += '</div>';
+  html += '<div class="growth-section"><div class="growth-section-title">' + ui('growthHabitTrends') + '</div>';
+  initHabits();
+  var habits = ST.patterns.habits.filter(function(h) { return h.active; });
+  if (habits.length === 0) {
+    html += '<div class="growth-empty">' + ui('growthNoHabits') + '</div>';
+  } else {
+    var weekStats = getHabitWeeklyStats();
+    for (var wi = 0; wi < weekStats.length; wi++) {
+      var ws = weekStats[wi];
+      html += '<div class="habit-week-row" data-testid="habit-week-' + wi + '">';
+      html += '<span class="habit-week-label">' + esc(ws.label) + '</span>';
+      html += '<div class="habit-week-bars">';
+      for (var di = 0; di < ws.days.length; di++) {
+        var dPct = ws.days[di].total > 0 ? Math.round((ws.days[di].done / ws.days[di].total) * 100) : 0;
+        var barH = Math.max(2, (dPct / 100) * 24);
+        var barColor = dPct === 100 ? 'var(--accent)' : dPct > 0 ? 'rgba(155,109,255,0.4)' : 'rgba(255,255,255,0.06)';
+        html += '<div class="habit-week-bar" style="height:' + barH + 'px;background:' + barColor + ';" title="' + ws.days[di].date + ': ' + ws.days[di].done + '/' + ws.days[di].total + '"></div>';
+      }
+      html += '</div>';
+      html += '<span class="habit-week-pct">' + ws.rate + '%</span>';
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
 function getTopTopics(n) {
   if (!ST.patterns || !ST.patterns.topics) return [];
   var entries = Object.keys(ST.patterns.topics).map(function(k) { return { topic: k, count: ST.patterns.topics[k] }; });
@@ -2043,6 +2415,7 @@ function renderChat(root) {
     '<div style="font-size:0.8rem;color:var(--muted)">' + ui('knows') + ' ' + esc(ST.ans.name || 'you') + ' ' + ui('completely') + '</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
+    '<button class="growth-btn" id="open-growth" data-testid="button-open-growth">' + ui('growthBtn') + '</button>' +
     '<button class="patterns-btn" id="open-patterns" data-testid="button-open-patterns">Patterns</button>' +
     '<span class="tier-badge ' + getTierClass() + '">' + getTierLabel() + '</span>' +
     (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span>' : '') +
@@ -2122,10 +2495,27 @@ function renderChat(root) {
     };
   });
 
+  var openGrowthBtn = document.getElementById('open-growth');
+  if (openGrowthBtn) openGrowthBtn.onclick = function() {
+    var existing = document.getElementById('growth-panel');
+    if (existing) { existing.remove(); return; }
+    var pPanel = document.getElementById('patterns-panel');
+    if (pPanel) pPanel.remove();
+    var chatWrap = document.querySelector('.chat-wrap');
+    if (chatWrap) chatWrap.insertAdjacentHTML('beforeend', renderGrowthPanel());
+    var closeGrowth = document.getElementById('close-growth');
+    if (closeGrowth) closeGrowth.onclick = function() {
+      var panel = document.getElementById('growth-panel');
+      if (panel) panel.remove();
+    };
+  };
+
   var openPatternsBtn = document.getElementById('open-patterns');
   if (openPatternsBtn) openPatternsBtn.onclick = function() {
     var existing = document.getElementById('patterns-panel');
     if (existing) { existing.remove(); return; }
+    var gPanel = document.getElementById('growth-panel');
+    if (gPanel) gPanel.remove();
     var chatWrap = document.querySelector('.chat-wrap');
     if (chatWrap) chatWrap.insertAdjacentHTML('beforeend', renderPatternsPanel());
     bindPatternsPanel();
