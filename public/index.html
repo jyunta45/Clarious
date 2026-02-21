@@ -136,6 +136,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .goal-text{font-size:0.82rem;color:var(--text);flex:1;}
 .goal-meta{font-size:0.68rem;color:var(--muted);white-space:nowrap;flex-shrink:0;}
 .challenge-row{margin-bottom:8px;padding:6px 8px;background:rgba(248,113,113,0.06);border-radius:8px;border-left:2px solid rgba(248,113,113,0.3);}
+.habit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:8px;transition:background 0.15s;}
+.habit-row.habit-done-row{background:rgba(167,139,250,0.08);border-left:2px solid rgba(167,139,250,0.4);}
+.habit-check{width:20px;height:20px;border-radius:4px;border:2px solid var(--muted);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:transparent;transition:all 0.15s;flex-shrink:0;}
+.habit-check.checked{background:var(--accent);border-color:var(--accent);color:#fff;}
+.habit-info{flex:1;min-width:0;}
+.habit-name{font-size:0.88rem;color:var(--text);font-weight:500;}
+.habit-meta{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+.habit-streak-badge{font-size:0.7rem;color:var(--accent);background:rgba(155,109,255,0.12);padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
+.habit-remove-btn{background:none;border:none;color:var(--muted);font-size:0.65rem;cursor:pointer;opacity:0.5;transition:opacity 0.15s;flex-shrink:0;}
+.habit-remove-btn:hover{opacity:1;color:#f87171;}
+.habit-add-form{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);}
+.habit-add-row{display:flex;gap:6px;}
+.habit-input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 10px;color:var(--text);font-size:0.82rem;font-family:'DM Sans',sans-serif;outline:none;}
+.habit-input:focus{border-color:var(--accent);}
+.habit-add-submit{background:var(--accent);border:none;color:#fff;border-radius:6px;padding:6px 12px;font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.habit-add-submit:hover{opacity:0.85;}
+.habit-completion{font-size:0.82rem;color:var(--accent);margin-top:8px;padding:6px 8px;background:rgba(155,109,255,0.06);border-radius:8px;text-align:center;font-weight:500;}
 .challenge-text{font-size:0.82rem;color:var(--text);display:block;}
 .challenge-count{font-size:0.68rem;color:var(--muted);margin-top:2px;display:block;}
 @media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;font-size:0.9rem;padding:12px 16px;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}.chat-header{padding:12px 14px;}.chat-messages{padding:14px;gap:12px;}.chat-input-bar{padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));}.chat-input{padding:12px 14px;font-size:0.9rem;}.chat-send{padding:12px 18px;font-size:0.9rem;}.quick-actions{padding:0 14px 10px;gap:6px;}.quick-btn{padding:6px 12px;font-size:0.78rem;}.thread-tabs{padding:6px 10px;gap:4px;}.thread-tab{padding:5px 10px;font-size:0.75rem;}.thread-new{padding:5px 10px;font-size:0.78rem;}.msg.user .bubble{margin-left:20%;}}
@@ -199,6 +216,17 @@ const UI = {
     triggerInactivity: 'Quick check-in -- still moving toward your goal?',
     triggerGoalDrift: 'You\'ve mentioned this challenge a few times. Want to redesign your approach?',
     triggerDailyAlign: 'What\'s the one action today that moves you forward?',
+    triggerHabits: 'You have habits to check off today. How\'s it going?',
+    habitsLabel: 'Habits',
+    addHabitBtn: 'Add habit',
+    habitNamePh: 'e.g. Meditate 10 min',
+    habitGoalPh: 'Linked goal (optional)',
+    habitStreak: 'streak',
+    habitBest: 'best',
+    habitDone: 'Done today',
+    habitsEmpty: 'No habits yet -- add one to start building streaks',
+    habitRemove: 'Remove',
+    habitProgress: 'completed today',
     voiceListening: 'Listening...',
     voicePlay: 'Listen',
     voiceStop: 'Stop',
@@ -258,6 +286,17 @@ const UI = {
     triggerInactivity: 'お久しぶりです -- まだ目標に向かって進んでいますか？',
     triggerGoalDrift: 'この課題を何度か話していますね。アプローチを見直しませんか？',
     triggerDailyAlign: '今日、前進するための一つの行動は何ですか？',
+    triggerHabits: '今日チェックする習慣がありますよ。進んでますか？',
+    habitsLabel: '習慣',
+    addHabitBtn: '習慣を追加',
+    habitNamePh: '例：10分瞑想する',
+    habitGoalPh: '関連する目標（任意）',
+    habitStreak: '連続',
+    habitBest: '最高',
+    habitDone: '今日完了',
+    habitsEmpty: 'まだ習慣がありません -- 追加して連続記録を始めましょう',
+    habitRemove: '削除',
+    habitProgress: '今日完了',
     voiceListening: '聞いています...',
     voicePlay: '聴く',
     voiceStop: '停止',
@@ -317,6 +356,17 @@ const UI = {
     triggerInactivity: 'Te echamos de menos -- ¿sigues avanzando hacia tu meta?',
     triggerGoalDrift: 'Has mencionado este desafío varias veces. ¿Quieres replantear tu enfoque?',
     triggerDailyAlign: '¿Cuál es la acción de hoy que te hace avanzar?',
+    triggerHabits: 'Tienes hábitos pendientes hoy. ¿Cómo vas?',
+    habitsLabel: 'Hábitos',
+    addHabitBtn: 'Agregar hábito',
+    habitNamePh: 'ej. Meditar 10 min',
+    habitGoalPh: 'Meta vinculada (opcional)',
+    habitStreak: 'racha',
+    habitBest: 'mejor',
+    habitDone: 'Hecho hoy',
+    habitsEmpty: 'Sin hábitos aún -- agrega uno para empezar a construir rachas',
+    habitRemove: 'Eliminar',
+    habitProgress: 'completados hoy',
     voiceListening: 'Escuchando...',
     voicePlay: 'Escuchar',
     voiceStop: 'Parar',
@@ -376,6 +426,17 @@ const UI = {
     triggerInactivity: 'แค่เช็คอิน -- ยังมุ่งหน้าสู่เป้าหมายอยู่ไหม?',
     triggerGoalDrift: 'คุณพูดถึงปัญหานี้หลายครั้งแล้ว อยากลองปรับแนวทางไหม?',
     triggerDailyAlign: 'วันนี้จะทำอะไรสักอย่างที่พาคุณก้าวไปข้างหน้า?',
+    triggerHabits: 'วันนี้มีนิสัยที่ต้องเช็คอยู่ เป็นอย่างไรบ้าง?',
+    habitsLabel: 'นิสัย',
+    addHabitBtn: 'เพิ่มนิสัย',
+    habitNamePh: 'เช่น นั่งสมาธิ 10 นาที',
+    habitGoalPh: 'เป้าหมายที่เกี่ยวข้อง (ไม่จำเป็น)',
+    habitStreak: 'ต่อเนื่อง',
+    habitBest: 'สูงสุด',
+    habitDone: 'ทำแล้ววันนี้',
+    habitsEmpty: 'ยังไม่มีนิสัย -- เพิ่มเพื่อเริ่มสร้างสถิติต่อเนื่อง',
+    habitRemove: 'ลบ',
+    habitProgress: 'สำเร็จวันนี้',
     voiceListening: 'กำลังฟัง...',
     voicePlay: 'ฟัง',
     voiceStop: 'หยุด',
@@ -435,6 +496,17 @@ const UI = {
     triggerInactivity: '잠깐 체크인 -- 아직 목표를 향해 나아가고 있나요?',
     triggerGoalDrift: '이 문제를 여러 번 언급하셨어요. 접근 방식을 바꿔볼까요?',
     triggerDailyAlign: '오늘 앞으로 나아가게 할 한 가지 행동은 뭔가요?',
+    triggerHabits: '오늘 체크할 습관이 있어요. 어떻게 되고 있나요?',
+    habitsLabel: '습관',
+    addHabitBtn: '습관 추가',
+    habitNamePh: '예: 10분 명상하기',
+    habitGoalPh: '연결된 목표 (선택)',
+    habitStreak: '연속',
+    habitBest: '최고',
+    habitDone: '오늘 완료',
+    habitsEmpty: '아직 습관이 없어요 -- 추가해서 연속 기록을 시작하세요',
+    habitRemove: '삭제',
+    habitProgress: '오늘 완료',
     voiceListening: '듣고 있습니다...',
     voicePlay: '듣기',
     voiceStop: '중지',
@@ -1002,6 +1074,8 @@ function getProactiveTrigger() {
     if (challenges[ci].count >= 3) { frequentChallenge = challenges[ci]; break; }
   }
   if (frequentChallenge) return 'goalDrift';
+  var comp = getHabitCompletionToday();
+  if (comp && comp.done < comp.total) return 'habits';
   return 'dailyAlign';
 }
 
@@ -1009,6 +1083,7 @@ function getCheckinMessage() {
   var trigger = getProactiveTrigger();
   if (trigger === 'inactivity') return ui('triggerInactivity');
   if (trigger === 'goalDrift') return ui('triggerGoalDrift');
+  if (trigger === 'habits') return ui('triggerHabits');
   return ui('triggerDailyAlign');
 }
 
@@ -1212,6 +1287,13 @@ function behavioralTriggers() {
       }
     }
   }
+  var habitComp = getHabitCompletionToday();
+  if (habitComp && habitComp.total > 0 && habitComp.done < habitComp.total) {
+    triggers.push({ type: 'habits_pending', msg: 'User has ' + (habitComp.total - habitComp.done) + ' out of ' + habitComp.total + ' habits still unchecked today. If natural, gently acknowledge their habits or ask how they are going.' });
+  }
+  if (habitComp && habitComp.total > 0 && habitComp.done === habitComp.total) {
+    triggers.push({ type: 'habits_complete', msg: 'User completed all ' + habitComp.total + ' habits today. If relevant, briefly acknowledge their consistency.' });
+  }
   return triggers;
 }
 
@@ -1288,6 +1370,101 @@ function trackPatterns(userText) {
     }
     if (p.goalProgress.length > 15) p.goalProgress = p.goalProgress.slice(-15);
   }
+}
+
+function initHabits() {
+  if (!ST.patterns) ST.patterns = { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} };
+  if (!ST.patterns.habits) ST.patterns.habits = [];
+  if (!ST.patterns.habitLog) ST.patterns.habitLog = {};
+}
+
+function addHabit(name, goalLink) {
+  initHabits();
+  var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  ST.patterns.habits.push({ id: id, name: name, goalLink: goalLink || '', createdAt: new Date().toISOString().slice(0, 10), streak: 0, bestStreak: 0, lastCheckedDate: '', active: true });
+  save();
+  return id;
+}
+
+function removeHabit(id) {
+  initHabits();
+  ST.patterns.habits = ST.patterns.habits.filter(function(h) { return h.id !== id; });
+  save();
+}
+
+function toggleHabit(id) {
+  initHabits();
+  var today = new Date().toISOString().slice(0, 10);
+  if (!ST.patterns.habitLog[today]) ST.patterns.habitLog[today] = {};
+  var wasChecked = !!ST.patterns.habitLog[today][id];
+  ST.patterns.habitLog[today][id] = !wasChecked;
+  computeStreaks();
+  save();
+}
+
+function computeStreaks() {
+  initHabits();
+  var today = new Date().toISOString().slice(0, 10);
+  for (var i = 0; i < ST.patterns.habits.length; i++) {
+    var h = ST.patterns.habits[i];
+    if (!h.active) continue;
+    var streak = 0;
+    var d = new Date(today);
+    while (true) {
+      var key = d.toISOString().slice(0, 10);
+      if (ST.patterns.habitLog[key] && ST.patterns.habitLog[key][h.id]) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    h.streak = streak;
+    if (streak > (h.bestStreak || 0)) h.bestStreak = streak;
+    h.lastCheckedDate = streak > 0 ? today : h.lastCheckedDate;
+  }
+  trimHabitLog();
+}
+
+function trimHabitLog() {
+  if (!ST.patterns || !ST.patterns.habitLog) return;
+  var keys = Object.keys(ST.patterns.habitLog).sort();
+  if (keys.length > 90) {
+    var toRemove = keys.slice(0, keys.length - 90);
+    for (var i = 0; i < toRemove.length; i++) delete ST.patterns.habitLog[toRemove[i]];
+  }
+}
+
+function getHabitCompletionToday() {
+  initHabits();
+  var today = new Date().toISOString().slice(0, 10);
+  var active = ST.patterns.habits.filter(function(h) { return h.active; });
+  if (active.length === 0) return null;
+  var done = 0;
+  var todayLog = ST.patterns.habitLog[today] || {};
+  for (var i = 0; i < active.length; i++) {
+    if (todayLog[active[i].id]) done++;
+  }
+  return { done: done, total: active.length };
+}
+
+function habitsPromptBlock() {
+  initHabits();
+  var active = ST.patterns.habits.filter(function(h) { return h.active; });
+  if (active.length === 0) return '';
+  var today = new Date().toISOString().slice(0, 10);
+  var todayLog = ST.patterns.habitLog[today] || {};
+  var lines = ['\n\nUSER HABITS (reference naturally, encourage progress, never lecture):'];
+  for (var i = 0; i < Math.min(active.length, 5); i++) {
+    var h = active[i];
+    var done = todayLog[h.id] ? 'done today' : 'not done today';
+    var streakStr = h.streak > 0 ? h.streak + '-day streak' : 'no streak';
+    var goalStr = h.goalLink ? ' (linked to: ' + h.goalLink + ')' : '';
+    lines.push('- ' + h.name + ': ' + done + ', ' + streakStr + (h.bestStreak > 1 ? ', best=' + h.bestStreak : '') + goalStr);
+  }
+  var comp = getHabitCompletionToday();
+  if (comp) lines.push('- Today: ' + comp.done + '/' + comp.total + ' habits completed');
+  return lines.join('\n');
 }
 
 function getTopTopics(n) {
@@ -1437,6 +1614,44 @@ function renderPatternsPanel() {
     }
   }
 
+  initHabits();
+  var habits = ST.patterns.habits.filter(function(h) { return h.active; });
+  var today = new Date().toISOString().slice(0, 10);
+  var todayLog = ST.patterns.habitLog[today] || {};
+  html += '<div class="patterns-section"><div class="patterns-label">' + ui('habitsLabel') + '</div>';
+  if (habits.length === 0) {
+    html += '<div class="patterns-empty">' + ui('habitsEmpty') + '</div>';
+  } else {
+    for (var hi = 0; hi < habits.length; hi++) {
+      var hab = habits[hi];
+      var isDone = !!todayLog[hab.id];
+      var checkClass = isDone ? 'habit-check checked' : 'habit-check';
+      var rowClass = isDone ? 'habit-row habit-done-row' : 'habit-row';
+      html += '<div class="' + rowClass + '" data-testid="habit-row-' + hi + '">';
+      html += '<button class="' + checkClass + '" data-habit-id="' + hab.id + '" data-testid="habit-check-' + hi + '">' + (isDone ? 'v' : '') + '</button>';
+      html += '<div class="habit-info"><div class="habit-name">' + esc(hab.name) + '</div>';
+      var metaParts = [];
+      if (hab.goalLink) metaParts.push(esc(hab.goalLink));
+      if (hab.streak > 0) metaParts.push(hab.streak + ' ' + ui('habitStreak'));
+      if (hab.bestStreak > 1) metaParts.push(ui('habitBest') + ': ' + hab.bestStreak);
+      if (metaParts.length > 0) html += '<div class="habit-meta">' + metaParts.join(' \u00b7 ') + '</div>';
+      html += '</div>';
+      if (hab.streak > 0) html += '<span class="habit-streak-badge">' + hab.streak + 'd</span>';
+      html += '<button class="habit-remove-btn" data-habit-rm="' + hab.id + '" data-testid="habit-remove-' + hi + '">' + ui('habitRemove') + '</button>';
+      html += '</div>';
+    }
+    var comp = getHabitCompletionToday();
+    if (comp) {
+      html += '<div class="habit-completion">' + comp.done + '/' + comp.total + ' ' + ui('habitProgress') + '</div>';
+    }
+  }
+  html += '<div class="habit-add-form">';
+  html += '<div class="habit-add-row"><input class="habit-input" id="habit-name-input" placeholder="' + esc(ui('habitNamePh')) + '" data-testid="input-habit-name" />';
+  html += '<button class="habit-add-submit" id="habit-add-btn" data-testid="button-add-habit">' + ui('addHabitBtn') + '</button></div>';
+  html += '<input class="habit-input" id="habit-goal-input" placeholder="' + esc(ui('habitGoalPh')) + '" data-testid="input-habit-goal" />';
+  html += '</div>';
+  html += '</div>';
+
   html += '</div>';
   return html;
 }
@@ -1457,8 +1672,9 @@ function systemPrompt(userText) {
   var memoryBlock = userText ? retrieveRelevantMemories(userText) : '';
   var triggerBlock = triggersPromptBlock();
   var patternBlock = patternsPromptBlock();
+  var habitBlock = habitsPromptBlock();
   var summaryBlock = getThreadSummary() ? '\n\nPREVIOUS CONVERSATION SUMMARY:\n' + getThreadSummary() : '';
-  return 'You are JARVIS - a sharp, calm personal life assistant. Like Tony Stark\'s AI: smart, efficient, always helpful.\n\n' + buildProfile() + summaryBlock + memoryBlock + triggerBlock + patternBlock + '\n\nRESPONSE LENGTH RULES (CRITICAL - saves cost):\n- DEFAULT: 2-3 short paragraphs. Be concise. Every word must earn its place.\n- Simple questions (greetings, yes/no, quick advice): 1-2 sentences max.\n- Medium questions (how-to, opinions, suggestions): 2-3 short paragraphs.\n- Deep requests (plans, strategies, step-by-step): Up to 4-5 paragraphs, use structure.\n- MATCH the energy of the question. Short question = short answer. Long question = longer answer.\n- NEVER pad responses with filler, motivational fluff, or unnecessary recaps.\n\nPERSONALITY:\n- Trusted ally, not therapist or critic. Smart friend energy.\n- Natural and conversational. No corporate tone.\n- Get to the point fast. Lead with the answer, then explain if needed.\n\nPROFILE USAGE:\n- Use their profile SILENTLY to personalize advice. Do NOT quote it back.\n- NEVER say "you told me X" or "your confidence is Y/10" or list their problems.\n- NEVER criticize short answers or analyze what answers "reveal."\n- Good: Know they work in agriculture, so suggest farming-relevant advice naturally.\n- Bad: "You said you feel behind in life and your confidence is 4/10."\n\nMEMORY USAGE:\n- If RELEVANT MEMORIES are provided, use them to provide continuity and personalized advice.\n- Reference past conversations naturally, like a friend who remembers. Do NOT say "according to my records."\n- If no memories are relevant, ignore them.\n\nBEHAVIOR:\n- Answer what was asked. Do not redirect to goals/insecurities.\n- Focus on solutions, not problems. Forward movement always.\n- If they just chat casually, chat back casually. Not everything needs deep advice.\n\nTone: ' + toneRule + langRule;
+  return 'You are JARVIS - a sharp, calm personal life assistant. Like Tony Stark\'s AI: smart, efficient, always helpful.\n\n' + buildProfile() + summaryBlock + memoryBlock + triggerBlock + patternBlock + habitBlock + '\n\nRESPONSE LENGTH RULES (CRITICAL - saves cost):\n- DEFAULT: 2-3 short paragraphs. Be concise. Every word must earn its place.\n- Simple questions (greetings, yes/no, quick advice): 1-2 sentences max.\n- Medium questions (how-to, opinions, suggestions): 2-3 short paragraphs.\n- Deep requests (plans, strategies, step-by-step): Up to 4-5 paragraphs, use structure.\n- MATCH the energy of the question. Short question = short answer. Long question = longer answer.\n- NEVER pad responses with filler, motivational fluff, or unnecessary recaps.\n\nPERSONALITY:\n- Trusted ally, not therapist or critic. Smart friend energy.\n- Natural and conversational. No corporate tone.\n- Get to the point fast. Lead with the answer, then explain if needed.\n\nPROFILE USAGE:\n- Use their profile SILENTLY to personalize advice. Do NOT quote it back.\n- NEVER say "you told me X" or "your confidence is Y/10" or list their problems.\n- NEVER criticize short answers or analyze what answers "reveal."\n- Good: Know they work in agriculture, so suggest farming-relevant advice naturally.\n- Bad: "You said you feel behind in life and your confidence is 4/10."\n\nMEMORY USAGE:\n- If RELEVANT MEMORIES are provided, use them to provide continuity and personalized advice.\n- Reference past conversations naturally, like a friend who remembers. Do NOT say "according to my records."\n- If no memories are relevant, ignore them.\n\nBEHAVIOR:\n- Answer what was asked. Do not redirect to goals/insecurities.\n- Focus on solutions, not problems. Forward movement always.\n- If they just chat casually, chat back casually. Not everything needs deep advice.\n\nTone: ' + toneRule + langRule;
 }
 
 function chatGreeting() {
@@ -1912,12 +2128,53 @@ function renderChat(root) {
     if (existing) { existing.remove(); return; }
     var chatWrap = document.querySelector('.chat-wrap');
     if (chatWrap) chatWrap.insertAdjacentHTML('beforeend', renderPatternsPanel());
+    bindPatternsPanel();
+  };
+
+  function bindPatternsPanel() {
     var closeBtn = document.getElementById('close-patterns');
     if (closeBtn) closeBtn.onclick = function() {
       var panel = document.getElementById('patterns-panel');
       if (panel) panel.remove();
     };
-  };
+    var panel = document.getElementById('patterns-panel');
+    if (!panel) return;
+    panel.querySelectorAll('[data-habit-id]').forEach(function(btn) {
+      btn.onclick = function() {
+        toggleHabit(btn.getAttribute('data-habit-id'));
+        refreshPatternsPanel();
+      };
+    });
+    panel.querySelectorAll('[data-habit-rm]').forEach(function(btn) {
+      btn.onclick = function() {
+        removeHabit(btn.getAttribute('data-habit-rm'));
+        refreshPatternsPanel();
+      };
+    });
+    var addBtn = document.getElementById('habit-add-btn');
+    if (addBtn) addBtn.onclick = function() {
+      var nameInput = document.getElementById('habit-name-input');
+      var goalInput = document.getElementById('habit-goal-input');
+      var name = nameInput ? nameInput.value.trim() : '';
+      if (!name) return;
+      var goal = goalInput ? goalInput.value.trim() : '';
+      addHabit(name, goal);
+      refreshPatternsPanel();
+    };
+    var nameInput = document.getElementById('habit-name-input');
+    if (nameInput) nameInput.onkeydown = function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); var ab = document.getElementById('habit-add-btn'); if (ab) ab.click(); }
+    };
+  }
+
+  function refreshPatternsPanel() {
+    var panel = document.getElementById('patterns-panel');
+    if (!panel) return;
+    var chatWrap = document.querySelector('.chat-wrap');
+    panel.remove();
+    if (chatWrap) chatWrap.insertAdjacentHTML('beforeend', renderPatternsPanel());
+    bindPatternsPanel();
+  }
 }
 
 load();
