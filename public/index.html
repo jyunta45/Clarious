@@ -76,7 +76,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .auth-info .logout-btn:hover{color:var(--accent2);}
 .guest-link{text-align:center;color:var(--muted);font-size:0.85rem;margin-top:8px;cursor:pointer;}
 .guest-link:hover{color:var(--accent);}
-@media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}}
+.quick-actions{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 12px;justify-content:center;}
+.quick-btn{padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:0.82rem;background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.25);border-radius:100px;color:var(--accent);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.quick-btn:hover{background:rgba(155,109,255,0.2);border-color:var(--accent);transform:translateY(-1px);}
+.thread-tabs{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;background:rgba(13,13,20,0.6);border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;}
+.thread-tabs::-webkit-scrollbar{display:none;}
+.thread-tab{padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:0.8rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:100px;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0;}
+.thread-tab:hover{color:var(--text);border-color:rgba(155,109,255,0.3);}
+.thread-tab.active{background:rgba(155,109,255,0.2);border-color:var(--accent);color:#fff;}
+.thread-new{padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.85rem;background:none;border:1px dashed rgba(155,109,255,0.3);border-radius:100px;color:var(--accent);cursor:pointer;flex-shrink:0;}
+.thread-new:hover{background:rgba(155,109,255,0.1);}
+.checkin-banner{padding:16px 20px;background:linear-gradient(135deg,rgba(155,109,255,0.15),rgba(255,109,181,0.1));border-bottom:1px solid rgba(155,109,255,0.2);text-align:center;font-size:0.9rem;color:var(--text);cursor:pointer;transition:opacity 0.2s;}
+.checkin-banner:hover{opacity:0.85;}
+.checkin-dismiss{background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;margin-left:8px;font-family:'DM Sans',sans-serif;}
+@media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;font-size:0.9rem;padding:12px 16px;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}.chat-header{padding:12px 14px;}.chat-messages{padding:14px;gap:12px;}.chat-input-bar{padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));}.chat-input{padding:12px 14px;font-size:0.9rem;}.chat-send{padding:12px 18px;font-size:0.9rem;}.quick-actions{padding:0 14px 10px;gap:6px;}.quick-btn{padding:6px 12px;font-size:0.78rem;}.thread-tabs{padding:6px 10px;gap:4px;}.thread-tab{padding:5px 10px;font-size:0.75rem;}.thread-new{padding:5px 10px;font-size:0.78rem;}.msg.user .bubble{margin-left:20%;}}
 </style>
 </head>
 <body>
@@ -129,6 +142,11 @@ const UI = {
     hasAccount: 'Already have an account?',
     continueGuest: 'Continue without account',
     logOut: 'Log out',
+    quickActions: ['What should I focus on today?', 'Help me make a plan', 'I need motivation', 'Review my goals', 'Give me a challenge'],
+    newThread: '+ New',
+    mainThread: 'Main',
+    checkinMsg: 'Good to see you! How are you feeling today?',
+    checkinDismiss: 'dismiss',
     sections: {
       'Basic Context': 'Basic Context',
       'Dreams & Pain': 'Dreams & Pain',
@@ -171,6 +189,11 @@ const UI = {
     hasAccount: 'すでにアカウントをお持ちですか？',
     continueGuest: 'アカウントなしで続ける',
     logOut: 'ログアウト',
+    quickActions: ['今日は何に集中すべき？', '計画を立てて', 'やる気が欲しい', '目標を見直して', 'チャレンジをちょうだい'],
+    newThread: '+ 新規',
+    mainThread: 'メイン',
+    checkinMsg: '会えて嬉しいです！今日の調子はどうですか？',
+    checkinDismiss: '閉じる',
     sections: {
       'Basic Context': '基本情報',
       'Dreams & Pain': '夢と悩み',
@@ -213,6 +236,11 @@ const UI = {
     hasAccount: '¿Ya tienes cuenta?',
     continueGuest: 'Continuar sin cuenta',
     logOut: 'Cerrar sesión',
+    quickActions: ['¿En qué debo enfocarme hoy?', 'Ayúdame a hacer un plan', 'Necesito motivación', 'Revisa mis metas', 'Dame un reto'],
+    newThread: '+ Nuevo',
+    mainThread: 'Principal',
+    checkinMsg: '¡Me alegra verte! ¿Cómo te sientes hoy?',
+    checkinDismiss: 'cerrar',
     sections: {
       'Basic Context': 'Contexto Básico',
       'Dreams & Pain': 'Sueños y Dolor',
@@ -255,6 +283,11 @@ const UI = {
     hasAccount: 'มีบัญชีแล้ว?',
     continueGuest: 'ดำเนินต่อโดยไม่ต้องมีบัญชี',
     logOut: 'ออกจากระบบ',
+    quickActions: ['วันนี้ควรโฟกัสอะไร?', 'ช่วยวางแผนให้หน่อย', 'ต้องการแรงจูงใจ', 'ทบทวนเป้าหมาย', 'ให้ความท้าทายหน่อย'],
+    newThread: '+ ใหม่',
+    mainThread: 'หลัก',
+    checkinMsg: 'ดีใจที่ได้เจอ! วันนี้เป็นอย่างไรบ้าง?',
+    checkinDismiss: 'ปิด',
     sections: {
       'Basic Context': 'ข้อมูลพื้นฐาน',
       'Dreams & Pain': 'ความฝันและความเจ็บปวด',
@@ -297,6 +330,11 @@ const UI = {
     hasAccount: '이미 계정이 있으신가요?',
     continueGuest: '계정 없이 계속하기',
     logOut: '로그아웃',
+    quickActions: ['오늘 뭐에 집중해야 할까?', '계획 세우는 걸 도와줘', '동기부여가 필요해', '목표 점검해줘', '도전 과제를 줘'],
+    newThread: '+ 새로',
+    mainThread: '메인',
+    checkinMsg: '만나서 반가워요! 오늘 기분이 어때요?',
+    checkinDismiss: '닫기',
     sections: {
       'Basic Context': '기본 정보',
       'Dreams & Pain': '꿈과 고통',
@@ -564,9 +602,10 @@ function sectionName(s) {
   return UI[lang] && UI[lang].sections && UI[lang].sections[s] ? UI[lang].sections[s] : s;
 }
 
-var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '' };
+var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '' };
 var AUTH = { loggedIn: false, email: '', checked: false, guest: false };
 var savePending = null;
+var checkinDismissed = false;
 
 function save() {
   try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
@@ -578,7 +617,7 @@ function save() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           answers: ST.ans,
-          messages: ST.msgs,
+          messages: ST.threads && ST.threads.length > 0 ? ST.threads : ST.msgs,
           stage: ST.stage,
           step: ST.step,
           lang: ST.lang || 'en',
@@ -619,11 +658,22 @@ async function loadServerData() {
     var data = await res.json();
     if (data && data.id) {
       if (data.answers && Object.keys(data.answers).length > 0) ST.ans = data.answers;
-      if (data.messages && data.messages.length > 0) ST.msgs = data.messages;
+      if (data.messages) {
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
+          if (data.messages[0].name !== undefined) {
+            ST.threads = data.messages;
+            ST.activeThread = ST.activeThread || 0;
+            if (ST.threads[ST.activeThread]) ST.msgs = ST.threads[ST.activeThread].msgs;
+          } else {
+            ST.msgs = data.messages;
+          }
+        }
+      }
       if (data.stage) ST.stage = data.stage;
       if (data.step) ST.step = parseInt(data.step) || 0;
       if (data.lang) ST.lang = data.lang;
       if (data.mirror) ST.mirror = data.mirror;
+      if (data.lastCheckin) ST.lastCheckin = data.lastCheckin;
       try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
     }
   } catch(e) {}
@@ -663,6 +713,105 @@ function enterGuest() {
   render();
 }
 
+function getThreads() {
+  if (!ST.threads || ST.threads.length === 0) {
+    if (ST.msgs && ST.msgs.length > 0) {
+      ST.threads = [{ name: ui('mainThread'), msgs: ST.msgs }];
+      ST.activeThread = 0;
+    } else {
+      ST.threads = [];
+      ST.activeThread = 0;
+    }
+  }
+  return ST.threads;
+}
+
+function getActiveMsgs() {
+  var threads = getThreads();
+  if (threads.length === 0) return ST.msgs || [];
+  return threads[ST.activeThread] ? threads[ST.activeThread].msgs : [];
+}
+
+function setActiveMsgs(msgs) {
+  var threads = getThreads();
+  if (threads.length === 0) {
+    ST.msgs = msgs;
+  } else if (threads[ST.activeThread]) {
+    threads[ST.activeThread].msgs = msgs;
+    ST.msgs = msgs;
+  }
+}
+
+function switchThread(idx) {
+  ST.activeThread = idx;
+  ST.msgs = getThreads()[idx].msgs;
+  save();
+  render();
+}
+
+function newThread() {
+  var threads = getThreads();
+  var name = (threads.length + 1).toString();
+  threads.push({ name: name, msgs: [{ role: 'assistant', content: chatGreeting() }] });
+  ST.activeThread = threads.length - 1;
+  ST.msgs = threads[ST.activeThread].msgs;
+  save();
+  render();
+}
+
+function autoThreadName(msgs) {
+  if (msgs.length < 3) return null;
+  var userMsgs = msgs.filter(function(m) { return m.role === 'user'; });
+  if (userMsgs.length === 0) return null;
+  var first = userMsgs[0].content;
+  if (first.length > 25) first = first.substring(0, 22) + '...';
+  return first;
+}
+
+function shouldCheckin() {
+  if (checkinDismissed) return false;
+  var today = new Date().toDateString();
+  if (ST.lastCheckin === today) return false;
+  if (!ST.msgs || ST.msgs.length < 2) return false;
+  return true;
+}
+
+function doCheckin() {
+  var today = new Date().toDateString();
+  ST.lastCheckin = today;
+  checkinDismissed = true;
+  ST.loading = true;
+  save();
+  render();
+  sendMsg(ui('checkinMsg'));
+}
+
+function dismissCheckin() {
+  checkinDismissed = true;
+  ST.lastCheckin = new Date().toDateString();
+  save();
+  render();
+}
+
+function compressContext(msgs) {
+  if (msgs.length <= 16) return msgs;
+  var oldMsgs = msgs.slice(0, msgs.length - 12);
+  var recentMsgs = msgs.slice(msgs.length - 12);
+  var summary = 'CONVERSATION SUMMARY: ';
+  var topics = [];
+  for (var i = 0; i < oldMsgs.length; i++) {
+    if (oldMsgs[i].role === 'user' && oldMsgs[i].content.length > 10) {
+      var snippet = oldMsgs[i].content.substring(0, 60);
+      topics.push(snippet);
+    }
+  }
+  if (topics.length > 0) {
+    summary += 'Earlier topics discussed: ' + topics.slice(-5).join('; ') + '. ';
+  }
+  summary += '(' + oldMsgs.length + ' older messages compressed)';
+  return [{ role: 'user', content: summary }, { role: 'assistant', content: 'Understood, I have context from our earlier conversation.' }].concat(recentMsgs);
+}
+
 function g(k, f) { return ST.ans[k] || f || '?'; }
 
 function insecStr() {
@@ -700,15 +849,25 @@ function chatGreeting() {
 }
 
 async function sendMsg(userText) {
-  ST.msgs.push({ role: 'user', content: userText });
-  ST.msgs.push({ role: 'assistant', content: '' });
+  var activeMsgs = getActiveMsgs();
+  activeMsgs.push({ role: 'user', content: userText });
+  activeMsgs.push({ role: 'assistant', content: '' });
+  setActiveMsgs(activeMsgs);
   ST.streaming = true;
+  var threads = getThreads();
+  if (threads[ST.activeThread]) {
+    var autoName = autoThreadName(activeMsgs);
+    if (autoName && (threads[ST.activeThread].name === ui('mainThread') || /^\d+$/.test(threads[ST.activeThread].name))) {
+      threads[ST.activeThread].name = autoName;
+    }
+  }
   render();
+  var msgsForApi = compressContext(activeMsgs.slice(0, -1)).map(function(m) { return { role: m.role, content: m.content }; });
   try {
     var res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stream: true, system: systemPrompt(), messages: ST.msgs.slice(0, -1).map(function(m) { return { role: m.role, content: m.content }; }) })
+      body: JSON.stringify({ stream: true, system: systemPrompt(), messages: msgsForApi })
     });
     var reader = res.body.getReader();
     var decoder = new TextDecoder();
@@ -727,15 +886,18 @@ async function sendMsg(userText) {
         try {
           var evt = JSON.parse(dataStr);
           if (evt.text) {
-            ST.msgs[ST.msgs.length - 1].content += evt.text;
+            var curMsgs = getActiveMsgs();
+            curMsgs[curMsgs.length - 1].content += evt.text;
             updateStreamBubble();
           }
         } catch(e2) {}
       }
     }
   } catch(e) {
-    if (!ST.msgs[ST.msgs.length - 1].content) {
-      ST.msgs[ST.msgs.length - 1].content = 'Something went wrong. Please try again.';
+    var aMsgs = getActiveMsgs();
+    if (aMsgs.length > 0 && !aMsgs[aMsgs.length - 1].content) {
+      aMsgs[aMsgs.length - 1].content = 'Something went wrong. Please try again.';
+      setActiveMsgs(aMsgs);
     }
   }
   ST.loading = false;
@@ -748,7 +910,8 @@ async function sendMsg(userText) {
 function updateStreamBubble() {
   var lastBubble = document.getElementById('stream-bubble');
   if (lastBubble) {
-    lastBubble.innerHTML = esc(ST.msgs[ST.msgs.length - 1].content);
+    var aMsgs = getActiveMsgs();
+    lastBubble.innerHTML = esc(aMsgs[aMsgs.length - 1].content);
     var cm = document.getElementById('cm');
     if (cm) cm.scrollTop = cm.scrollHeight;
   }
@@ -758,7 +921,8 @@ function reset() {
   if (!confirm(ui('deleteConfirm'))) return;
   var keepLang = ST.lang;
   try { localStorage.removeItem('la'); } catch(e) {}
-  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang };
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '' };
+  checkinDismissed = false;
   save();
   render();
 }
@@ -945,7 +1109,10 @@ function renderMirror(root) {
     '</div></div>';
   document.getElementById('cn').onclick = function() {
     ST.stage = 'chat';
-    ST.msgs = [{ role: 'assistant', content: chatGreeting() }];
+    var greeting = [{ role: 'assistant', content: chatGreeting() }];
+    ST.msgs = greeting;
+    ST.threads = [{ name: ui('mainThread'), msgs: greeting }];
+    ST.activeThread = 0;
     save();
     render();
   };
@@ -955,20 +1122,58 @@ function renderMirror(root) {
 
 function renderChat(root) {
   var isBusy = ST.loading || ST.streaming;
-  var msgsHtml = ST.msgs.map(function(m, idx) {
-    var isLastAssistant = ST.streaming && idx === ST.msgs.length - 1 && m.role === 'assistant';
+  var activeMsgs = getActiveMsgs();
+  var threads = getThreads();
+  var showCheckin = shouldCheckin();
+  var showQuickActions = !isBusy && activeMsgs.length <= 2;
+
+  var msgsHtml = activeMsgs.map(function(m, idx) {
+    var isLastAssistant = ST.streaming && idx === activeMsgs.length - 1 && m.role === 'assistant';
     var bubbleId = isLastAssistant ? ' id="stream-bubble"' : '';
     var content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
     if (isLastAssistant && !content) content = '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
     return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '"' + bubbleId + '>' + content + '</div></div>';
   }).join('');
+
+  var threadHtml = '';
+  if (threads.length > 0) {
+    threadHtml = '<div class="thread-tabs" data-testid="thread-tabs">';
+    for (var t = 0; t < threads.length; t++) {
+      var tActive = t === ST.activeThread ? ' active' : '';
+      var tName = threads[t].name || (t + 1);
+      threadHtml += '<button class="thread-tab' + tActive + '" data-tidx="' + t + '" data-testid="thread-tab-' + t + '">' + esc(tName) + '</button>';
+    }
+    threadHtml += '<button class="thread-new" id="new-thread" data-testid="button-new-thread">' + ui('newThread') + '</button>';
+    threadHtml += '</div>';
+  }
+
+  var checkinHtml = '';
+  if (showCheckin) {
+    checkinHtml = '<div class="checkin-banner" id="checkin-go" data-testid="banner-checkin">' +
+      ui('checkinMsg') +
+      '<button class="checkin-dismiss" id="checkin-dismiss" data-testid="button-checkin-dismiss">' + ui('checkinDismiss') + '</button>' +
+      '</div>';
+  }
+
+  var quickHtml = '';
+  if (showQuickActions) {
+    var actions = ui('quickActions') || [];
+    if (actions.length > 0) {
+      quickHtml = '<div class="quick-actions" data-testid="quick-actions">';
+      for (var qi = 0; qi < actions.length; qi++) {
+        quickHtml += '<button class="quick-btn" data-qtext="' + esc(actions[qi]) + '" data-testid="quick-btn-' + qi + '">' + esc(actions[qi]) + '</button>';
+      }
+      quickHtml += '</div>';
+    }
+  }
+
   root.innerHTML = '<div class="chat-wrap">' +
     '<div class="chat-header">' +
     '<div>' +
     '<div style="font-family:Georgia,serif;font-size:1.4rem;color:#fff">Life Assistant</div>' +
     '<div style="font-size:0.8rem;color:var(--muted)">' + ui('knows') + ' ' + esc(ST.ans.name || 'you') + ' ' + ui('completely') + '</div>' +
     '</div>' +
-    '<div style="display:flex;gap:12px;align-items:center">' +
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
     (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span>' : '') +
     Object.keys(LANGS).map(function(k) {
       var active = (ST.lang || 'en') === k ? ' active' : '';
@@ -977,13 +1182,17 @@ function renderChat(root) {
     '<div class="reset-link" style="margin:0" id="rb" data-testid="link-reset">' + ui('reset') + '</div>' +
     '</div>' +
     '</div>' +
+    threadHtml +
+    checkinHtml +
     '<div class="chat-messages" id="cm">' + msgsHtml +
     '<div id="chat-end"></div></div>' +
+    quickHtml +
     '<div class="chat-input-bar">' +
     '<div class="chat-input-inner">' +
     '<input class="chat-input" id="ci" placeholder="' + ui('askAnything') + '" ' + (isBusy ? 'disabled' : '') + ' data-testid="input-chat">' +
     '<button class="chat-send" id="cs" ' + (isBusy ? 'disabled' : '') + ' data-testid="button-send">' + ui('send') + '</button>' +
     '</div></div></div>';
+
   var cm = document.getElementById('cm');
   cm.scrollTop = cm.scrollHeight;
   var ci = document.getElementById('ci');
@@ -999,6 +1208,7 @@ function renderChat(root) {
   ci.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } };
   cs.onclick = doSend;
   document.getElementById('rb').onclick = reset;
+
   document.querySelectorAll('.lang-mini').forEach(function(btn) {
     btn.onclick = function() {
       ST.lang = btn.dataset.lang;
@@ -1006,6 +1216,27 @@ function renderChat(root) {
       render();
     };
   });
+
+  document.querySelectorAll('.thread-tab').forEach(function(btn) {
+    btn.onclick = function() { switchThread(parseInt(btn.dataset.tidx)); };
+  });
+  var ntBtn = document.getElementById('new-thread');
+  if (ntBtn) ntBtn.onclick = newThread;
+
+  document.querySelectorAll('.quick-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      var txt = btn.dataset.qtext;
+      if (!txt || isBusy) return;
+      ST.loading = true;
+      render();
+      sendMsg(txt);
+    };
+  });
+
+  var ciGo = document.getElementById('checkin-go');
+  if (ciGo) ciGo.onclick = function(e) { if (e.target.id !== 'checkin-dismiss') doCheckin(); };
+  var ciDis = document.getElementById('checkin-dismiss');
+  if (ciDis) ciDis.onclick = function(e) { e.stopPropagation(); dismissCheckin(); };
 }
 
 load();
