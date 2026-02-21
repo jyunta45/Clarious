@@ -30,22 +30,101 @@ app.post('/api/chat', async (req, res) => {
       ? messages.slice(messages.length - 16)
       : messages;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: maxTokens,
-        system: req.body.system,
-        messages: trimmedMessages
-      })
-    });
-    const data = await response.json();
-    res.json(data);
+    const wantStream = req.body.stream === true;
+
+    if (wantStream) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders();
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: maxTokens,
+          stream: true,
+          system: req.body.system,
+          messages: trimmedMessages
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        res.write('data: ' + JSON.stringify({ type: 'error', error: errData }) + '\n\n');
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (!dataStr || dataStr === '[DONE]') continue;
+            try {
+              const event = JSON.parse(dataStr);
+              if (event.type === 'content_block_delta' && event.delta && event.delta.text) {
+                res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
+              }
+            } catch(e) {}
+          }
+        }
+      }
+
+      if (buffer.trim()) {
+        const remaining = buffer.split('\n');
+        for (const line of remaining) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (!dataStr || dataStr === '[DONE]') continue;
+            try {
+              const event = JSON.parse(dataStr);
+              if (event.type === 'content_block_delta' && event.delta && event.delta.text) {
+                res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
+              }
+            } catch(e) {}
+          }
+        }
+      }
+
+      res.write('data: [DONE]\n\n');
+      res.end();
+
+    } else {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: maxTokens,
+          system: req.body.system,
+          messages: trimmedMessages
+        })
+      });
+      const data = await response.json();
+      res.json(data);
+    }
   } catch(e) {
     res.status(500).json({ error: e.message });
   }

@@ -563,19 +563,57 @@ function chatGreeting() {
 
 async function sendMsg(userText) {
   ST.msgs.push({ role: 'user', content: userText });
+  ST.msgs.push({ role: 'assistant', content: '' });
+  ST.streaming = true;
   render();
-  var res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ system: systemPrompt(), messages: ST.msgs.map(function(m) { return { role: m.role, content: m.content }; }) })
-  });
-  var data = await res.json();
-  var reply = data.content && data.content[0] ? data.content[0].text : 'Something went wrong.';
-  ST.msgs.push({ role: 'assistant', content: reply });
+  try {
+    var res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stream: true, system: systemPrompt(), messages: ST.msgs.slice(0, -1).map(function(m) { return { role: m.role, content: m.content }; }) })
+    });
+    var reader = res.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      var lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line.startsWith('data: ')) continue;
+        var dataStr = line.slice(6);
+        if (dataStr === '[DONE]') continue;
+        try {
+          var evt = JSON.parse(dataStr);
+          if (evt.text) {
+            ST.msgs[ST.msgs.length - 1].content += evt.text;
+            updateStreamBubble();
+          }
+        } catch(e2) {}
+      }
+    }
+  } catch(e) {
+    if (!ST.msgs[ST.msgs.length - 1].content) {
+      ST.msgs[ST.msgs.length - 1].content = 'Something went wrong. Please try again.';
+    }
+  }
   ST.loading = false;
+  ST.streaming = false;
   save();
   render();
   setTimeout(function() { var el = document.getElementById('chat-end'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100);
+}
+
+function updateStreamBubble() {
+  var lastBubble = document.getElementById('stream-bubble');
+  if (lastBubble) {
+    lastBubble.innerHTML = esc(ST.msgs[ST.msgs.length - 1].content);
+    var cm = document.getElementById('cm');
+    if (cm) cm.scrollTop = cm.scrollHeight;
+  }
 }
 
 function reset() {
@@ -749,8 +787,13 @@ function renderMirror(root) {
 }
 
 function renderChat(root) {
-  var msgsHtml = ST.msgs.map(function(m) {
-    return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '">' + m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div></div>';
+  var isBusy = ST.loading || ST.streaming;
+  var msgsHtml = ST.msgs.map(function(m, idx) {
+    var isLastAssistant = ST.streaming && idx === ST.msgs.length - 1 && m.role === 'assistant';
+    var bubbleId = isLastAssistant ? ' id="stream-bubble"' : '';
+    var content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+    if (isLastAssistant && !content) content = '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
+    return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '"' + bubbleId + '>' + content + '</div></div>';
   }).join('');
   root.innerHTML = '<div class="chat-wrap">' +
     '<div class="chat-header">' +
@@ -767,12 +810,11 @@ function renderChat(root) {
     '</div>' +
     '</div>' +
     '<div class="chat-messages" id="cm">' + msgsHtml +
-    (ST.loading ? '<div class="msg assistant"><div class="bubble assistant" style="color:var(--muted)">' + ui('thinking') + '</div></div>' : '') +
     '<div id="chat-end"></div></div>' +
     '<div class="chat-input-bar">' +
     '<div class="chat-input-inner">' +
-    '<input class="chat-input" id="ci" placeholder="' + ui('askAnything') + '" ' + (ST.loading ? 'disabled' : '') + ' data-testid="input-chat">' +
-    '<button class="chat-send" id="cs" ' + (ST.loading ? 'disabled' : '') + ' data-testid="button-send">' + ui('send') + '</button>' +
+    '<input class="chat-input" id="ci" placeholder="' + ui('askAnything') + '" ' + (isBusy ? 'disabled' : '') + ' data-testid="input-chat">' +
+    '<button class="chat-send" id="cs" ' + (isBusy ? 'disabled' : '') + ' data-testid="button-send">' + ui('send') + '</button>' +
     '</div></div></div>';
   var cm = document.getElementById('cm');
   cm.scrollTop = cm.scrollHeight;
@@ -780,7 +822,7 @@ function renderChat(root) {
   var cs = document.getElementById('cs');
   function doSend() {
     var txt = ci.value.trim();
-    if (!txt || ST.loading) return;
+    if (!txt || isBusy) return;
     ci.value = '';
     ST.loading = true;
     render();
