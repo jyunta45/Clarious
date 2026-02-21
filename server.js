@@ -9,12 +9,12 @@ import { db } from './db/index.js';
 import { users, userData } from './shared/schema.js';
 import { eq } from 'drizzle-orm';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+var __app_dirname;
+try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static('public'));
+app.use(express.static(path.join(__app_dirname, 'public')));
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const PgSession = connectPgSimple(session);
