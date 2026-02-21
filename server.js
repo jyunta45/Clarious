@@ -12,6 +12,24 @@ app.use(express.static('public'));
 
 app.post('/api/chat', async (req, res) => {
   try {
+    const userMsg = req.body.messages && req.body.messages.length > 0
+      ? req.body.messages[req.body.messages.length - 1].content || ''
+      : '';
+
+    const wordCount = userMsg.trim().split(/\s+/).length;
+    const isDeepQuestion = /plan|strategy|how to|step.?by.?step|explain|detail|breakdown|analyze|help me with|guide/i.test(userMsg);
+
+    let maxTokens = 300;
+    if (wordCount > 30 || isDeepQuestion) maxTokens = 600;
+    if (wordCount > 80) maxTokens = 800;
+
+    if (req.body.max_tokens) maxTokens = Math.min(req.body.max_tokens, 1000);
+
+    const messages = req.body.messages || [];
+    const trimmedMessages = messages.length > 16
+      ? messages.slice(messages.length - 16)
+      : messages;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -21,9 +39,9 @@ app.post('/api/chat', async (req, res) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
+        max_tokens: maxTokens,
         system: req.body.system,
-        messages: req.body.messages
+        messages: trimmedMessages
       })
     });
     const data = await response.json();
