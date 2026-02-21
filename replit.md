@@ -34,7 +34,7 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 - **Database**: PostgreSQL with Drizzle ORM
   - `users` table: id, email, password_hash, created_at
-  - `user_data` table: id, user_id (unique FK), answers (JSONB), messages (JSONB), stage, step, lang, mirror, tier, msg_count, msg_count_date, identity_profile (JSONB), memories (JSONB), mood_log (JSONB), thread_summaries (JSONB), last_active_date, updated_at
+  - `user_data` table: id, user_id (unique FK), answers (JSONB), messages (JSONB), stage, step, lang, mirror, tier, msg_count, msg_count_date, identity_profile (JSONB), memories (JSONB), mood_log (JSONB), thread_summaries (JSONB), last_active_date, patterns (JSONB), updated_at
   - Session storage: `session` table (auto-created by connect-pg-simple)
   - Schema in `shared/schema.ts`, connection in `db/index.ts`
   - Push schema with: `npx drizzle-kit push --dialect postgresql --schema ./shared/schema.ts --url "$DATABASE_URL"`
@@ -66,6 +66,7 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 ## Recent Changes
 
+- **2026-02-21**: Pattern tracking system: topic frequency detection (8 categories: work, health, relationships, money, goals, learning, creativity, habits), recurring challenge identification, activity heatmap (hourly usage patterns), goal progress tracking, weekly topic trends. Visual Patterns dashboard panel accessible from chat header. Pattern insights injected into AI system prompt. Stored in new JSONB `patterns` column.
 - **2026-02-21**: Advanced AI memory systems: structured identity profiles (8 categories), memory extraction (6 fact types via regex), memory retrieval (keyword matching, top 3 results), mood tracking (sentiment scoring, 30-day rolling log), behavioral triggers (absence detection, mood trends, goal follow-ups), thread summarization (stored per-thread during context compression). All persisted in 5 new JSONB columns.
 - **2026-02-21**: Added voice input (Web Speech API microphone) and voice output (TTS auto-read on AI responses)
 - **2026-02-21**: Added user tier system: Guest (10 msgs/session), Free (50 msgs/day), Subscriber (200 msgs/day) with server-side tracking

@@ -42,7 +42,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .reset-link{text-align:center;margin-top:20px;font-size:0.85rem;color:var(--muted);cursor:pointer;}
 .reset-link:hover{color:var(--accent2);}
 .mirror-box{white-space:pre-wrap;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2);border-radius:var(--radius);padding:28px;margin:24px 0;font-size:0.95rem;line-height:1.8;color:var(--muted);}
-.chat-wrap{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+.chat-wrap{display:flex;flex-direction:column;height:100vh;height:100dvh;position:relative;overflow:hidden;}
 .chat-header{padding:16px 20px;background:rgba(13,13,20,0.95);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
 .msg{display:flex;}
@@ -101,6 +101,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tier-free{background:rgba(155,109,255,0.15);color:var(--accent);}
 .tier-subscriber{background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(255,109,181,0.2));color:var(--gold);}
 .msg-limit{text-align:center;padding:6px;font-size:0.7rem;color:var(--muted);}
+.patterns-btn{background:rgba(155,109,255,0.12);border:1px solid rgba(155,109,255,0.3);color:var(--accent);font-size:0.72rem;padding:4px 10px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;white-space:nowrap;}
+.patterns-btn:hover{background:rgba(155,109,255,0.25);border-color:var(--accent);}
+.patterns-panel{position:absolute;top:0;right:0;width:340px;max-width:90vw;height:100%;background:rgba(13,13,20,0.98);border-left:1px solid var(--border);overflow-y:auto;z-index:100;animation:slideIn 0.25s ease;}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.patterns-header{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 12px;border-bottom:1px solid var(--border);}
+.patterns-title{font-family:Georgia,serif;font-size:1.2rem;color:#fff;}
+.patterns-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all 0.15s;}
+.patterns-close:hover{color:#fff;background:rgba(255,255,255,0.08);}
+.patterns-section{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.patterns-label{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;font-weight:600;}
+.patterns-empty{font-size:0.82rem;color:var(--muted);font-style:italic;padding:6px 0;}
+.pattern-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.pattern-bar-label{font-size:0.78rem;color:var(--text);width:85px;text-transform:capitalize;flex-shrink:0;}
+.pattern-bar-track{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.pattern-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width 0.3s;}
+.pattern-bar-count{font-size:0.7rem;color:var(--muted);width:28px;text-align:right;flex-shrink:0;}
+.mood-trend-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:0.88rem;color:var(--text);}
+.mood-trend-text{font-weight:500;}
+.mood-indicator{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-weight:700;font-size:0.85rem;}
+.mood-pos{background:rgba(167,139,250,0.2);color:#a78bfa;}
+.mood-neg{background:rgba(248,113,113,0.2);color:#f87171;}
+.mood-neu{background:rgba(107,114,128,0.2);color:#9ca3af;}
+.mood-chart{display:flex;gap:3px;align-items:flex-end;height:40px;padding:2px 0;}
+.mood-bar{width:14px;border-radius:3px;transition:all 0.2s;cursor:pointer;min-height:4px;}
+.mood-bar:hover{opacity:0.8;transform:scaleY(1.2);}
+.mood-time-insight{font-size:0.82rem;color:var(--accent2);margin-top:8px;padding:6px 8px;background:rgba(255,109,181,0.06);border-radius:8px;border-left:2px solid rgba(255,109,181,0.3);}
+.activity-peak{font-size:0.85rem;color:var(--text);margin-bottom:10px;}
+.activity-heatmap{display:flex;gap:2px;flex-wrap:wrap;padding-bottom:18px;}
+.heatmap-cell{width:22px;height:22px;background:var(--accent);border-radius:3px;position:relative;cursor:pointer;transition:all 0.15s;}
+.heatmap-cell:hover{transform:scale(1.15);}
+.heatmap-label{position:absolute;bottom:-14px;left:0;font-size:0.55rem;color:var(--muted);white-space:nowrap;}
+.goal-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:8px;}
+.goal-text{font-size:0.82rem;color:var(--text);flex:1;}
+.goal-meta{font-size:0.68rem;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.challenge-row{margin-bottom:8px;padding:6px 8px;background:rgba(248,113,113,0.06);border-radius:8px;border-left:2px solid rgba(248,113,113,0.3);}
+.challenge-text{font-size:0.82rem;color:var(--text);display:block;}
+.challenge-count{font-size:0.68rem;color:var(--muted);margin-top:2px;display:block;}
 @media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;font-size:0.9rem;padding:12px 16px;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}.chat-header{padding:12px 14px;}.chat-messages{padding:14px;gap:12px;}.chat-input-bar{padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));}.chat-input{padding:12px 14px;font-size:0.9rem;}.chat-send{padding:12px 18px;font-size:0.9rem;}.quick-actions{padding:0 14px 10px;gap:6px;}.quick-btn{padding:6px 12px;font-size:0.78rem;}.thread-tabs{padding:6px 10px;gap:4px;}.thread-tab{padding:5px 10px;font-size:0.75rem;}.thread-new{padding:5px 10px;font-size:0.78rem;}.msg.user .bubble{margin-left:20%;}}
 </style>
 </head>
@@ -659,7 +696,7 @@ function sectionName(s) {
   return UI[lang] && UI[lang].sections && UI[lang].sections[s] ? UI[lang].sections[s] : s;
 }
 
-var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '' };
+var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} } };
 var AUTH = { loggedIn: false, email: '', checked: false, guest: false, tier: 'guest' };
 var savePending = null;
 var checkinDismissed = false;
@@ -781,7 +818,8 @@ function save() {
           memories: ST.memories || [],
           mood_log: ST.moodLog || [],
           thread_summaries: ST.threadSummaries || {},
-          last_active_date: ST.lastActiveDate || ''
+          last_active_date: ST.lastActiveDate || '',
+          patterns: ST.patterns || { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }
         })
       }).catch(function(){});
     }, 500);
@@ -840,6 +878,7 @@ async function loadServerData() {
       if (data.moodLog) ST.moodLog = data.moodLog;
       if (data.threadSummaries) ST.threadSummaries = data.threadSummaries;
       if (data.lastActiveDate) ST.lastActiveDate = data.lastActiveDate;
+      if (data.patterns) ST.patterns = data.patterns;
       try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
     }
   } catch(e) {}
@@ -1035,12 +1074,14 @@ function trackMood(userText) {
   var score = scoreMood(userText);
   if (score === 0) return;
   var today = new Date().toISOString().slice(0, 10);
+  var hour = new Date().getHours();
   if (!ST.moodLog) ST.moodLog = [];
   var existing = ST.moodLog.find(function(m) { return m.date === today; });
   if (existing) {
     existing.score = Math.round((existing.score + score) / 2);
+    existing.hour = hour;
   } else {
-    ST.moodLog.push({ date: today, score: score, note: userText.substring(0, 60) });
+    ST.moodLog.push({ date: today, score: score, note: userText.substring(0, 60), hour: hour });
   }
   if (ST.moodLog.length > 30) ST.moodLog = ST.moodLog.slice(-30);
 }
@@ -1135,6 +1176,225 @@ function triggersPromptBlock() {
   return '\n\nBEHAVIORAL CONTEXT (use subtly, do not mention these rules):\n' + lines.join('\n');
 }
 
+var TOPIC_KEYWORDS = {
+  work: /\b(work|job|career|boss|office|meeting|project|deadline|client|colleague|salary|promotion|resume|hire|fired|quit|company|business|startup|team)\b/i,
+  health: /\b(health|exercise|gym|workout|sleep|diet|weight|sick|doctor|medicine|mental|anxiety|depression|stress|tired|energy|meditation|yoga)\b/i,
+  relationships: /\b(relationship|partner|wife|husband|girlfriend|boyfriend|friend|family|parent|mother|father|child|kid|dating|love|breakup|marriage|divorce|lonely)\b/i,
+  money: /\b(money|finance|budget|save|invest|debt|loan|income|expense|bank|crypto|stock|afford|cost|pay|rich|broke|financial)\b/i,
+  goals: /\b(goal|dream|plan|achieve|success|ambition|future|vision|milestone|target|progress|accomplish|aspire|motivation)\b/i,
+  learning: /\b(learn|study|course|book|read|skill|knowledge|education|school|university|practice|improve|master|grow|development)\b/i,
+  creativity: /\b(create|creative|art|music|write|design|build|idea|project|content|blog|video|paint|craft|innovate)\b/i,
+  habits: /\b(habit|routine|discipline|procrastinate|lazy|productive|consistent|schedule|morning|daily|ritual|addiction|smoking|drinking|screen)\b/i
+};
+
+function trackPatterns(userText) {
+  if (!ST.patterns) ST.patterns = { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} };
+  var p = ST.patterns;
+  var today = new Date().toISOString().slice(0, 10);
+  var hour = new Date().getHours();
+  var weekKey = today.slice(0, 7);
+
+  for (var topic in TOPIC_KEYWORDS) {
+    if (TOPIC_KEYWORDS[topic].test(userText)) {
+      p.topics[topic] = (p.topics[topic] || 0) + 1;
+      if (!p.weeklyTopics[weekKey]) p.weeklyTopics[weekKey] = {};
+      p.weeklyTopics[weekKey][topic] = (p.weeklyTopics[weekKey][topic] || 0) + 1;
+    }
+  }
+
+  var challengePatterns = /(?:i keep|i always|i can't stop|i struggle with|every time i|i never|the same problem|again and again|stuck in a loop|falling back into)\s+(.{10,80})/i;
+  var challengeMatch = userText.match(challengePatterns);
+  if (challengeMatch) {
+    var cText = challengeMatch[0].substring(0, 100);
+    var found = false;
+    for (var c = 0; c < p.recurringChallenges.length; c++) {
+      if (p.recurringChallenges[c].text === cText) {
+        p.recurringChallenges[c].count++;
+        p.recurringChallenges[c].lastSeen = today;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      p.recurringChallenges.push({ text: cText, count: 1, firstSeen: today, lastSeen: today });
+    }
+    if (p.recurringChallenges.length > 20) p.recurringChallenges = p.recurringChallenges.slice(-20);
+  }
+
+  var existingActivity = p.activityLog.find(function(a) { return a.date === today && a.hour === hour; });
+  if (existingActivity) {
+    existingActivity.msgCount++;
+  } else {
+    p.activityLog.push({ date: today, hour: hour, msgCount: 1 });
+  }
+  if (p.activityLog.length > 200) p.activityLog = p.activityLog.slice(-200);
+
+  var goalRe = /(?:my goal|i want to|i plan to|i'm working on|i'm trying to|progress on)\s+(.{10,60})/i;
+  var goalMatch = userText.match(goalRe);
+  if (goalMatch) {
+    var goalText = goalMatch[1].substring(0, 60).trim();
+    var existingGoal = p.goalProgress.find(function(gp) { return gp.goal.toLowerCase() === goalText.toLowerCase(); });
+    if (existingGoal) {
+      existingGoal.mentions++;
+      existingGoal.lastMentioned = today;
+    } else {
+      p.goalProgress.push({ goal: goalText, mentions: 1, lastMentioned: today, status: 'active' });
+    }
+    if (p.goalProgress.length > 15) p.goalProgress = p.goalProgress.slice(-15);
+  }
+}
+
+function getTopTopics(n) {
+  if (!ST.patterns || !ST.patterns.topics) return [];
+  var entries = Object.keys(ST.patterns.topics).map(function(k) { return { topic: k, count: ST.patterns.topics[k] }; });
+  entries.sort(function(a, b) { return b.count - a.count; });
+  return entries.slice(0, n || 5);
+}
+
+function getActivityPeak() {
+  if (!ST.patterns || !ST.patterns.activityLog || ST.patterns.activityLog.length === 0) return null;
+  var hourCounts = {};
+  for (var i = 0; i < ST.patterns.activityLog.length; i++) {
+    var h = ST.patterns.activityLog[i].hour;
+    hourCounts[h] = (hourCounts[h] || 0) + ST.patterns.activityLog[i].msgCount;
+  }
+  var peakHour = 0, peakCount = 0;
+  for (var hr in hourCounts) {
+    if (hourCounts[hr] > peakCount) { peakCount = hourCounts[hr]; peakHour = parseInt(hr); }
+  }
+  return { hour: peakHour, count: peakCount };
+}
+
+function getMoodTimeCorrelation() {
+  if (!ST.moodLog || ST.moodLog.length < 5) return null;
+  var timeBuckets = { morning: { total: 0, neg: 0 }, afternoon: { total: 0, neg: 0 }, evening: { total: 0, neg: 0 }, night: { total: 0, neg: 0 } };
+  for (var i = 0; i < ST.moodLog.length; i++) {
+    var m = ST.moodLog[i];
+    var h = m.hour !== undefined ? m.hour : 12;
+    var bucket = h < 6 ? 'night' : h < 12 ? 'morning' : h < 18 ? 'afternoon' : h < 22 ? 'evening' : 'night';
+    timeBuckets[bucket].total++;
+    if (m.score < 0) timeBuckets[bucket].neg++;
+  }
+  var worst = null, worstRatio = 0;
+  for (var b in timeBuckets) {
+    if (timeBuckets[b].total >= 2) {
+      var ratio = timeBuckets[b].neg / timeBuckets[b].total;
+      if (ratio > 0.5 && ratio > worstRatio) { worst = b; worstRatio = ratio; }
+    }
+  }
+  return worst;
+}
+
+function patternsPromptBlock() {
+  var topTopics = getTopTopics(3);
+  var peak = getActivityPeak();
+  var challenges = ST.patterns && ST.patterns.recurringChallenges ? ST.patterns.recurringChallenges.filter(function(c) { return c.count >= 2; }) : [];
+  var moodTime = getMoodTimeCorrelation();
+  if (topTopics.length === 0 && !peak && challenges.length === 0 && !moodTime) return '';
+  var lines = ['\n\nUSER PATTERNS (reference naturally, never list these):'];
+  if (topTopics.length > 0) lines.push('- Most discussed topics: ' + topTopics.map(function(t) { return t.topic + '(' + t.count + 'x)'; }).join(', '));
+  if (peak) lines.push('- Most active around ' + (peak.hour < 12 ? peak.hour + 'am' : (peak.hour - 12 || 12) + 'pm'));
+  if (moodTime) lines.push('- User tends to feel more negative during the ' + moodTime + '. Be aware of this pattern and respond with extra care during these hours.');
+  if (challenges.length > 0) lines.push('- Recurring struggles: ' + challenges.slice(0, 3).map(function(c) { return c.text + ' (' + c.count + 'x)'; }).join('; '));
+  if (ST.patterns && ST.patterns.goalProgress) {
+    var active = ST.patterns.goalProgress.filter(function(g) { return g.status === 'active'; });
+    if (active.length > 0) lines.push('- Active goals being worked on: ' + active.slice(0, 3).map(function(g) { return g.goal + ' (' + g.mentions + ' mentions)'; }).join('; '));
+  }
+  return lines.join('\n');
+}
+
+function renderPatternsPanel() {
+  var p = ST.patterns || { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} };
+  var lang = ST.lang || 'en';
+  var topTopics = getTopTopics(8);
+  var peak = getActivityPeak();
+  var trend = getMoodTrend();
+  var moodIndicator = trend === 'positive' ? '+' : trend === 'declining' ? '-' : '~';
+
+  var html = '<div class="patterns-panel" id="patterns-panel" data-testid="patterns-panel">';
+  html += '<div class="patterns-header"><span class="patterns-title">Your Patterns</span><button class="patterns-close" id="close-patterns" data-testid="button-close-patterns">\u2715</button></div>';
+
+  html += '<div class="patterns-section"><div class="patterns-label">Top Topics</div>';
+  if (topTopics.length === 0) {
+    html += '<div class="patterns-empty">Keep chatting \u2014 patterns will appear here</div>';
+  } else {
+    var maxCount = topTopics[0].count;
+    for (var i = 0; i < topTopics.length; i++) {
+      var pct = Math.round((topTopics[i].count / maxCount) * 100);
+      html += '<div class="pattern-bar-row"><span class="pattern-bar-label">' + topTopics[i].topic + '</span><div class="pattern-bar-track"><div class="pattern-bar-fill" style="width:' + pct + '%"></div></div><span class="pattern-bar-count">' + topTopics[i].count + '</span></div>';
+    }
+  }
+  html += '</div>';
+
+  html += '<div class="patterns-section"><div class="patterns-label">Mood Trend</div>';
+  if (!ST.moodLog || ST.moodLog.length < 2) {
+    html += '<div class="patterns-empty">Not enough data yet</div>';
+  } else {
+    html += '<div class="mood-trend-row"><span class="mood-indicator ' + (trend === 'positive' ? 'mood-pos' : trend === 'declining' ? 'mood-neg' : 'mood-neu') + '">' + moodIndicator + '</span> <span class="mood-trend-text">' + (trend === 'positive' ? 'Positive' : trend === 'declining' ? 'Needs attention' : 'Stable') + '</span></div>';
+    html += '<div class="mood-chart" data-testid="mood-chart">';
+    var recentMoods = ST.moodLog.slice(-14);
+    for (var j = 0; j < recentMoods.length; j++) {
+      var mVal = recentMoods[j].score;
+      var mColor = mVal > 0 ? '#a78bfa' : mVal < 0 ? '#f87171' : '#6b7280';
+      var mHeight = Math.abs(mVal) * 16 + 4;
+      html += '<div class="mood-bar" style="background:' + mColor + ';height:' + mHeight + 'px;" title="' + recentMoods[j].date + ': ' + (mVal > 0 ? '+' : '') + mVal + '"></div>';
+    }
+    html += '</div>';
+    var moodTime = getMoodTimeCorrelation();
+    if (moodTime) {
+      html += '<div class="mood-time-insight">You tend to feel more down during the ' + moodTime + '</div>';
+    }
+  }
+  html += '</div>';
+
+  html += '<div class="patterns-section"><div class="patterns-label">Peak Activity</div>';
+  if (!peak) {
+    html += '<div class="patterns-empty">No activity data yet</div>';
+  } else {
+    var hourLabel = peak.hour === 0 ? '12am' : peak.hour < 12 ? peak.hour + 'am' : peak.hour === 12 ? '12pm' : (peak.hour - 12) + 'pm';
+    html += '<div class="activity-peak">Most active around <strong>' + hourLabel + '</strong></div>';
+    html += '<div class="activity-heatmap" data-testid="activity-heatmap">';
+    var hourCounts = {};
+    var maxHC = 1;
+    for (var a = 0; a < (p.activityLog || []).length; a++) {
+      var ah = p.activityLog[a].hour;
+      hourCounts[ah] = (hourCounts[ah] || 0) + p.activityLog[a].msgCount;
+      if (hourCounts[ah] > maxHC) maxHC = hourCounts[ah];
+    }
+    for (var h = 0; h < 24; h++) {
+      var hc = hourCounts[h] || 0;
+      var opacity = hc > 0 ? 0.2 + (hc / maxHC) * 0.8 : 0.05;
+      var hLabel = h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : (h - 12) + 'p';
+      html += '<div class="heatmap-cell" style="opacity:' + opacity + '" title="' + hLabel + ': ' + hc + ' msgs">' + (h % 6 === 0 ? '<span class="heatmap-label">' + hLabel + '</span>' : '') + '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  if (p.goalProgress && p.goalProgress.length > 0) {
+    html += '<div class="patterns-section"><div class="patterns-label">Goal Tracking</div>';
+    for (var gi = 0; gi < Math.min(p.goalProgress.length, 5); gi++) {
+      var gp = p.goalProgress[gi];
+      html += '<div class="goal-row"><span class="goal-text">' + esc(gp.goal) + '</span><span class="goal-meta">' + gp.mentions + 'x \u00b7 last: ' + gp.lastMentioned + '</span></div>';
+    }
+    html += '</div>';
+  }
+
+  if (p.recurringChallenges && p.recurringChallenges.length > 0) {
+    var recurring = p.recurringChallenges.filter(function(c) { return c.count >= 2; });
+    if (recurring.length > 0) {
+      html += '<div class="patterns-section"><div class="patterns-label">Recurring Challenges</div>';
+      for (var ci = 0; ci < Math.min(recurring.length, 5); ci++) {
+        html += '<div class="challenge-row"><span class="challenge-text">' + esc(recurring[ci].text) + '</span><span class="challenge-count">' + recurring[ci].count + 'x since ' + recurring[ci].firstSeen + '</span></div>';
+      }
+      html += '</div>';
+    }
+  }
+
+  html += '</div>';
+  return html;
+}
+
 function buildMirror() {
   return g('name', 'friend') + ', here is what I see about you.\n\nWHO YOU ARE\nLocation: ' + g('location') + '\nWork: ' + g('job') + ' in ' + g('industry') + '\nDaily: ' + g('work_day') + '\n\nDREAMS & PAIN\nProud of: ' + g('proud') + '\nTired of: ' + g('tired') + '\nChasing: ' + g('feeling') + '\n\nIDENTITY & CONFIDENCE\nInsecurities: ' + insecStr() + '\nBlockers: ' + g('blockers') + '\nIf confident: ' + g('if_conf') + '\n\nDIRECTION\nGoal: ' + g('goal10') + '\nMastering: ' + g('mastering') + '\nStrategy: ' + g('horizon') + '\n\nBOTTLENECKS\nWastes: ' + g('time_waste') + '\nHabit: ' + g('bad_habit') + '\nAvoiding: ' + g('avoiding') + '\n\nRESOURCES\nFinancial: ' + g('fin_level') + '\nSkills: ' + g('unique_sk') + '\nConstraint: ' + g('constraint') + '\n\nSYSTEM\nSleep: ' + g('sleep') + '\nScreens: ' + g('screens') + ' hrs\nStyle: ' + g('style') + '\n\nPSYCHOLOGY\nPriority: ' + g('identity') + '\nTone: ' + g('tone') + '\nMode: ' + g('pressure') + '\n\n---\nI know your full story.\nEvery answer built around YOU.\nYou are not alone. Let us work.';
 }
@@ -1150,8 +1410,9 @@ function systemPrompt(userText) {
   var langRule = ST.lang && ST.lang !== 'en' ? '\n- IMPORTANT: You MUST respond entirely in ' + langName() + '. Every word of your response must be in ' + langName() + '.' : '';
   var memoryBlock = userText ? retrieveRelevantMemories(userText) : '';
   var triggerBlock = triggersPromptBlock();
+  var patternBlock = patternsPromptBlock();
   var summaryBlock = getThreadSummary() ? '\n\nPREVIOUS CONVERSATION SUMMARY:\n' + getThreadSummary() : '';
-  return 'You are JARVIS - a sharp, calm personal life assistant. Like Tony Stark\'s AI: smart, efficient, always helpful.\n\n' + buildProfile() + summaryBlock + memoryBlock + triggerBlock + '\n\nRESPONSE LENGTH RULES (CRITICAL - saves cost):\n- DEFAULT: 2-3 short paragraphs. Be concise. Every word must earn its place.\n- Simple questions (greetings, yes/no, quick advice): 1-2 sentences max.\n- Medium questions (how-to, opinions, suggestions): 2-3 short paragraphs.\n- Deep requests (plans, strategies, step-by-step): Up to 4-5 paragraphs, use structure.\n- MATCH the energy of the question. Short question = short answer. Long question = longer answer.\n- NEVER pad responses with filler, motivational fluff, or unnecessary recaps.\n\nPERSONALITY:\n- Trusted ally, not therapist or critic. Smart friend energy.\n- Natural and conversational. No corporate tone.\n- Get to the point fast. Lead with the answer, then explain if needed.\n\nPROFILE USAGE:\n- Use their profile SILENTLY to personalize advice. Do NOT quote it back.\n- NEVER say "you told me X" or "your confidence is Y/10" or list their problems.\n- NEVER criticize short answers or analyze what answers "reveal."\n- Good: Know they work in agriculture, so suggest farming-relevant advice naturally.\n- Bad: "You said you feel behind in life and your confidence is 4/10."\n\nMEMORY USAGE:\n- If RELEVANT MEMORIES are provided, use them to provide continuity and personalized advice.\n- Reference past conversations naturally, like a friend who remembers. Do NOT say "according to my records."\n- If no memories are relevant, ignore them.\n\nBEHAVIOR:\n- Answer what was asked. Do not redirect to goals/insecurities.\n- Focus on solutions, not problems. Forward movement always.\n- If they just chat casually, chat back casually. Not everything needs deep advice.\n\nTone: ' + toneRule + langRule;
+  return 'You are JARVIS - a sharp, calm personal life assistant. Like Tony Stark\'s AI: smart, efficient, always helpful.\n\n' + buildProfile() + summaryBlock + memoryBlock + triggerBlock + patternBlock + '\n\nRESPONSE LENGTH RULES (CRITICAL - saves cost):\n- DEFAULT: 2-3 short paragraphs. Be concise. Every word must earn its place.\n- Simple questions (greetings, yes/no, quick advice): 1-2 sentences max.\n- Medium questions (how-to, opinions, suggestions): 2-3 short paragraphs.\n- Deep requests (plans, strategies, step-by-step): Up to 4-5 paragraphs, use structure.\n- MATCH the energy of the question. Short question = short answer. Long question = longer answer.\n- NEVER pad responses with filler, motivational fluff, or unnecessary recaps.\n\nPERSONALITY:\n- Trusted ally, not therapist or critic. Smart friend energy.\n- Natural and conversational. No corporate tone.\n- Get to the point fast. Lead with the answer, then explain if needed.\n\nPROFILE USAGE:\n- Use their profile SILENTLY to personalize advice. Do NOT quote it back.\n- NEVER say "you told me X" or "your confidence is Y/10" or list their problems.\n- NEVER criticize short answers or analyze what answers "reveal."\n- Good: Know they work in agriculture, so suggest farming-relevant advice naturally.\n- Bad: "You said you feel behind in life and your confidence is 4/10."\n\nMEMORY USAGE:\n- If RELEVANT MEMORIES are provided, use them to provide continuity and personalized advice.\n- Reference past conversations naturally, like a friend who remembers. Do NOT say "according to my records."\n- If no memories are relevant, ignore them.\n\nBEHAVIOR:\n- Answer what was asked. Do not redirect to goals/insecurities.\n- Focus on solutions, not problems. Forward movement always.\n- If they just chat casually, chat back casually. Not everything needs deep advice.\n\nTone: ' + toneRule + langRule;
 }
 
 function chatGreeting() {
@@ -1166,6 +1427,7 @@ function chatGreeting() {
 
 async function sendMsg(userText) {
   trackMood(userText);
+  trackPatterns(userText);
   var activeMsgs = getActiveMsgs();
   activeMsgs.push({ role: 'user', content: userText });
   activeMsgs.push({ role: 'assistant', content: '' });
@@ -1518,6 +1780,7 @@ function renderChat(root) {
     '<div style="font-size:0.8rem;color:var(--muted)">' + ui('knows') + ' ' + esc(ST.ans.name || 'you') + ' ' + ui('completely') + '</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
+    '<button class="patterns-btn" id="open-patterns" data-testid="button-open-patterns">Patterns</button>' +
     '<span class="tier-badge ' + getTierClass() + '">' + getTierLabel() + '</span>' +
     (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span>' : '') +
     Object.keys(LANGS).map(function(k) {
@@ -1595,6 +1858,19 @@ function renderChat(root) {
       if (msgs[idx] && msgs[idx].content) speakText(msgs[idx].content, btn);
     };
   });
+
+  var openPatternsBtn = document.getElementById('open-patterns');
+  if (openPatternsBtn) openPatternsBtn.onclick = function() {
+    var existing = document.getElementById('patterns-panel');
+    if (existing) { existing.remove(); return; }
+    var chatWrap = document.querySelector('.chat-wrap');
+    if (chatWrap) chatWrap.insertAdjacentHTML('beforeend', renderPatternsPanel());
+    var closeBtn = document.getElementById('close-patterns');
+    if (closeBtn) closeBtn.onclick = function() {
+      var panel = document.getElementById('patterns-panel');
+      if (panel) panel.remove();
+    };
+  };
 }
 
 load();

@@ -23,9 +23,16 @@ export const userData = pgTable("user_data", {
   msgCountDate: text("msg_count_date").default(""),
   identityProfile: jsonb("identity_profile").$type<Record<string, any>>().default({}),
   memories: jsonb("memories").$type<Array<{ id: string; fact: string; tags: string[]; date: string; source: string }>>().default([]),
-  moodLog: jsonb("mood_log").$type<Array<{ date: string; score: number; note: string }>>().default([]),
+  moodLog: jsonb("mood_log").$type<Array<{ date: string; score: number; note: string; hour?: number }>>().default([]),
   threadSummaries: jsonb("thread_summaries").$type<Record<string, string>>().default({}),
   lastActiveDate: text("last_active_date").default(""),
+  patterns: jsonb("patterns").$type<{
+    topics: Record<string, number>;
+    recurringChallenges: Array<{ text: string; count: number; firstSeen: string; lastSeen: string }>;
+    activityLog: Array<{ date: string; hour: number; msgCount: number }>;
+    goalProgress: Array<{ goal: string; mentions: number; lastMentioned: string; status: string }>;
+    weeklyTopics: Record<string, Record<string, number>>;
+  }>().default({ topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 

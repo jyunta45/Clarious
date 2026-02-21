@@ -123,6 +123,7 @@ app.post('/api/data', async (req, res) => {
     if (mood_log !== undefined) updateFields.moodLog = mood_log;
     if (thread_summaries !== undefined) updateFields.threadSummaries = thread_summaries;
     if (last_active_date !== undefined) updateFields.lastActiveDate = last_active_date;
+    if (req.body.patterns !== undefined) updateFields.patterns = req.body.patterns;
 
     const existing = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
     if (existing.length === 0) {
