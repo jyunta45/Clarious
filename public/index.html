@@ -6,7 +6,64 @@
 <title>Life Assistant</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
- :root{--bg:#0d0d14;--card:rgba(255,255,255,0.06);--border:rgba(255,255,255,0.12);--accent:#9b6dff;--accent2:#ff6db5;--gold:#f5c842;--text:#f0eaff;--muted:#9985c0;--radius:20px;} *{margin:0;padding:0;box-sizing:border-box;} body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;background-image:radial-gradient(ellipse at 20% 20%,rgba(155,109,255,0.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(255,109,181,0.1) 0%,transparent 60%);} .page{max-width:780px;margin:0 auto;padding:40px 20px;min-height:100vh;display:flex;align-items:center;justify-content:center;} .card{background:var(--card);border:1px solid var(--border);border-radius:28px;padding:52px;width:100%;} .brand{font-family:'Playfair Display',serif;font-size:3.2rem;font-weight:700;text-align:center;background:linear-gradient(135deg,#fff 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;} .tagline{text-align:center;color:var(--muted);font-size:1.1rem;margin-bottom:40px;} .meta-list{background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.2);border-radius:var(--radius);padding:28px;margin-bottom:36px;} .meta-list p{color:var(--muted);line-height:2;font-size:0.95rem;} .meta-list strong{color:var(--text);} .btn-primary{width:100%;padding:18px;font-family:'DM Sans',sans-serif;font-size:1.1rem;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:0.5px;transition:opacity 0.2s,transform 0.15s;} .btn-primary:hover{opacity:0.9;transform:translateY(-1px);} .sec-badge{display:inline-block;background:rgba(245,200,66,0.15);border:1px solid rgba(245,200,66,0.3);color:var(--gold);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;padding:5px 14px;border-radius:100px;margin-bottom:18px;} .prog-row{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--muted);margin-bottom:8px;} .prog-track{height:4px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:32px;overflow:hidden;} .prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width 0.4s ease;} .question-text{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:400;line-height:1.4;margin-bottom:10px;color:#fff;} .hint-text{font-size:0.85rem;color:var(--muted);margin-bottom:24px;} .field-text,.field-area{width:100%;padding:14px 18px;background:rgba(255,255,255,0.07);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;margin-bottom:8px;transition:border-color 0.2s;box-sizing:border-box;} .field-text::placeholder,.field-area::placeholder{color:var(--muted);} .field-text:focus,.field-area:focus{outline:none;border-color:var(--accent);} .field-area{min-height:110px;resize:vertical;} .slider-num{font-family:'Playfair Display',serif;font-size:3.5rem;font-weight:700;color:var(--gold);text-align:center;margin-bottom:6px;} .field-range{width:100%;-webkit-appearance:none;height:6px;background:rgba(255,255,255,0.1);border-radius:6px;outline:none;cursor:pointer;margin-bottom:8px;accent-color:var(--accent);} .field-range::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--accent);border-radius:50%;cursor:pointer;box-shadow:0 0 12px rgba(155,109,255,0.5);} .range-labels{display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-bottom:24px;} .opt-btn{width:100%;text-align:left;padding:15px 20px;background:rgba(255,255,255,0.04);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.97rem;cursor:pointer;margin-bottom:10px;transition:all 0.2s;} .opt-btn:hover{background:rgba(155,109,255,0.12);border-color:var(--accent);transform:translateX(4px);} .check-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;margin-bottom:8px;transition:all 0.2s;user-select:none;} .check-row.checked{background:rgba(155,109,255,0.15);border-color:var(--accent);} .check-box{width:20px;height:20px;border:2px solid var(--muted);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-size:0.7rem;color:white;} .check-row.checked .check-box{background:var(--accent);border-color:var(--accent);} .btn-row{display:flex;gap:12px;margin-top:28px;} .btn-back{padding:16px 28px;background:rgba(255,255,255,0.07);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:500;cursor:pointer;transition:all 0.2s;flex-shrink:0;} .reset-link{text-align:center;margin-top:18px;color:var(--muted);font-size:0.82rem;cursor:pointer;text-decoration:underline;} .mirror-box{white-space:pre-line;line-height:1.9;font-size:0.97rem;color:var(--muted);background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:18px;padding:28px;margin:28px 0;max-height:55vh;overflow-y:auto;} .chat-wrap{display:flex;flex-direction:column;height:100vh;} .chat-header{background:rgba(255,255,255,0.06);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;justify-content:space-between;align-items:center;} .chat-messages{flex:1;overflow-y:auto;padding:28px 20px;max-width:760px;margin:0 auto;width:100%;} .msg{display:flex;margin-bottom:20px;} .msg.user{justify-content:flex-end;} .msg.assistant{justify-content:flex-start;} .bubble{max-width:82%;padding:18px 22px;border-radius:20px;line-height:1.7;white-space:pre-wrap;font-size:0.97rem;} .bubble.user{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;} .bubble.assistant{background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--text);} .chat-input-bar{background:rgba(255,255,255,0.06);border-top:1px solid var(--border);padding:16px 20px;} .chat-input-inner{max-width:760px;margin:0 auto;display:flex;gap:12px;} .chat-input{flex:1;padding:14px 18px;background:rgba(255,255,255,0.07);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;outline:none;} .chat-send{padding:14px 28px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;} .chat-send:disabled{opacity:0.5;cursor:not-allowed;} @media(max-width:600px){.card{padding:28px 18px;}.brand{font-size:2.2rem;}.question-text{font-size:1.4rem;}} 
+:root{--bg:#0d0d14;--card:rgba(255,255,255,0.06);--border:rgba(255,255,255,0.12);--accent:#9b6dff;--accent2:#ff6db5;--gold:#f5c842;--text:#f0eaff;--muted:#9985c0;--radius:20px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;background-image:radial-gradient(ellipse at 20% 20%,rgba(155,109,255,0.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(255,109,181,0.1) 0%,transparent 60%);}
+.page{max-width:780px;margin:0 auto;padding:40px 20px;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:28px;padding:52px;width:100%;}
+.brand{font-family:'Playfair Display',serif;font-size:3.2rem;font-weight:700;text-align:center;background:linear-gradient(135deg,#fff 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
+.tagline{text-align:center;color:var(--muted);font-size:1.1rem;margin-bottom:40px;}
+.meta-list{background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.2);border-radius:var(--radius);padding:28px;margin-bottom:36px;}
+.meta-list p{color:var(--muted);line-height:2;font-size:0.95rem;}
+.meta-list strong{color:var(--text);}
+.btn-primary{width:100%;padding:18px;font-family:'DM Sans',sans-serif;font-size:1.1rem;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:0.5px;transition:opacity 0.2s,transform 0.15s;}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
+.sec-badge{display:inline-block;background:rgba(245,200,66,0.15);border:1px solid rgba(245,200,66,0.3);color:var(--gold);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;padding:5px 14px;border-radius:100px;margin-bottom:18px;}
+.prog-row{display:flex;justify-content:space-between;font-size:0.85rem;color:var(--muted);margin-bottom:8px;}
+.prog-track{width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:10px;margin-bottom:32px;}
+.prog-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.3s;}
+.question-text{font-size:1.35rem;font-weight:600;line-height:1.5;margin-bottom:8px;}
+.hint-text{color:var(--muted);font-size:0.9rem;margin-bottom:24px;}
+.field-text,.field-area{width:100%;padding:16px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);outline:none;margin-bottom:20px;}
+.field-area{min-height:120px;resize:vertical;}
+.field-text:focus,.field-area:focus{border-color:var(--accent);}
+.opt-btn{display:block;width:100%;text-align:left;padding:16px 20px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;margin-bottom:10px;transition:all 0.15s;}
+.opt-btn:hover{background:rgba(155,109,255,0.15);border-color:var(--accent);}
+.check-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;}
+.check-row:hover{background:rgba(155,109,255,0.1);}
+.check-row.checked{background:rgba(155,109,255,0.15);border-color:var(--accent);}
+.check-box{width:22px;height:22px;border:2px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--accent);flex-shrink:0;}
+.check-row.checked .check-box{border-color:var(--accent);}
+.field-range{width:100%;margin:12px 0;accent-color:var(--accent);}
+.slider-num{text-align:center;font-size:2rem;font-weight:700;color:var(--accent);}
+.range-labels{display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-bottom:20px;}
+.btn-row{display:flex;gap:12px;margin-top:16px;}
+.btn-back{padding:16px 28px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);cursor:pointer;}
+.reset-link{text-align:center;margin-top:20px;font-size:0.85rem;color:var(--muted);cursor:pointer;}
+.reset-link:hover{color:var(--accent2);}
+.mirror-box{white-space:pre-wrap;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2);border-radius:var(--radius);padding:28px;margin:24px 0;font-size:0.95rem;line-height:1.8;color:var(--muted);}
+.chat-wrap{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+.chat-header{padding:16px 20px;background:rgba(13,13,20,0.95);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.msg{display:flex;}
+.msg.user{justify-content:flex-end;}
+.bubble{max-width:80%;padding:14px 20px;border-radius:20px;font-size:0.95rem;line-height:1.6;white-space:pre-wrap;}
+.bubble.assistant{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:6px;}
+.bubble.user{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-bottom-right-radius:6px;}
+.chat-input-bar{padding:16px 20px;background:rgba(13,13,20,0.95);border-top:1px solid var(--border);}
+.chat-input-inner{display:flex;gap:10px;}
+.chat-input{flex:1;padding:14px 18px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);outline:none;}
+.chat-input:focus{border-color:var(--accent);}
+.chat-send{padding:14px 24px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;border-radius:var(--radius);cursor:pointer;}
+.lang-picker{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:28px;}
+.lang-btn{padding:14px 24px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);cursor:pointer;transition:all 0.15s;min-width:140px;text-align:center;}
+.lang-btn:hover{background:rgba(155,109,255,0.15);border-color:var(--accent);}
+.lang-btn.active{background:rgba(155,109,255,0.2);border-color:var(--accent);color:#fff;}
+.lang-switcher{position:fixed;top:12px;right:12px;z-index:100;display:flex;gap:6px;background:rgba(13,13,20,0.9);border:1px solid var(--border);border-radius:12px;padding:6px;}
+.lang-mini{padding:6px 10px;font-size:0.75rem;background:none;border:1px solid transparent;border-radius:8px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.lang-mini:hover{color:var(--text);}
+.lang-mini.active{background:rgba(155,109,255,0.2);border-color:var(--accent);color:#fff;}
+@media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}}
 </style>
 </head>
 <body>
@@ -18,7 +75,732 @@
 </div>
 <script>
 try {
- const Q=[ {id:'name',s:'Basic Context',t:'text',q:'What is your name and age?',p:'e.g. Juyunta, 25',h:'Personalizes every response'}, {id:'location',s:'Basic Context',t:'text',q:'Where do you live?',p:'City, Country',h:'Location shapes opportunities'}, {id:'job',s:'Basic Context',t:'select',q:'What do you do?',o:['Student','Employee at a company','Business owner','Farmer / Agricultural','Freelancer','Between jobs','Homemaker','Retired','Other']}, {id:'industry',s:'Basic Context',t:'text',q:'What industry or field?',p:'tech, agriculture, finance',h:'Work context matters'}, {id:'work_day',s:'Basic Context',t:'textarea',q:'Describe your actual work in 1-2 sentences.',p:'What do you DO each day?',h:'Reality beyond job titles'}, {id:'proud',s:'Dreams & Pain',t:'textarea',q:'If life was working perfectly, what would you feel most proud of?',p:'Think deeply...',h:'What success means to YOU'}, {id:'tired',s:'Dreams & Pain',t:'textarea',q:'What are you most tired of struggling with?',p:'Be honest...',h:'What drains you'}, {id:'feeling',s:'Dreams & Pain',t:'textarea',q:'When you imagine success, what feeling are you actually chasing?',p:'Freedom? Security? Peace?',h:'Emotion behind the goal'}, {id:'insec',s:'Identity & Confidence',t:'multi',q:'What do you feel insecure or self-conscious about?',o:['Body / weight','Skin (acne, aging)','Hair','Teeth / smile','Height','Clothing / style','Social skills','Public speaking','Intelligence','Being boring','Voice or accent','Career vs peers','Income level','Living situation','Relationship status','Feeling behind in life','Past mistakes','Not being taken seriously','Other']}, {id:'blockers',s:'Identity & Confidence',t:'textarea',q:'Which insecurities actually hold you back?',p:'Which ones stop you?',h:'Major vs minor'}, {id:'compare',s:'Identity & Confidence',t:'textarea',q:'When you look at others, what makes you feel behind?',p:'Be specific...',h:'Who do you compare to?'}, {id:'secret',s:'Identity & Confidence',t:'textarea',q:'Something you are embarrassed about or hide? (optional)',p:'Only if you want...',h:'Private. Helps us go deeper.'}, {id:'conf_num',s:'Identity & Confidence',t:'slider',q:'How much do insecurities affect your work confidence?',min:1,max:10,sl:['1 - Not much','10 - A lot']}, {id:'if_conf',s:'Identity & Confidence',t:'textarea',q:'What would change if you felt completely confident?',p:'What would you finally do?',h:'What confidence is blocking'}, {id:'tried_fix',s:'Identity & Confidence',t:'textarea',q:'Have you tried to fix these insecurities? What happened?',p:'Past attempts...',h:'Learn from history'}, {id:'goal10',s:'Direction & Strategy',t:'text',q:'Your 5 to 10 year goal in one sentence?',p:'Be specific',h:'Your north star'}, {id:'mastering',s:'Direction & Strategy',t:'text',q:'What are you trying to master right now?',p:'Trading? Business? A skill?',h:'Focus allocation'}, {id:'horizon',s:'Direction & Strategy',t:'select',q:'Building for short-term or long-term?',o:['Short-term income (need money now)','Long-term leverage (building for future)','Both equally','Not sure yet']}, {id:'time_waste',s:'Bottlenecks',t:'text',q:'What currently wastes most of your time?',p:'Social media? Overthinking?',h:'Primary leak'}, {id:'bad_habit',s:'Bottlenecks',t:'text',q:'One habit you know is hurting your growth?',p:'Be honest',h:'Self-awareness'}, {id:'avoiding',s:'Bottlenecks',t:'textarea',q:'What are you avoiding because it scares you?',p:'Should do but do not?',h:'Fear-based resistance'}, {id:'failed',s:'Bottlenecks',t:'textarea',q:'What have you tried that failed? Why?',p:'Learn from the past...',h:'Pattern recognition'}, {id:'domino',s:'Bottlenecks',t:'textarea',q:'What problem affects multiple areas of your life?',p:'The keystone issue...',h:'Fix one, improve all'}, {id:'fin_level',s:'Resources',t:'select',q:'Financial pressure level?',o:['Comfortable - no money stress','Managing - bills covered','Stressed - month to month','Crisis - struggling to pay bills']}, {id:'capital',s:'Resources',t:'select',q:'Capital or savings access?',o:['None or very little','Under 5k USD','5k to 20k USD','20k to 50k USD','Over 50k USD','Prefer not to say']}, {id:'unique_sk',s:'Resources',t:'textarea',q:'Skills most people do not have?',p:'Languages, technical, creative...',h:'Your leverage'}, {id:'constraint',s:'Resources',t:'select',q:'Your single biggest constraint?',o:['Time','Money','Energy','Knowledge','Network or connections','Physical location','Health','Other']}, {id:'focus_hrs',s:'Resources',t:'slider',q:'Focused hours you can produce per day?',min:1,max:12,sl:['1 hr','12 hrs']}, {id:'sleep',s:'Operating System',t:'text',q:'When do you sleep and wake up?',p:'sleep 12am, wake 8am',h:'Cognitive baseline'}, {id:'screens',s:'Operating System',t:'slider',q:'Hours on screens daily?',min:0,max:16,sl:['0 hrs','16 hrs']}, {id:'style',s:'Operating System',t:'select',q:'Strict routines or flexible systems?',o:['Strict routines - exact schedule','Flexible systems - principles','Mix of both','No preference']}, {id:'decisions',s:'Operating System',t:'select',q:'When making decisions you are mostly:',o:['Analytical - logic and data','Emotional - gut feel','Intuitive - pattern recognition','Ask others for input']}, {id:'execute',s:'Operating System',t:'select',q:'You execute best when:',o:['Working alone','With an accountability partner','In competition with others','In a team or collaboration']}, {id:'identity',s:'Psychology',t:'select',q:'What part of your identity matters most?',o:['Career success','Appearance','Intelligence','Relationships','Freedom','Impact on others','Wealth','Health']}, {id:'self_talk',s:'Psychology',t:'textarea',q:'When you fail, what do you tell yourself?',p:'Your inner dialogue...',h:'Self-talk reveals everything'}, {id:'tone',s:'Psychology',t:'select',q:'What advice tone do you want?',o:['Blunt - tell me straight','Supportive - gentle','Balanced mix']}, {id:'pressure',s:'Psychology',t:'select',q:'You want the assistant to:',o:['Challenge me - push harder','Protect my energy - sustainable pace','Adapt based on situation']} ]; let ST={stage:'welcome',step:0,ans:{},msgs:[],selMulti:[]}; function save(){try{localStorage.setItem('la',JSON.stringify(ST));}catch(e){}} function load(){try{const d=localStorage.getItem('la');if(d)ST=JSON.parse(d);}catch(e){}} function g(k,f){return ST.ans[k]||f||'?';} function insecStr(){return Array.isArray(ST.ans.insec)&&ST.ans.insec.length>0?ST.ans.insec.join(', '):'not specified';} function buildProfile(){ return `USER PROFILE: Name/Age: ${g('name')} Location: ${g('location')} Occupation: ${g('job')} in ${g('industry')} Daily work: ${g('work_day')} Proud of: ${g('proud')} Tired of: ${g('tired')} Feeling chasing: ${g('feeling')} Insecurities: ${insecStr()} What blocks them: ${g('blockers')} Compares to: ${g('compare')} Work confidence: ${g('conf_num')}/10 If confident would: ${g('if_conf')} 10-year goal: ${g('goal10')} Mastering: ${g('mastering')} Strategy: ${g('horizon')} Wastes time on: ${g('time_waste')} Bad habit: ${g('bad_habit')} Avoiding: ${g('avoiding')} Past failures: ${g('failed')} Keystone problem: ${g('domino')} Financial: ${g('fin_level')} Capital: ${g('capital')} Unique skills: ${g('unique_sk')} Constraint: ${g('constraint')} Focused hours/day: ${g('focus_hrs')} Sleep/wake: ${g('sleep')} Screen time: ${g('screens')} hrs/day Style: ${g('style')} Decision style: ${g('decisions')} Executes best: ${g('execute')} Identity priority: ${g('identity')} Self-talk: ${g('self_talk')} Preferred tone: ${g('tone')} Coaching mode: ${g('pressure')}`; } function buildMirror(){ return g('name','friend')+', here is what I see about you.\n\nWHO YOU ARE\nLocation: '+g('location')+'\nWork: '+g('job')+' in '+g('industry')+'\nDaily: '+g('work_day')+'\n\nDREAMS & PAIN\nProud of: '+g('proud')+'\nTired of: '+g('tired')+'\nChasing: '+g('feeling')+'\n\nIDENTITY & CONFIDENCE\nInsecurities: '+insecStr()+'\nBlockers: '+g('blockers')+'\nIf confident: '+g('if_conf')+'\n\nDIRECTION\nGoal: '+g('goal10')+'\nMastering: '+g('mastering')+'\nStrategy: '+g('horizon')+'\n\nBOTTLENECKS\nWastes: '+g('time_waste')+'\nHabit: '+g('bad_habit')+'\nAvoiding: '+g('avoiding')+'\n\nRESOURCES\nFinancial: '+g('fin_level')+'\nSkills: '+g('unique_sk')+'\nConstraint: '+g('constraint')+'\n\nSYSTEM\nSleep: '+g('sleep')+'\nScreens: '+g('screens')+' hrs\nStyle: '+g('style')+'\n\nPSYCHOLOGY\nPriority: '+g('identity')+'\nTone: '+g('tone')+'\nMode: '+g('pressure')+'\n\n---\nI know your full story.\nEvery answer built around YOU.\nYou are not alone. Let us work.'; } function systemPrompt(){ const tone=ST.ans.tone||''; const toneRule=tone.includes('Blunt')?'Be direct, no filter.':tone.includes('Supportive')?'Be warm and encouraging.':'Be balanced.'; return 'You are a deeply personalized life assistant. You know this person completely.\n\n'+buildProfile()+'\n\nRULES:\n- Use their name. Reference their exact situation always.\n- Connect career+confidence+sleep+habits when relevant.\n- Give specific action steps, not vague motivation.\n- Call out patterns across their answers.\n- Tone rule: '+toneRule+'\n- Make them feel truly known. No generic advice.'; } async function sendMsg(userText){ ST.msgs.push({role:'user',content:userText}); render(); const res=await fetch('/api/chat',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({system:systemPrompt(),messages:ST.msgs.map(m=>({role:m.role,content:m.content}))}) }); const data=await res.json(); const reply=data.content&&data.content[0]?data.content[0].text:'Something went wrong.'; ST.msgs.push({role:'assistant',content:reply}); ST.loading=false; save(); render(); setTimeout(()=>{const el=document.getElementById('chat-end');if(el)el.scrollIntoView({behavior:'smooth'});},100); } function reset(){ if(!confirm('Delete everything?'))return; try{localStorage.removeItem('la');}catch(e){} ST={stage:'welcome',step:0,ans:{},msgs:[],selMulti:[]}; render(); } function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');} function render(){ const root=document.getElementById('root'); if(ST.stage==='welcome'){renderWelcome(root);} else if(ST.stage==='questions'){renderQuestion(root);} else if(ST.stage==='mirror'){renderMirror(root);} else{renderChat(root);} } function renderWelcome(root){ root.innerHTML=`<div class="page"><div class="card"> <div class="brand">Life Assistant</div> <p class="tagline">The companion who knows your full story</p> <div class="meta-list"> <p><strong>37 questions across 8 sections</strong></p> <p>Who you are | Dreams & pain | Identity & confidence</p> <p>Goals | Bottlenecks | Resources | System | Psychology</p><br> <p><strong>25-30 minutes.</strong> Saves automatically. AI chat at the end.</p> </div> <button class="btn-primary" id="sb">Start Your Transformation</button> </div></div>`; document.getElementById('sb').onclick=()=>{ST.stage='questions';save();render();}; } function renderQuestion(root){ const q=Q[ST.step]; const pct=Math.round(((ST.step+1)/Q.length)*100); const sv=ST.ans[q.id]; let inp=''; if(q.t==='text'){inp='<input class="field-text" id="qa" type="text" placeholder="'+q.p+'" value="'+esc(sv||'')+'">';} else if(q.t==='textarea'){inp='<textarea class="field-area" id="qa" placeholder="'+q.p+'">'+esc(sv||'')+'</textarea>';} else if(q.t==='slider'){ const v=sv||Math.round((q.min+q.max)/2); inp='<div class="slider-num" id="sn">'+v+'</div><input class="field-range" id="qa" type="range" min="'+q.min+'" max="'+q.max+'" value="'+v+'"><div class="range-labels"><span>'+q.sl[0]+'</span><span>'+q.sl[1]+'</span></div>'; } else if(q.t==='select'){inp=q.o.map((o,i)=>'<button class="opt-btn" data-i="'+i+'">'+o+'</button>').join('');} else if(q.t==='multi'){ const sel=Array.isArray(sv)?sv:[]; inp='<div>'+q.o.map((o,i)=>{ const c=sel.includes(o); return '<div class="check-row'+(c?' checked':'')+'" data-i="'+i+'">'+'<div class="check-box">'+(c?'&#10003;':'')+'</div><span>'+o+'</span></div>'; }).join('')+'</div>'; } const showNext=q.t!=='select'; root.innerHTML=`<div class="page"><div class="card"> <div class="sec-badge">${q.s}</div> <div class="prog-row"><span>${ST.step+1} of ${Q.length}</span><span>${pct}%</span></div> <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div> <div class="question-text">${q.q}</div> ${q.h?'<div class="hint-text">'+q.h+'</div>':''} ${inp} <div class="btn-row"> ${ST.step>0?'<button class="btn-back" id="bb">Back</button>':''} ${showNext?'<button class="btn-primary" id="nb">Next</button>':''} </div> <div class="reset-link" id="rb">Reset all</div> </div></div>`; if(q.t==='slider'){ const sl=document.getElementById('qa'); const sn=document.getElementById('sn'); sl.oninput=()=>sn.textContent=sl.value; } if(q.t==='select'){ document.querySelectorAll('.opt-btn').forEach(btn=>{ btn.onclick=()=>{ST.ans[q.id]=q.o[parseInt(btn.dataset.i)];advance();}; }); } if(q.t==='multi'){ document.querySelectorAll('.check-row').forEach(row=>{ row.onclick=()=>{ const val=q.o[parseInt(row.dataset.i)]; let sel=Array.isArray(ST.ans[q.id])?[...ST.ans[q.id]]:[]; if(sel.includes(val)){sel=sel.filter(x=>x!==val);}else{sel.push(val);} ST.ans[q.id]=sel; const box=row.querySelector('.check-box'); if(sel.includes(val)){row.classList.add('checked');box.innerHTML='&#10003;';} else{row.classList.remove('checked');box.innerHTML='';} }; }); } const nb=document.getElementById('nb'); if(nb){nb.onclick=()=>{const el=document.getElementById('qa');if(el)ST.ans[q.id]=el.value;advance();};} const bb=document.getElementById('bb'); if(bb){bb.onclick=()=>{ST.step--;save();render();};} document.getElementById('rb').onclick=reset; } function advance(){ save(); if(ST.step<Q.length-1){ST.step++;render();} else{ST.stage='mirror';render();} } function renderMirror(root){ root.innerHTML=`<div class="page"><div class="card"> <div class="brand" style="font-size:2.2rem">What I See About You</div> <div class="mirror-box">${buildMirror()}</div> <button class="btn-primary" id="cn">Start Chatting with Your Assistant</button> <div class="reset-link" id="rb">Start over</div> </div></div>`; document.getElementById('cn').onclick=()=>{ ST.stage='chat'; ST.msgs=[{role:'assistant',content:(ST.ans.name||'Hey')+', I have read your full profile.\n\nI know your goals, your struggles, your insecurities, what is holding you back, how you think, and what you are building.\n\nAsk me anything - career, confidence, habits, relationships, money, appearance. I will give you advice built specifically for YOU.\n\nWhat do you want to work on first?'}]; save();render(); }; document.getElementById('rb').onclick=reset; } function renderChat(root){ const msgsHtml=ST.msgs.map(m=>`<div class="msg ${m.role}"><div class="bubble ${m.role}">${m.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>`).join(''); root.innerHTML=`<div class="chat-wrap"> <div class="chat-header"> <div> <div style="font-family:Georgia,serif;font-size:1.4rem;color:#fff">Life Assistant</div> <div style="font-size:0.8rem;color:var(--muted)">Knows ${esc(ST.ans.name||'you')} completely</div> </div> <div class="reset-link" style="margin:0" id="rb">Reset</div> </div> <div class="chat-messages" id="cm">${msgsHtml}${ST.loading?'<div class="msg assistant"><div class="bubble assistant" style="color:var(--muted)">Thinking...</div></div>':''}<div id="chat-end"></div></div> <div class="chat-input-bar"> <div class="chat-input-inner"> <input class="chat-input" id="ci" placeholder="Ask anything..." ${ST.loading?'disabled':''}> <button class="chat-send" id="cs" ${ST.loading?'disabled':''}>Send</button> </div> </div> </div>`; const cm=document.getElementById('cm'); cm.scrollTop=cm.scrollHeight; const ci=document.getElementById('ci'); const cs=document.getElementById('cs'); function doSend(){ const txt=ci.value.trim(); if(!txt||ST.loading)return; ci.value=''; ST.loading=true; render(); sendMsg(txt); } ci.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend();}}; cs.onclick=doSend; document.getElementById('rb').onclick=reset; } load(); render(); 
+
+const LANGS = {
+  en: { flag: '🇺🇸', label: 'English' },
+  ja: { flag: '🇯🇵', label: '日本語' },
+  es: { flag: '🇪🇸', label: 'Español' },
+  th: { flag: '🇹🇭', label: 'ไทย' },
+  ko: { flag: '🇰🇷', label: '한국어' }
+};
+
+const UI = {
+  en: {
+    tagline: 'The companion who knows your full story',
+    meta1: '37 questions across 8 sections',
+    meta2: 'Who you are | Dreams & pain | Identity & confidence',
+    meta3: 'Goals | Bottlenecks | Resources | System | Psychology',
+    meta4: '25-30 minutes. Saves automatically. AI chat at the end.',
+    startBtn: 'Start Your Transformation',
+    chooseLanguage: 'Choose your language',
+    next: 'Next',
+    back: 'Back',
+    resetAll: 'Reset all',
+    startOver: 'Start over',
+    of: 'of',
+    mirrorTitle: 'What I See About You',
+    startChat: 'Start Chatting with Your Assistant',
+    askAnything: 'Ask anything...',
+    send: 'Send',
+    thinking: 'Thinking...',
+    knows: 'Knows',
+    completely: 'completely',
+    reset: 'Reset',
+    deleteConfirm: 'Delete everything?',
+    errorMsg: 'Something went wrong. Please refresh.',
+    sections: {
+      'Basic Context': 'Basic Context',
+      'Dreams & Pain': 'Dreams & Pain',
+      'Identity & Confidence': 'Identity & Confidence',
+      'Direction & Strategy': 'Direction & Strategy',
+      'Bottlenecks': 'Bottlenecks',
+      'Resources': 'Resources',
+      'Operating System': 'Operating System',
+      'Psychology': 'Psychology'
+    }
+  },
+  ja: {
+    tagline: 'あなたの全てを知るパートナー',
+    meta1: '8セクション、37の質問',
+    meta2: 'あなた自身 | 夢と悩み | アイデンティティと自信',
+    meta3: '目標 | ボトルネック | リソース | システム | 心理',
+    meta4: '25〜30分。自動保存。最後にAIチャット。',
+    startBtn: '変革を始める',
+    chooseLanguage: '言語を選択してください',
+    next: '次へ',
+    back: '戻る',
+    resetAll: 'すべてリセット',
+    startOver: 'やり直す',
+    of: '/',
+    mirrorTitle: 'あなたについて見えること',
+    startChat: 'アシスタントとチャットを始める',
+    askAnything: '何でも聞いてください...',
+    send: '送信',
+    thinking: '考え中...',
+    knows: '',
+    completely: 'のすべてを知っています',
+    reset: 'リセット',
+    deleteConfirm: 'すべて削除しますか？',
+    errorMsg: 'エラーが発生しました。更新してください。',
+    sections: {
+      'Basic Context': '基本情報',
+      'Dreams & Pain': '夢と悩み',
+      'Identity & Confidence': 'アイデンティティと自信',
+      'Direction & Strategy': '方向性と戦略',
+      'Bottlenecks': 'ボトルネック',
+      'Resources': 'リソース',
+      'Operating System': '生活システム',
+      'Psychology': '心理'
+    }
+  },
+  es: {
+    tagline: 'El compañero que conoce tu historia completa',
+    meta1: '37 preguntas en 8 secciones',
+    meta2: 'Quién eres | Sueños y dolor | Identidad y confianza',
+    meta3: 'Metas | Obstáculos | Recursos | Sistema | Psicología',
+    meta4: '25-30 minutos. Se guarda automáticamente. Chat con IA al final.',
+    startBtn: 'Comienza Tu Transformación',
+    chooseLanguage: 'Elige tu idioma',
+    next: 'Siguiente',
+    back: 'Atrás',
+    resetAll: 'Restablecer todo',
+    startOver: 'Empezar de nuevo',
+    of: 'de',
+    mirrorTitle: 'Lo Que Veo Sobre Ti',
+    startChat: 'Empieza a Chatear con Tu Asistente',
+    askAnything: 'Pregunta lo que sea...',
+    send: 'Enviar',
+    thinking: 'Pensando...',
+    knows: 'Conoce a',
+    completely: 'completamente',
+    reset: 'Restablecer',
+    deleteConfirm: '¿Eliminar todo?',
+    errorMsg: 'Algo salió mal. Por favor actualiza.',
+    sections: {
+      'Basic Context': 'Contexto Básico',
+      'Dreams & Pain': 'Sueños y Dolor',
+      'Identity & Confidence': 'Identidad y Confianza',
+      'Direction & Strategy': 'Dirección y Estrategia',
+      'Bottlenecks': 'Obstáculos',
+      'Resources': 'Recursos',
+      'Operating System': 'Sistema Operativo',
+      'Psychology': 'Psicología'
+    }
+  },
+  th: {
+    tagline: 'ผู้ช่วยที่รู้จักเรื่องราวทั้งหมดของคุณ',
+    meta1: '37 คำถามใน 8 หมวด',
+    meta2: 'ตัวตน | ความฝันและความเจ็บปวด | อัตลักษณ์และความมั่นใจ',
+    meta3: 'เป้าหมาย | อุปสรรค | ทรัพยากร | ระบบ | จิตวิทยา',
+    meta4: '25-30 นาที บันทึกอัตโนมัติ แชท AI ตอนท้าย',
+    startBtn: 'เริ่มการเปลี่ยนแปลงของคุณ',
+    chooseLanguage: 'เลือกภาษาของคุณ',
+    next: 'ถัดไป',
+    back: 'ย้อนกลับ',
+    resetAll: 'รีเซ็ตทั้งหมด',
+    startOver: 'เริ่มใหม่',
+    of: 'จาก',
+    mirrorTitle: 'สิ่งที่ฉันเห็นเกี่ยวกับคุณ',
+    startChat: 'เริ่มแชทกับผู้ช่วยของคุณ',
+    askAnything: 'ถามอะไรก็ได้...',
+    send: 'ส่ง',
+    thinking: 'กำลังคิด...',
+    knows: 'รู้จัก',
+    completely: 'อย่างสมบูรณ์',
+    reset: 'รีเซ็ต',
+    deleteConfirm: 'ลบทั้งหมด?',
+    errorMsg: 'เกิดข้อผิดพลาด กรุณารีเฟรช',
+    sections: {
+      'Basic Context': 'ข้อมูลพื้นฐาน',
+      'Dreams & Pain': 'ความฝันและความเจ็บปวด',
+      'Identity & Confidence': 'อัตลักษณ์และความมั่นใจ',
+      'Direction & Strategy': 'ทิศทางและกลยุทธ์',
+      'Bottlenecks': 'อุปสรรค',
+      'Resources': 'ทรัพยากร',
+      'Operating System': 'ระบบการใช้ชีวิต',
+      'Psychology': 'จิตวิทยา'
+    }
+  },
+  ko: {
+    tagline: '당신의 모든 이야기를 아는 동반자',
+    meta1: '8개 섹션, 37개 질문',
+    meta2: '당신은 누구인가 | 꿈과 고통 | 정체성과 자신감',
+    meta3: '목표 | 병목 | 자원 | 시스템 | 심리',
+    meta4: '25-30분. 자동 저장. 마지막에 AI 채팅.',
+    startBtn: '변화를 시작하세요',
+    chooseLanguage: '언어를 선택하세요',
+    next: '다음',
+    back: '이전',
+    resetAll: '모두 초기화',
+    startOver: '처음부터',
+    of: '/',
+    mirrorTitle: '당신에 대해 보이는 것',
+    startChat: '어시스턴트와 채팅 시작',
+    askAnything: '무엇이든 물어보세요...',
+    send: '보내기',
+    thinking: '생각 중...',
+    knows: '',
+    completely: '을(를) 완전히 알고 있습니다',
+    reset: '초기화',
+    deleteConfirm: '모든 것을 삭제하시겠습니까?',
+    errorMsg: '문제가 발생했습니다. 새로고침해주세요.',
+    sections: {
+      'Basic Context': '기본 정보',
+      'Dreams & Pain': '꿈과 고통',
+      'Identity & Confidence': '정체성과 자신감',
+      'Direction & Strategy': '방향과 전략',
+      'Bottlenecks': '병목',
+      'Resources': '자원',
+      'Operating System': '생활 시스템',
+      'Psychology': '심리'
+    }
+  }
+};
+
+const QT = {
+  en: {
+    name:{q:'What is your name and age?',p:'e.g. Juyunta, 25',h:'Personalizes every response'},
+    location:{q:'Where do you live?',p:'City, Country',h:'Location shapes opportunities'},
+    job:{q:'What do you do?',o:['Student','Employee at a company','Business owner','Farmer / Agricultural','Freelancer','Between jobs','Homemaker','Retired','Other']},
+    industry:{q:'What industry or field?',p:'tech, agriculture, finance',h:'Work context matters'},
+    work_day:{q:'Describe your actual work in 1-2 sentences.',p:'What do you DO each day?',h:'Reality beyond job titles'},
+    proud:{q:'If life was working perfectly, what would you feel most proud of?',p:'Think deeply...',h:'What success means to YOU'},
+    tired:{q:'What are you most tired of struggling with?',p:'Be honest...',h:'What drains you'},
+    feeling:{q:'When you imagine success, what feeling are you actually chasing?',p:'Freedom? Security? Peace?',h:'Emotion behind the goal'},
+    insec:{q:'What do you feel insecure or self-conscious about?',o:['Body / weight','Skin (acne, aging)','Hair','Teeth / smile','Height','Clothing / style','Social skills','Public speaking','Intelligence','Being boring','Voice or accent','Career vs peers','Income level','Living situation','Relationship status','Feeling behind in life','Past mistakes','Not being taken seriously','Other']},
+    blockers:{q:'Which insecurities actually hold you back?',p:'Which ones stop you?',h:'Major vs minor'},
+    compare:{q:'When you look at others, what makes you feel behind?',p:'Be specific...',h:'Who do you compare to?'},
+    secret:{q:'Something you are embarrassed about or hide? (optional)',p:'Only if you want...',h:'Private. Helps us go deeper.'},
+    conf_num:{q:'How much do insecurities affect your work confidence?',sl:['1 - Not much','10 - A lot']},
+    if_conf:{q:'What would change if you felt completely confident?',p:'What would you finally do?',h:'What confidence is blocking'},
+    tried_fix:{q:'Have you tried to fix these insecurities? What happened?',p:'Past attempts...',h:'Learn from history'},
+    goal10:{q:'Your 5 to 10 year goal in one sentence?',p:'Be specific',h:'Your north star'},
+    mastering:{q:'What are you trying to master right now?',p:'Trading? Business? A skill?',h:'Focus allocation'},
+    horizon:{q:'Building for short-term or long-term?',o:['Short-term income (need money now)','Long-term leverage (building for future)','Both equally','Not sure yet']},
+    time_waste:{q:'What currently wastes most of your time?',p:'Social media? Overthinking?',h:'Primary leak'},
+    bad_habit:{q:'One habit you know is hurting your growth?',p:'Be honest',h:'Self-awareness'},
+    avoiding:{q:'What are you avoiding because it scares you?',p:'Should do but do not?',h:'Fear-based resistance'},
+    failed:{q:'What have you tried that failed? Why?',p:'Learn from the past...',h:'Pattern recognition'},
+    domino:{q:'What problem affects multiple areas of your life?',p:'The keystone issue...',h:'Fix one, improve all'},
+    fin_level:{q:'Financial pressure level?',o:['Comfortable - no money stress','Managing - bills covered','Stressed - month to month','Crisis - struggling to pay bills']},
+    capital:{q:'Capital or savings access?',o:['None or very little','Under 5k USD','5k to 20k USD','20k to 50k USD','Over 50k USD','Prefer not to say']},
+    unique_sk:{q:'Skills most people do not have?',p:'Languages, technical, creative...',h:'Your leverage'},
+    constraint:{q:'Your single biggest constraint?',o:['Time','Money','Energy','Knowledge','Network or connections','Physical location','Health','Other']},
+    focus_hrs:{q:'Focused hours you can produce per day?',sl:['1 hr','12 hrs']},
+    sleep:{q:'When do you sleep and wake up?',p:'sleep 12am, wake 8am',h:'Cognitive baseline'},
+    screens:{q:'Hours on screens daily?',sl:['0 hrs','16 hrs']},
+    style:{q:'Strict routines or flexible systems?',o:['Strict routines - exact schedule','Flexible systems - principles','Mix of both','No preference']},
+    decisions:{q:'When making decisions you are mostly:',o:['Analytical - logic and data','Emotional - gut feel','Intuitive - pattern recognition','Ask others for input']},
+    execute:{q:'You execute best when:',o:['Working alone','With an accountability partner','In competition with others','In a team or collaboration']},
+    identity:{q:'What part of your identity matters most?',o:['Career success','Appearance','Intelligence','Relationships','Freedom','Impact on others','Wealth','Health']},
+    self_talk:{q:'When you fail, what do you tell yourself?',p:'Your inner dialogue...',h:'Self-talk reveals everything'},
+    tone:{q:'What advice tone do you want?',o:['Blunt - tell me straight','Supportive - gentle','Balanced mix']},
+    pressure:{q:'You want the assistant to:',o:['Challenge me - push harder','Protect my energy - sustainable pace','Adapt based on situation']}
+  },
+  ja: {
+    name:{q:'お名前と年齢は？',p:'例：太郎、25歳',h:'すべての回答をパーソナライズ'},
+    location:{q:'どこに住んでいますか？',p:'市、国',h:'場所がチャンスを形作る'},
+    job:{q:'何をしていますか？',o:['学生','会社員','経営者','農業','フリーランス','求職中','主婦・主夫','退職者','その他']},
+    industry:{q:'どの業界・分野ですか？',p:'IT、農業、金融',h:'仕事の背景が重要'},
+    work_day:{q:'実際の仕事を1-2文で説明してください。',p:'毎日何をしていますか？',h:'肩書きの先にある現実'},
+    proud:{q:'人生が完璧にうまくいっていたら、何を最も誇りに思いますか？',p:'深く考えて...',h:'あなたにとっての成功'},
+    tired:{q:'何に苦しむことに最も疲れていますか？',p:'正直に...',h:'あなたを消耗させるもの'},
+    feeling:{q:'成功を想像するとき、実際に追い求めている感情は？',p:'自由？安心？平和？',h:'目標の裏にある感情'},
+    insec:{q:'何に不安や自意識を感じますか？',o:['体重・体型','肌（ニキビ、老化）','髪','歯・笑顔','身長','服装・スタイル','社交スキル','人前で話すこと','知性','つまらない人間','声やアクセント','同期との比較','収入レベル','住環境','交際状況','人生で遅れている感覚','過去の失敗','真剣に受け止められない','その他']},
+    blockers:{q:'どの不安が実際にあなたを止めていますか？',p:'どれがあなたを止める？',h:'大きいvs小さい'},
+    compare:{q:'他の人を見て、何で遅れていると感じますか？',p:'具体的に...',h:'誰と比較する？'},
+    secret:{q:'恥ずかしいことや隠していること？（任意）',p:'話したい場合だけ...',h:'プライベート。より深く理解するため'},
+    conf_num:{q:'不安はあなたの仕事の自信にどれくらい影響しますか？',sl:['1 - あまりない','10 - とても']},
+    if_conf:{q:'完全に自信があったら何が変わりますか？',p:'何をしますか？',h:'自信が阻んでいること'},
+    tried_fix:{q:'これらの不安を直そうとしたことは？結果は？',p:'過去の試み...',h:'歴史から学ぶ'},
+    goal10:{q:'5年から10年後の目標を一文で？',p:'具体的に',h:'あなたの北極星'},
+    mastering:{q:'今何をマスターしようとしていますか？',p:'トレード？ビジネス？スキル？',h:'集中の配分'},
+    horizon:{q:'短期的？長期的？',o:['短期的な収入（今お金が必要）','長期的なレバレッジ（未来のため）','両方均等','まだわからない']},
+    time_waste:{q:'今、何が最も時間を無駄にしていますか？',p:'SNS？考えすぎ？',h:'主な漏れ'},
+    bad_habit:{q:'成長を妨げていると知っている習慣は？',p:'正直に',h:'自己認識'},
+    avoiding:{q:'怖いから避けていることは？',p:'やるべきだけどしてない？',h:'恐怖に基づく抵抗'},
+    failed:{q:'試して失敗したことは？なぜ？',p:'過去から学ぶ...',h:'パターン認識'},
+    domino:{q:'人生の複数の分野に影響する問題は？',p:'根本的な問題...',h:'一つ直せば全部改善'},
+    fin_level:{q:'経済的プレッシャーのレベルは？',o:['快適 - お金のストレスなし','管理中 - 請求書は払える','ストレス - 月々ギリギリ','危機 - 支払いに苦労']},
+    capital:{q:'資本や貯蓄へのアクセスは？',o:['なしまたはごくわずか','5千ドル未満','5千〜2万ドル','2万〜5万ドル','5万ドル以上','言いたくない']},
+    unique_sk:{q:'ほとんどの人が持っていないスキルは？',p:'語学、技術、クリエイティブ...',h:'あなたのレバレッジ'},
+    constraint:{q:'最大の制約は？',o:['時間','お金','エネルギー','知識','人脈','物理的な場所','健康','その他']},
+    focus_hrs:{q:'1日に集中できる時間は？',sl:['1時間','12時間']},
+    sleep:{q:'いつ寝ていつ起きますか？',p:'0時就寝、8時起床',h:'認知のベースライン'},
+    screens:{q:'1日のスクリーン時間は？',sl:['0時間','16時間']},
+    style:{q:'厳格なルーティン？柔軟なシステム？',o:['厳格なルーティン - 正確なスケジュール','柔軟なシステム - 原則ベース','両方のミックス','特になし']},
+    decisions:{q:'決断するとき主に：',o:['分析的 - ロジックとデータ','感情的 - 直感','直感的 - パターン認識','他の人に意見を求める']},
+    execute:{q:'最も実行力が出るのは：',o:['一人で作業','アカウンタビリティパートナーと','他人との競争の中','チームやコラボレーション']},
+    identity:{q:'アイデンティティで最も重要な部分は？',o:['キャリアの成功','外見','知性','人間関係','自由','他者への影響','富','健康']},
+    self_talk:{q:'失敗したとき、自分に何と言いますか？',p:'内なる対話...',h:'セルフトークがすべてを明かす'},
+    tone:{q:'どんなアドバイスのトーンがいいですか？',o:['率直 - ストレートに言って','サポート的 - 優しく','バランスミックス']},
+    pressure:{q:'アシスタントに求めること：',o:['チャレンジ - もっと押して','エネルギーを守る - 持続可能なペース','状況に応じて適応']}
+  },
+  es: {
+    name:{q:'¿Cuál es tu nombre y edad?',p:'ej. Juan, 25',h:'Personaliza cada respuesta'},
+    location:{q:'¿Dónde vives?',p:'Ciudad, País',h:'La ubicación forma oportunidades'},
+    job:{q:'¿A qué te dedicas?',o:['Estudiante','Empleado en una empresa','Dueño de negocio','Agricultor','Freelancer','Entre trabajos','Ama de casa','Jubilado','Otro']},
+    industry:{q:'¿En qué industria o campo?',p:'tecnología, agricultura, finanzas',h:'El contexto laboral importa'},
+    work_day:{q:'Describe tu trabajo real en 1-2 oraciones.',p:'¿Qué haces cada día?',h:'La realidad más allá del título'},
+    proud:{q:'Si la vida funcionara perfectamente, ¿de qué estarías más orgulloso?',p:'Piensa profundamente...',h:'Lo que el éxito significa para TI'},
+    tired:{q:'¿De qué estás más cansado de luchar?',p:'Sé honesto...',h:'Lo que te agota'},
+    feeling:{q:'Cuando imaginas el éxito, ¿qué sentimiento persigues?',p:'¿Libertad? ¿Seguridad? ¿Paz?',h:'La emoción detrás de la meta'},
+    insec:{q:'¿En qué te sientes inseguro o cohibido?',o:['Cuerpo / peso','Piel (acné, envejecimiento)','Cabello','Dientes / sonrisa','Altura','Ropa / estilo','Habilidades sociales','Hablar en público','Inteligencia','Ser aburrido','Voz o acento','Carrera vs compañeros','Nivel de ingresos','Situación de vivienda','Estado sentimental','Sentirse atrasado en la vida','Errores del pasado','No ser tomado en serio','Otro']},
+    blockers:{q:'¿Qué inseguridades realmente te detienen?',p:'¿Cuáles te frenan?',h:'Mayor vs menor'},
+    compare:{q:'Cuando miras a otros, ¿qué te hace sentir atrasado?',p:'Sé específico...',h:'¿Con quién te comparas?'},
+    secret:{q:'¿Algo que te avergüenza o escondes? (opcional)',p:'Solo si quieres...',h:'Privado. Nos ayuda a profundizar.'},
+    conf_num:{q:'¿Cuánto afectan las inseguridades tu confianza laboral?',sl:['1 - No mucho','10 - Mucho']},
+    if_conf:{q:'¿Qué cambiaría si te sintieras completamente seguro?',p:'¿Qué harías finalmente?',h:'Lo que la confianza está bloqueando'},
+    tried_fix:{q:'¿Has intentado arreglar estas inseguridades? ¿Qué pasó?',p:'Intentos pasados...',h:'Aprender de la historia'},
+    goal10:{q:'¿Tu meta de 5 a 10 años en una oración?',p:'Sé específico',h:'Tu estrella del norte'},
+    mastering:{q:'¿Qué estás tratando de dominar ahora?',p:'¿Trading? ¿Negocios? ¿Una habilidad?',h:'Asignación de enfoque'},
+    horizon:{q:'¿Construyendo a corto o largo plazo?',o:['Ingreso a corto plazo (necesito dinero ahora)','Apalancamiento a largo plazo (construyendo para el futuro)','Ambos por igual','No estoy seguro aún']},
+    time_waste:{q:'¿Qué desperdicia más tu tiempo actualmente?',p:'¿Redes sociales? ¿Pensar demasiado?',h:'Fuga principal'},
+    bad_habit:{q:'¿Un hábito que sabes que perjudica tu crecimiento?',p:'Sé honesto',h:'Autoconciencia'},
+    avoiding:{q:'¿Qué evitas porque te asusta?',p:'¿Deberías hacerlo pero no lo haces?',h:'Resistencia basada en el miedo'},
+    failed:{q:'¿Qué has intentado que falló? ¿Por qué?',p:'Aprende del pasado...',h:'Reconocimiento de patrones'},
+    domino:{q:'¿Qué problema afecta múltiples áreas de tu vida?',p:'El problema clave...',h:'Arregla uno, mejora todo'},
+    fin_level:{q:'¿Nivel de presión financiera?',o:['Cómodo - sin estrés por dinero','Manejando - cuentas cubiertas','Estresado - mes a mes','Crisis - luchando por pagar']},
+    capital:{q:'¿Acceso a capital o ahorros?',o:['Nada o muy poco','Menos de 5k USD','5k a 20k USD','20k a 50k USD','Más de 50k USD','Prefiero no decir']},
+    unique_sk:{q:'¿Habilidades que la mayoría no tiene?',p:'Idiomas, técnicas, creativas...',h:'Tu apalancamiento'},
+    constraint:{q:'¿Tu mayor limitación?',o:['Tiempo','Dinero','Energía','Conocimiento','Red de contactos','Ubicación física','Salud','Otro']},
+    focus_hrs:{q:'¿Horas de enfoque que puedes producir al día?',sl:['1 hr','12 hrs']},
+    sleep:{q:'¿Cuándo duermes y despiertas?',p:'duermo 12am, despierto 8am',h:'Línea base cognitiva'},
+    screens:{q:'¿Horas en pantallas diarias?',sl:['0 hrs','16 hrs']},
+    style:{q:'¿Rutinas estrictas o sistemas flexibles?',o:['Rutinas estrictas - horario exacto','Sistemas flexibles - principios','Mezcla de ambos','Sin preferencia']},
+    decisions:{q:'Al tomar decisiones eres mayormente:',o:['Analítico - lógica y datos','Emocional - instinto','Intuitivo - reconocimiento de patrones','Pido opinión a otros']},
+    execute:{q:'Ejecutas mejor cuando:',o:['Trabajando solo','Con un compañero de responsabilidad','En competencia con otros','En equipo o colaboración']},
+    identity:{q:'¿Qué parte de tu identidad importa más?',o:['Éxito profesional','Apariencia','Inteligencia','Relaciones','Libertad','Impacto en otros','Riqueza','Salud']},
+    self_talk:{q:'Cuando fallas, ¿qué te dices a ti mismo?',p:'Tu diálogo interno...',h:'El auto-diálogo lo revela todo'},
+    tone:{q:'¿Qué tono de consejo quieres?',o:['Directo - dime las cosas claras','De apoyo - gentil','Mezcla equilibrada']},
+    pressure:{q:'Quieres que el asistente:',o:['Me desafíe - empuja más fuerte','Proteja mi energía - ritmo sostenible','Se adapte según la situación']}
+  },
+  th: {
+    name:{q:'ชื่อและอายุของคุณ?',p:'เช่น สมชาย, 25',h:'ปรับแต่งทุกคำตอบ'},
+    location:{q:'คุณอาศัยอยู่ที่ไหน?',p:'เมือง, ประเทศ',h:'ที่ตั้งกำหนดโอกาส'},
+    job:{q:'คุณทำอะไร?',o:['นักเรียน/นักศึกษา','พนักงานบริษัท','เจ้าของธุรกิจ','เกษตรกร','ฟรีแลนซ์','ระหว่างหางาน','แม่บ้าน/พ่อบ้าน','เกษียณ','อื่นๆ']},
+    industry:{q:'อุตสาหกรรมหรือสาขาอะไร?',p:'ไอที, เกษตร, การเงิน',h:'บริบทงานสำคัญ'},
+    work_day:{q:'อธิบายงานจริงๆ ของคุณใน 1-2 ประโยค',p:'คุณทำอะไรทุกวัน?',h:'ความจริงเบื้องหลังตำแหน่ง'},
+    proud:{q:'ถ้าชีวิตสมบูรณ์แบบ คุณจะภูมิใจอะไรมากที่สุด?',p:'คิดลึกๆ...',h:'ความสำเร็จหมายถึงอะไรสำหรับคุณ'},
+    tired:{q:'คุณเบื่อที่จะต่อสู้กับอะไรมากที่สุด?',p:'ซื่อสัตย์...',h:'อะไรที่ทำให้คุณหมดแรง'},
+    feeling:{q:'เมื่อจินตนาการถึงความสำเร็จ คุณไล่ตามความรู้สึกอะไร?',p:'อิสรภาพ? ความมั่นคง? สงบ?',h:'อารมณ์เบื้องหลังเป้าหมาย'},
+    insec:{q:'คุณรู้สึกไม่มั่นใจหรือเขินอายเรื่องอะไร?',o:['น้ำหนัก/รูปร่าง','ผิว (สิว, ริ้วรอย)','ผม','ฟัน/รอยยิ้ม','ส่วนสูง','เสื้อผ้า/สไตล์','ทักษะสังคม','พูดต่อหน้าคน','สติปัญญา','น่าเบื่อ','เสียงหรือสำเนียง','อาชีพเทียบกับคนอื่น','ระดับรายได้','สภาพที่อยู่','สถานะความสัมพันธ์','รู้สึกตามหลังในชีวิต','ความผิดพลาดในอดีต','ไม่ถูกจริงจัง','อื่นๆ']},
+    blockers:{q:'ความไม่มั่นใจใดที่หยุดคุณจริงๆ?',p:'อะไรที่หยุดคุณ?',h:'ใหญ่ vs เล็ก'},
+    compare:{q:'เมื่อมองคนอื่น อะไรทำให้คุณรู้สึกตามหลัง?',p:'เฉพาะเจาะจง...',h:'เปรียบเทียบกับใคร?'},
+    secret:{q:'สิ่งที่อายหรือซ่อน? (ไม่บังคับ)',p:'ถ้าอยากบอก...',h:'ส่วนตัว ช่วยให้เข้าใจลึกขึ้น'},
+    conf_num:{q:'ความไม่มั่นใจส่งผลต่อความมั่นใจในการทำงานแค่ไหน?',sl:['1 - ไม่มาก','10 - มาก']},
+    if_conf:{q:'ถ้ามั่นใจเต็มที่ อะไรจะเปลี่ยน?',p:'คุณจะทำอะไร?',h:'สิ่งที่ความมั่นใจกั้นอยู่'},
+    tried_fix:{q:'เคยพยายามแก้ความไม่มั่นใจเหล่านี้ไหม? ผลเป็นยังไง?',p:'ความพยายามในอดีต...',h:'เรียนรู้จากประวัติ'},
+    goal10:{q:'เป้าหมาย 5-10 ปีในหนึ่งประโยค?',p:'เฉพาะเจาะจง',h:'ดาวเหนือของคุณ'},
+    mastering:{q:'ตอนนี้พยายามเชี่ยวชาญอะไร?',p:'เทรด? ธุรกิจ? ทักษะ?',h:'การจัดสรรความสนใจ'},
+    horizon:{q:'สร้างเพื่อระยะสั้นหรือระยะยาว?',o:['รายได้ระยะสั้น (ต้องการเงินตอนนี้)','ลงทุนระยะยาว (สร้างเพื่ออนาคต)','ทั้งสองเท่าๆ กัน','ยังไม่แน่ใจ']},
+    time_waste:{q:'ตอนนี้อะไรเสียเวลามากที่สุด?',p:'โซเชียล? คิดมากเกินไป?',h:'รอยรั่วหลัก'},
+    bad_habit:{q:'นิสัยที่รู้ว่าขัดขวางการเติบโต?',p:'ซื่อสัตย์',h:'การรู้จักตัวเอง'},
+    avoiding:{q:'อะไรที่หลีกเลี่ยงเพราะกลัว?',p:'ควรทำแต่ไม่ทำ?',h:'การต่อต้านจากความกลัว'},
+    failed:{q:'เคยลองอะไรที่ล้มเหลว? ทำไม?',p:'เรียนรู้จากอดีต...',h:'การจดจำรูปแบบ'},
+    domino:{q:'ปัญหาอะไรส่งผลหลายด้านในชีวิต?',p:'ปัญหาหลัก...',h:'แก้หนึ่ง ดีขึ้นทั้งหมด'},
+    fin_level:{q:'ระดับแรงกดดันทางการเงิน?',o:['สบาย - ไม่เครียดเรื่องเงิน','จัดการได้ - จ่ายบิลครบ','เครียด - เดือนต่อเดือน','วิกฤต - ดิ้นรนจ่ายบิล']},
+    capital:{q:'เข้าถึงเงินทุนหรือเงินออม?',o:['ไม่มีหรือน้อยมาก','ต่ำกว่า 5 พัน USD','5 พัน - 2 หมื่น USD','2 หมื่น - 5 หมื่น USD','มากกว่า 5 หมื่น USD','ไม่อยากบอก']},
+    unique_sk:{q:'ทักษะที่คนส่วนใหญ่ไม่มี?',p:'ภาษา, เทคนิค, สร้างสรรค์...',h:'จุดแข็งของคุณ'},
+    constraint:{q:'ข้อจำกัดที่ใหญ่ที่สุดคืออะไร?',o:['เวลา','เงิน','พลังงาน','ความรู้','เครือข่าย','สถานที่','สุขภาพ','อื่นๆ']},
+    focus_hrs:{q:'ชั่วโมงที่โฟกัสได้ต่อวัน?',sl:['1 ชม.','12 ชม.']},
+    sleep:{q:'นอนและตื่นเมื่อไร?',p:'นอน 0:00, ตื่น 8:00',h:'พื้นฐานสมอง'},
+    screens:{q:'ชั่วโมงหน้าจอต่อวัน?',sl:['0 ชม.','16 ชม.']},
+    style:{q:'กิจวัตรเข้มงวดหรือระบบยืดหยุ่น?',o:['กิจวัตรเข้มงวด - ตารางแน่นอน','ระบบยืดหยุ่น - หลักการ','ผสมทั้งสอง','ไม่มีความชอบ']},
+    decisions:{q:'ตัดสินใจส่วนใหญ่แบบ:',o:['วิเคราะห์ - ตรรกะและข้อมูล','อารมณ์ - สัญชาตญาณ','หยั่งรู้ - จดจำรูปแบบ','ถามคนอื่น']},
+    execute:{q:'ทำงานได้ดีที่สุดเมื่อ:',o:['ทำงานคนเดียว','มีคู่หูรับผิดชอบ','แข่งขันกับคนอื่น','ทำงานเป็นทีม']},
+    identity:{q:'ส่วนไหนของตัวตนสำคัญที่สุด?',o:['ความสำเร็จในอาชีพ','รูปลักษณ์','สติปัญญา','ความสัมพันธ์','อิสรภาพ','ผลกระทบต่อผู้อื่น','ความมั่งคั่ง','สุขภาพ']},
+    self_talk:{q:'เมื่อล้มเหลว คุณบอกตัวเองว่าอะไร?',p:'บทสนทนาภายใน...',h:'การพูดกับตัวเองเผยทุกอย่าง'},
+    tone:{q:'ต้องการโทนคำแนะนำแบบไหน?',o:['ตรงไปตรงมา - พูดตรงๆ','สนับสนุน - อ่อนโยน','ผสมสมดุล']},
+    pressure:{q:'ต้องการให้ผู้ช่วย:',o:['ท้าทาย - กดดันมากขึ้น','รักษาพลังงาน - จังหวะยั่งยืน','ปรับตามสถานการณ์']}
+  },
+  ko: {
+    name:{q:'이름과 나이는?',p:'예: 민수, 25',h:'모든 응답을 개인화'},
+    location:{q:'어디에 살고 있나요?',p:'도시, 국가',h:'위치가 기회를 형성'},
+    job:{q:'무엇을 하고 있나요?',o:['학생','회사원','사업주','농업','프리랜서','구직 중','전업주부','은퇴자','기타']},
+    industry:{q:'어떤 산업이나 분야?',p:'IT, 농업, 금융',h:'업무 맥락이 중요'},
+    work_day:{q:'실제 업무를 1-2문장으로 설명해주세요.',p:'매일 무엇을 하나요?',h:'직함 너머의 현실'},
+    proud:{q:'인생이 완벽하게 돌아간다면, 가장 자랑스러워할 것은?',p:'깊이 생각해보세요...',h:'당신에게 성공이란'},
+    tired:{q:'가장 지쳐있는 고민은?',p:'솔직하게...',h:'당신을 소진시키는 것'},
+    feeling:{q:'성공을 상상할 때, 실제로 쫓는 감정은?',p:'자유? 안정? 평화?',h:'목표 뒤의 감정'},
+    insec:{q:'무엇에 불안하거나 자의식을 느끼나요?',o:['체중/체형','피부 (여드름, 노화)','머리카락','치아/미소','키','옷/스타일','사교 능력','발표','지능','지루한 사람','목소리나 억양','동료 대비 경력','소득 수준','주거 환경','연애 상태','인생에서 뒤처진 느낌','과거의 실수','진지하게 받아들여지지 않음','기타']},
+    blockers:{q:'어떤 불안감이 실제로 당신을 막나요?',p:'무엇이 당신을 멈추게 하나요?',h:'큰 것 vs 작은 것'},
+    compare:{q:'다른 사람을 볼 때, 무엇이 뒤처진 느낌을 주나요?',p:'구체적으로...',h:'누구와 비교하나요?'},
+    secret:{q:'부끄럽거나 숨기는 것? (선택사항)',p:'원할 때만...',h:'비공개. 더 깊이 이해하기 위해.'},
+    conf_num:{q:'불안감이 업무 자신감에 얼마나 영향을 미치나요?',sl:['1 - 별로','10 - 매우']},
+    if_conf:{q:'완전히 자신감이 있다면 무엇이 변할까요?',p:'무엇을 할 건가요?',h:'자신감이 막고 있는 것'},
+    tried_fix:{q:'이런 불안감을 고치려고 시도해본 적이 있나요? 결과는?',p:'과거의 시도...',h:'역사에서 배우기'},
+    goal10:{q:'5-10년 목표를 한 문장으로?',p:'구체적으로',h:'당신의 북극성'},
+    mastering:{q:'지금 무엇을 마스터하려고 하나요?',p:'트레이딩? 사업? 기술?',h:'집중 배분'},
+    horizon:{q:'단기적? 장기적?',o:['단기 수입 (지금 돈이 필요)','장기 레버리지 (미래를 위해 구축)','둘 다 동등하게','아직 모르겠음']},
+    time_waste:{q:'현재 가장 시간을 낭비하는 것은?',p:'SNS? 과도한 생각?',h:'주요 누수'},
+    bad_habit:{q:'성장을 방해하는 습관 하나?',p:'솔직하게',h:'자기 인식'},
+    avoiding:{q:'두려워서 피하고 있는 것은?',p:'해야 하지만 안 하는?',h:'두려움 기반 저항'},
+    failed:{q:'시도했다가 실패한 것은? 왜?',p:'과거에서 배우기...',h:'패턴 인식'},
+    domino:{q:'인생의 여러 영역에 영향을 미치는 문제는?',p:'핵심 문제...',h:'하나를 고치면 모두 개선'},
+    fin_level:{q:'재정적 압박 수준은?',o:['편안함 - 돈 걱정 없음','관리 중 - 청구서 처리 가능','스트레스 - 매달 빠듯','위기 - 지불에 어려움']},
+    capital:{q:'자본이나 저축 접근성은?',o:['없거나 매우 적음','5천 달러 미만','5천~2만 달러','2만~5만 달러','5만 달러 이상','말하고 싶지 않음']},
+    unique_sk:{q:'대부분의 사람이 없는 기술은?',p:'언어, 기술, 창의적...',h:'당신의 레버리지'},
+    constraint:{q:'가장 큰 제약은?',o:['시간','돈','에너지','지식','네트워크','물리적 위치','건강','기타']},
+    focus_hrs:{q:'하루에 집중할 수 있는 시간은?',sl:['1시간','12시간']},
+    sleep:{q:'언제 자고 일어나나요?',p:'자정 취침, 8시 기상',h:'인지 기준선'},
+    screens:{q:'하루 스크린 시간은?',sl:['0시간','16시간']},
+    style:{q:'엄격한 루틴? 유연한 시스템?',o:['엄격한 루틴 - 정확한 일정','유연한 시스템 - 원칙','둘의 혼합','선호 없음']},
+    decisions:{q:'결정할 때 주로:',o:['분석적 - 논리와 데이터','감정적 - 직감','직관적 - 패턴 인식','다른 사람에게 의견 구함']},
+    execute:{q:'가장 잘 실행하는 때:',o:['혼자 작업할 때','책임 파트너와 함께','다른 사람과 경쟁할 때','팀이나 협업에서']},
+    identity:{q:'정체성에서 가장 중요한 부분은?',o:['경력 성공','외모','지능','관계','자유','타인에 대한 영향','부','건강']},
+    self_talk:{q:'실패했을 때 자신에게 뭐라고 하나요?',p:'내면의 대화...',h:'자기 대화가 모든 것을 드러냄'},
+    tone:{q:'어떤 조언 톤을 원하나요?',o:['직설적 - 솔직하게 말해줘','지지적 - 부드럽게','균형 잡힌 혼합']},
+    pressure:{q:'어시스턴트에게 원하는 것:',o:['도전 - 더 밀어붙여','에너지 보호 - 지속 가능한 속도','상황에 따라 적응']}
+  }
+};
+
+const Q = [
+  {id:'name',s:'Basic Context',t:'text'},
+  {id:'location',s:'Basic Context',t:'text'},
+  {id:'job',s:'Basic Context',t:'select'},
+  {id:'industry',s:'Basic Context',t:'text'},
+  {id:'work_day',s:'Basic Context',t:'textarea'},
+  {id:'proud',s:'Dreams & Pain',t:'textarea'},
+  {id:'tired',s:'Dreams & Pain',t:'textarea'},
+  {id:'feeling',s:'Dreams & Pain',t:'textarea'},
+  {id:'insec',s:'Identity & Confidence',t:'multi'},
+  {id:'blockers',s:'Identity & Confidence',t:'textarea'},
+  {id:'compare',s:'Identity & Confidence',t:'textarea'},
+  {id:'secret',s:'Identity & Confidence',t:'textarea'},
+  {id:'conf_num',s:'Identity & Confidence',t:'slider',min:1,max:10},
+  {id:'if_conf',s:'Identity & Confidence',t:'textarea'},
+  {id:'tried_fix',s:'Identity & Confidence',t:'textarea'},
+  {id:'goal10',s:'Direction & Strategy',t:'text'},
+  {id:'mastering',s:'Direction & Strategy',t:'text'},
+  {id:'horizon',s:'Direction & Strategy',t:'select'},
+  {id:'time_waste',s:'Bottlenecks',t:'text'},
+  {id:'bad_habit',s:'Bottlenecks',t:'text'},
+  {id:'avoiding',s:'Bottlenecks',t:'textarea'},
+  {id:'failed',s:'Bottlenecks',t:'textarea'},
+  {id:'domino',s:'Bottlenecks',t:'textarea'},
+  {id:'fin_level',s:'Resources',t:'select'},
+  {id:'capital',s:'Resources',t:'select'},
+  {id:'unique_sk',s:'Resources',t:'textarea'},
+  {id:'constraint',s:'Resources',t:'select'},
+  {id:'focus_hrs',s:'Resources',t:'slider',min:1,max:12},
+  {id:'sleep',s:'Operating System',t:'text'},
+  {id:'screens',s:'Operating System',t:'slider',min:0,max:16},
+  {id:'style',s:'Operating System',t:'select'},
+  {id:'decisions',s:'Operating System',t:'select'},
+  {id:'execute',s:'Operating System',t:'select'},
+  {id:'identity',s:'Psychology',t:'select'},
+  {id:'self_talk',s:'Psychology',t:'textarea'},
+  {id:'tone',s:'Psychology',t:'select'},
+  {id:'pressure',s:'Psychology',t:'select'}
+];
+
+function getQ(qDef) {
+  var lang = ST.lang || 'en';
+  var tr = QT[lang] && QT[lang][qDef.id] ? QT[lang][qDef.id] : QT.en[qDef.id];
+  return Object.assign({}, qDef, tr);
+}
+
+function ui(key) {
+  var lang = ST.lang || 'en';
+  return UI[lang] && UI[lang][key] ? UI[lang][key] : UI.en[key];
+}
+
+function sectionName(s) {
+  var lang = ST.lang || 'en';
+  return UI[lang] && UI[lang].sections && UI[lang].sections[s] ? UI[lang].sections[s] : s;
+}
+
+var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '' };
+
+function save() {
+  try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
+}
+
+function load() {
+  try {
+    var d = localStorage.getItem('la');
+    if (d) ST = JSON.parse(d);
+    if (!ST.lang) ST.lang = '';
+  } catch(e) {}
+}
+
+function g(k, f) { return ST.ans[k] || f || '?'; }
+
+function insecStr() {
+  return Array.isArray(ST.ans.insec) && ST.ans.insec.length > 0 ? ST.ans.insec.join(', ') : 'not specified';
+}
+
+function buildProfile() {
+  return 'USER PROFILE: Name/Age: ' + g('name') + ' Location: ' + g('location') + ' Occupation: ' + g('job') + ' in ' + g('industry') + ' Daily work: ' + g('work_day') + ' Proud of: ' + g('proud') + ' Tired of: ' + g('tired') + ' Feeling chasing: ' + g('feeling') + ' Insecurities: ' + insecStr() + ' What blocks them: ' + g('blockers') + ' Compares to: ' + g('compare') + ' Work confidence: ' + g('conf_num') + '/10 If confident would: ' + g('if_conf') + ' 10-year goal: ' + g('goal10') + ' Mastering: ' + g('mastering') + ' Strategy: ' + g('horizon') + ' Wastes time on: ' + g('time_waste') + ' Bad habit: ' + g('bad_habit') + ' Avoiding: ' + g('avoiding') + ' Past failures: ' + g('failed') + ' Keystone problem: ' + g('domino') + ' Financial: ' + g('fin_level') + ' Capital: ' + g('capital') + ' Unique skills: ' + g('unique_sk') + ' Constraint: ' + g('constraint') + ' Focused hours/day: ' + g('focus_hrs') + ' Sleep/wake: ' + g('sleep') + ' Screen time: ' + g('screens') + ' hrs/day Style: ' + g('style') + ' Decision style: ' + g('decisions') + ' Executes best: ' + g('execute') + ' Identity priority: ' + g('identity') + ' Self-talk: ' + g('self_talk') + ' Preferred tone: ' + g('tone') + ' Coaching mode: ' + g('pressure');
+}
+
+function buildMirror() {
+  return g('name', 'friend') + ', here is what I see about you.\n\nWHO YOU ARE\nLocation: ' + g('location') + '\nWork: ' + g('job') + ' in ' + g('industry') + '\nDaily: ' + g('work_day') + '\n\nDREAMS & PAIN\nProud of: ' + g('proud') + '\nTired of: ' + g('tired') + '\nChasing: ' + g('feeling') + '\n\nIDENTITY & CONFIDENCE\nInsecurities: ' + insecStr() + '\nBlockers: ' + g('blockers') + '\nIf confident: ' + g('if_conf') + '\n\nDIRECTION\nGoal: ' + g('goal10') + '\nMastering: ' + g('mastering') + '\nStrategy: ' + g('horizon') + '\n\nBOTTLENECKS\nWastes: ' + g('time_waste') + '\nHabit: ' + g('bad_habit') + '\nAvoiding: ' + g('avoiding') + '\n\nRESOURCES\nFinancial: ' + g('fin_level') + '\nSkills: ' + g('unique_sk') + '\nConstraint: ' + g('constraint') + '\n\nSYSTEM\nSleep: ' + g('sleep') + '\nScreens: ' + g('screens') + ' hrs\nStyle: ' + g('style') + '\n\nPSYCHOLOGY\nPriority: ' + g('identity') + '\nTone: ' + g('tone') + '\nMode: ' + g('pressure') + '\n\n---\nI know your full story.\nEvery answer built around YOU.\nYou are not alone. Let us work.';
+}
+
+function langName() {
+  var lang = ST.lang || 'en';
+  return LANGS[lang] ? LANGS[lang].label : 'English';
+}
+
+function systemPrompt() {
+  var tone = ST.ans.tone || '';
+  var toneRule = tone.includes('Blunt') || tone.includes('直') || tone.includes('Direct') || tone.includes('ตรง') ? 'Be direct, no filter.' : tone.includes('Support') || tone.includes('サポート') || tone.includes('apoyo') || tone.includes('สนับสนุน') || tone.includes('지지') ? 'Be warm and encouraging.' : 'Be balanced.';
+  var langRule = ST.lang && ST.lang !== 'en' ? '\n- IMPORTANT: You MUST respond entirely in ' + langName() + '. Every word of your response must be in ' + langName() + '.' : '';
+  return 'You are a deeply personalized life assistant. You know this person completely.\n\n' + buildProfile() + '\n\nRULES:\n- Use their name. Reference their exact situation always.\n- Connect career+confidence+sleep+habits when relevant.\n- Give specific action steps, not vague motivation.\n- Call out patterns across their answers.\n- Tone rule: ' + toneRule + '\n- Make them feel truly known. No generic advice.' + langRule;
+}
+
+function chatGreeting() {
+  var name = ST.ans.name || 'Hey';
+  var lang = ST.lang || 'en';
+  if (lang === 'ja') return name + '、あなたのプロフィールをすべて読みました。\n\nあなたの目標、悩み、不安、何があなたを止めているか、どう考えるか、何を作っているか、すべて知っています。\n\nキャリア、自信、習慣、人間関係、お金、外見、何でも聞いてください。あなた専用のアドバイスをします。\n\nまず何に取り組みたいですか？';
+  if (lang === 'es') return name + ', he leído tu perfil completo.\n\nConozco tus metas, tus luchas, tus inseguridades, lo que te detiene, cómo piensas y lo que estás construyendo.\n\nPregúntame lo que sea - carrera, confianza, hábitos, relaciones, dinero, apariencia. Te daré consejos construidos específicamente para TI.\n\n¿En qué quieres trabajar primero?';
+  if (lang === 'th') return name + ' ฉันอ่านโปรไฟล์ทั้งหมดของคุณแล้ว\n\nฉันรู้เป้าหมาย ปัญหา ความไม่มั่นใจ สิ่งที่หยุดคุณ วิธีคิด และสิ่งที่คุณกำลังสร้าง\n\nถามอะไรก็ได้ - อาชีพ ความมั่นใจ นิสัย ความสัมพันธ์ เงิน รูปลักษณ์ ฉันจะให้คำแนะนำที่สร้างมาเพื่อคุณโดยเฉพาะ\n\nอยากทำงานเรื่องอะไรก่อน?';
+  if (lang === 'ko') return name + ', 당신의 전체 프로필을 읽었습니다.\n\n당신의 목표, 고민, 불안감, 무엇이 당신을 막는지, 어떻게 생각하는지, 무엇을 만들고 있는지 모두 알고 있습니다.\n\n무엇이든 물어보세요 - 경력, 자신감, 습관, 관계, 돈, 외모. 당신만을 위한 조언을 드리겠습니다.\n\n먼저 무엇에 대해 작업하고 싶으세요?';
+  return name + ', I have read your full profile.\n\nI know your goals, your struggles, your insecurities, what is holding you back, how you think, and what you are building.\n\nAsk me anything - career, confidence, habits, relationships, money, appearance. I will give you advice built specifically for YOU.\n\nWhat do you want to work on first?';
+}
+
+async function sendMsg(userText) {
+  ST.msgs.push({ role: 'user', content: userText });
+  render();
+  var res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ system: systemPrompt(), messages: ST.msgs.map(function(m) { return { role: m.role, content: m.content }; }) })
+  });
+  var data = await res.json();
+  var reply = data.content && data.content[0] ? data.content[0].text : 'Something went wrong.';
+  ST.msgs.push({ role: 'assistant', content: reply });
+  ST.loading = false;
+  save();
+  render();
+  setTimeout(function() { var el = document.getElementById('chat-end'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100);
+}
+
+function reset() {
+  if (!confirm(ui('deleteConfirm'))) return;
+  try { localStorage.removeItem('la'); } catch(e) {}
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '' };
+  render();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function langSwitcherHtml() {
+  var html = '<div class="lang-switcher" data-testid="lang-switcher">';
+  var keys = Object.keys(LANGS);
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    var active = (ST.lang || 'en') === k ? ' active' : '';
+    html += '<button class="lang-mini' + active + '" data-lang="' + k + '" data-testid="lang-mini-' + k + '">' + LANGS[k].flag + '</button>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function bindLangSwitcher() {
+  document.querySelectorAll('.lang-mini').forEach(function(btn) {
+    btn.onclick = function() {
+      ST.lang = btn.dataset.lang;
+      save();
+      render();
+    };
+  });
+}
+
+function render() {
+  var root = document.getElementById('root');
+  if (ST.stage === 'welcome') { renderWelcome(root); }
+  else if (ST.stage === 'questions') { renderQuestion(root); }
+  else if (ST.stage === 'mirror') { renderMirror(root); }
+  else { renderChat(root); }
+}
+
+function renderWelcome(root) {
+  var hasLang = ST.lang && ST.lang.length > 0;
+  if (!hasLang) {
+    root.innerHTML = '<div class="page"><div class="card">' +
+      '<div class="brand">Life Assistant</div>' +
+      '<p class="tagline">Choose your language / ' + UI.ja.chooseLanguage + ' / ' + UI.th.chooseLanguage + '</p>' +
+      '<div class="lang-picker" data-testid="lang-picker">' +
+      Object.keys(LANGS).map(function(k) {
+        return '<button class="lang-btn" data-lang="' + k + '" data-testid="lang-btn-' + k + '">' + LANGS[k].flag + ' ' + LANGS[k].label + '</button>';
+      }).join('') +
+      '</div></div></div>';
+    document.querySelectorAll('.lang-btn').forEach(function(btn) {
+      btn.onclick = function() {
+        ST.lang = btn.dataset.lang;
+        save();
+        render();
+      };
+    });
+    return;
+  }
+  root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
+    '<div class="brand">Life Assistant</div>' +
+    '<p class="tagline">' + ui('tagline') + '</p>' +
+    '<div class="meta-list">' +
+    '<p><strong>' + ui('meta1') + '</strong></p>' +
+    '<p>' + ui('meta2') + '</p>' +
+    '<p>' + ui('meta3') + '</p><br>' +
+    '<p><strong>' + ui('meta4') + '</strong></p>' +
+    '</div>' +
+    '<button class="btn-primary" id="sb" data-testid="button-start">' + ui('startBtn') + '</button>' +
+    '</div></div>';
+  document.getElementById('sb').onclick = function() { ST.stage = 'questions'; save(); render(); };
+  bindLangSwitcher();
+}
+
+function renderQuestion(root) {
+  var qDef = Q[ST.step];
+  var q = getQ(qDef);
+  var pct = Math.round(((ST.step + 1) / Q.length) * 100);
+  var sv = ST.ans[q.id];
+  var inp = '';
+  if (q.t === 'text') {
+    inp = '<input class="field-text" id="qa" type="text" placeholder="' + esc(q.p || '') + '" value="' + esc(sv || '') + '" data-testid="input-answer">';
+  } else if (q.t === 'textarea') {
+    inp = '<textarea class="field-area" id="qa" placeholder="' + esc(q.p || '') + '" data-testid="input-answer">' + esc(sv || '') + '</textarea>';
+  } else if (q.t === 'slider') {
+    var v = sv || Math.round((qDef.min + qDef.max) / 2);
+    inp = '<div class="slider-num" id="sn">' + v + '</div><input class="field-range" id="qa" type="range" min="' + qDef.min + '" max="' + qDef.max + '" value="' + v + '" data-testid="input-slider"><div class="range-labels"><span>' + (q.sl ? q.sl[0] : '') + '</span><span>' + (q.sl ? q.sl[1] : '') + '</span></div>';
+  } else if (q.t === 'select') {
+    inp = (q.o || []).map(function(o, i) { return '<button class="opt-btn" data-i="' + i + '" data-testid="option-' + i + '">' + o + '</button>'; }).join('');
+  } else if (q.t === 'multi') {
+    var sel = Array.isArray(sv) ? sv : [];
+    inp = '<div>' + (q.o || []).map(function(o, i) {
+      var c = sel.includes(o);
+      return '<div class="check-row' + (c ? ' checked' : '') + '" data-i="' + i + '" data-testid="check-' + i + '"><div class="check-box">' + (c ? '&#10003;' : '') + '</div><span>' + o + '</span></div>';
+    }).join('') + '</div>';
+  }
+  var showNext = q.t !== 'select';
+  root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
+    '<div class="sec-badge">' + sectionName(q.s) + '</div>' +
+    '<div class="prog-row"><span>' + (ST.step + 1) + ' ' + ui('of') + ' ' + Q.length + '</span><span>' + pct + '%</span></div>' +
+    '<div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div>' +
+    '<div class="question-text">' + q.q + '</div>' +
+    (q.h ? '<div class="hint-text">' + q.h + '</div>' : '') +
+    inp +
+    '<div class="btn-row">' +
+    (ST.step > 0 ? '<button class="btn-back" id="bb" data-testid="button-back">' + ui('back') + '</button>' : '') +
+    (showNext ? '<button class="btn-primary" id="nb" data-testid="button-next">' + ui('next') + '</button>' : '') +
+    '</div>' +
+    '<div class="reset-link" id="rb" data-testid="link-reset">' + ui('resetAll') + '</div>' +
+    '</div></div>';
+  if (q.t === 'slider') {
+    var sl = document.getElementById('qa');
+    var sn = document.getElementById('sn');
+    sl.oninput = function() { sn.textContent = sl.value; };
+  }
+  if (q.t === 'select') {
+    document.querySelectorAll('.opt-btn').forEach(function(btn) {
+      btn.onclick = function() {
+        ST.ans[q.id] = (q.o || [])[parseInt(btn.dataset.i)];
+        advance();
+      };
+    });
+  }
+  if (q.t === 'multi') {
+    document.querySelectorAll('.check-row').forEach(function(row) {
+      row.onclick = function() {
+        var val = (q.o || [])[parseInt(row.dataset.i)];
+        var sel2 = Array.isArray(ST.ans[q.id]) ? ST.ans[q.id].slice() : [];
+        if (sel2.includes(val)) { sel2 = sel2.filter(function(x) { return x !== val; }); }
+        else { sel2.push(val); }
+        ST.ans[q.id] = sel2;
+        var box = row.querySelector('.check-box');
+        if (sel2.includes(val)) { row.classList.add('checked'); box.innerHTML = '&#10003;'; }
+        else { row.classList.remove('checked'); box.innerHTML = ''; }
+      };
+    });
+  }
+  var nb = document.getElementById('nb');
+  if (nb) { nb.onclick = function() { var el = document.getElementById('qa'); if (el) ST.ans[q.id] = el.value; advance(); }; }
+  var bb = document.getElementById('bb');
+  if (bb) { bb.onclick = function() { ST.step--; save(); render(); }; }
+  document.getElementById('rb').onclick = reset;
+  bindLangSwitcher();
+}
+
+function advance() {
+  save();
+  if (ST.step < Q.length - 1) { ST.step++; render(); }
+  else { ST.stage = 'mirror'; render(); }
+}
+
+function renderMirror(root) {
+  root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
+    '<div class="brand" style="font-size:2.2rem">' + ui('mirrorTitle') + '</div>' +
+    '<div class="mirror-box">' + buildMirror() + '</div>' +
+    '<button class="btn-primary" id="cn" data-testid="button-start-chat">' + ui('startChat') + '</button>' +
+    '<div class="reset-link" id="rb" data-testid="link-start-over">' + ui('startOver') + '</div>' +
+    '</div></div>';
+  document.getElementById('cn').onclick = function() {
+    ST.stage = 'chat';
+    ST.msgs = [{ role: 'assistant', content: chatGreeting() }];
+    save();
+    render();
+  };
+  document.getElementById('rb').onclick = reset;
+  bindLangSwitcher();
+}
+
+function renderChat(root) {
+  var msgsHtml = ST.msgs.map(function(m) {
+    return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '">' + m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div></div>';
+  }).join('');
+  root.innerHTML = '<div class="chat-wrap">' +
+    '<div class="chat-header">' +
+    '<div>' +
+    '<div style="font-family:Georgia,serif;font-size:1.4rem;color:#fff">Life Assistant</div>' +
+    '<div style="font-size:0.8rem;color:var(--muted)">' + ui('knows') + ' ' + esc(ST.ans.name || 'you') + ' ' + ui('completely') + '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:12px;align-items:center">' +
+    Object.keys(LANGS).map(function(k) {
+      var active = (ST.lang || 'en') === k ? ' active' : '';
+      return '<button class="lang-mini' + active + '" data-lang="' + k + '" data-testid="lang-chat-' + k + '" style="font-size:0.9rem;padding:4px 8px">' + LANGS[k].flag + '</button>';
+    }).join('') +
+    '<div class="reset-link" style="margin:0" id="rb" data-testid="link-reset">' + ui('reset') + '</div>' +
+    '</div>' +
+    '</div>' +
+    '<div class="chat-messages" id="cm">' + msgsHtml +
+    (ST.loading ? '<div class="msg assistant"><div class="bubble assistant" style="color:var(--muted)">' + ui('thinking') + '</div></div>' : '') +
+    '<div id="chat-end"></div></div>' +
+    '<div class="chat-input-bar">' +
+    '<div class="chat-input-inner">' +
+    '<input class="chat-input" id="ci" placeholder="' + ui('askAnything') + '" ' + (ST.loading ? 'disabled' : '') + ' data-testid="input-chat">' +
+    '<button class="chat-send" id="cs" ' + (ST.loading ? 'disabled' : '') + ' data-testid="button-send">' + ui('send') + '</button>' +
+    '</div></div></div>';
+  var cm = document.getElementById('cm');
+  cm.scrollTop = cm.scrollHeight;
+  var ci = document.getElementById('ci');
+  var cs = document.getElementById('cs');
+  function doSend() {
+    var txt = ci.value.trim();
+    if (!txt || ST.loading) return;
+    ci.value = '';
+    ST.loading = true;
+    render();
+    sendMsg(txt);
+  }
+  ci.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } };
+  cs.onclick = doSend;
+  document.getElementById('rb').onclick = reset;
+  document.querySelectorAll('.lang-mini').forEach(function(btn) {
+    btn.onclick = function() {
+      ST.lang = btn.dataset.lang;
+      save();
+      render();
+    };
+  });
+}
+
+load();
+render();
+
 } catch(e) {
   console.error('App error:', e);
   document.getElementById('root').innerHTML = '<div class="page"><div class="card"><div class="brand">Life Assistant</div><p class="tagline">Something went wrong. Please refresh.</p></div></div>';
