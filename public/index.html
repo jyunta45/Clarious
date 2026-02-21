@@ -2418,7 +2418,7 @@ function renderChat(root) {
     '<button class="growth-btn" id="open-growth" data-testid="button-open-growth">' + ui('growthBtn') + '</button>' +
     '<button class="patterns-btn" id="open-patterns" data-testid="button-open-patterns">Patterns</button>' +
     '<span class="tier-badge ' + getTierClass() + '">' + getTierLabel() + '</span>' +
-    (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span>' : '') +
+    (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span><button class="logout-btn" id="chat-logout-btn" data-testid="button-chat-logout" style="font-size:0.7rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;text-decoration:underline">' + ui('logOut') + '</button>' : '') +
     Object.keys(LANGS).map(function(k) {
       var active = (ST.lang || 'en') === k ? ' active' : '';
       return '<button class="lang-mini' + active + '" data-lang="' + k + '" data-testid="lang-chat-' + k + '" style="font-size:0.9rem;padding:4px 8px">' + LANGS[k].flag + '</button>';
@@ -2494,6 +2494,9 @@ function renderChat(root) {
       if (msgs[idx] && msgs[idx].content) speakText(msgs[idx].content, btn);
     };
   });
+
+  var chatLogoutBtn = document.getElementById('chat-logout-btn');
+  if (chatLogoutBtn) chatLogoutBtn.onclick = doLogout;
 
   var openGrowthBtn = document.getElementById('open-growth');
   if (openGrowthBtn) openGrowthBtn.onclick = function() {
