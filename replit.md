@@ -66,6 +66,7 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 ## Recent Changes
 
+- **2026-02-21**: Controlled proactivity triggers: context-aware check-in banner shows different messages based on conditions: inactivity (2+ days away: "still moving toward your goal?"), goal drift (3+ repeated challenges: "want to redesign your approach?"), daily alignment (default: "what's one action today that moves you forward?"). All 5 languages. Both visible UI banners and AI prompt injection. Zero API cost.
 - **2026-02-21**: Pattern tracking system: topic frequency detection (8 categories: work, health, relationships, money, goals, learning, creativity, habits), recurring challenge identification, activity heatmap (hourly usage patterns), goal progress tracking, weekly topic trends. Visual Patterns dashboard panel accessible from chat header. Pattern insights injected into AI system prompt. Stored in new JSONB `patterns` column.
 - **2026-02-21**: Advanced AI memory systems: structured identity profiles (8 categories), memory extraction (6 fact types via regex), memory retrieval (keyword matching, top 3 results), mood tracking (sentiment scoring, 30-day rolling log), behavioral triggers (absence detection, mood trends, goal follow-ups), thread summarization (stored per-thread during context compression). All persisted in 5 new JSONB columns.
 - **2026-02-21**: Added voice input (Web Speech API microphone) and voice output (TTS auto-read on AI responses)

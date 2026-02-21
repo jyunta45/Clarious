@@ -196,6 +196,9 @@ const UI = {
     mainThread: 'Main',
     checkinMsg: 'Good to see you! How are you feeling today?',
     checkinDismiss: 'dismiss',
+    triggerInactivity: 'Quick check-in -- still moving toward your goal?',
+    triggerGoalDrift: 'You\'ve mentioned this challenge a few times. Want to redesign your approach?',
+    triggerDailyAlign: 'What\'s the one action today that moves you forward?',
     voiceListening: 'Listening...',
     voicePlay: 'Listen',
     voiceStop: 'Stop',
@@ -252,6 +255,9 @@ const UI = {
     mainThread: 'メイン',
     checkinMsg: '会えて嬉しいです！今日の調子はどうですか？',
     checkinDismiss: '閉じる',
+    triggerInactivity: 'お久しぶりです -- まだ目標に向かって進んでいますか？',
+    triggerGoalDrift: 'この課題を何度か話していますね。アプローチを見直しませんか？',
+    triggerDailyAlign: '今日、前進するための一つの行動は何ですか？',
     voiceListening: '聞いています...',
     voicePlay: '聴く',
     voiceStop: '停止',
@@ -308,6 +314,9 @@ const UI = {
     mainThread: 'Principal',
     checkinMsg: '¡Me alegra verte! ¿Cómo te sientes hoy?',
     checkinDismiss: 'cerrar',
+    triggerInactivity: 'Te echamos de menos -- ¿sigues avanzando hacia tu meta?',
+    triggerGoalDrift: 'Has mencionado este desafío varias veces. ¿Quieres replantear tu enfoque?',
+    triggerDailyAlign: '¿Cuál es la acción de hoy que te hace avanzar?',
     voiceListening: 'Escuchando...',
     voicePlay: 'Escuchar',
     voiceStop: 'Parar',
@@ -364,6 +373,9 @@ const UI = {
     mainThread: 'หลัก',
     checkinMsg: 'ดีใจที่ได้เจอ! วันนี้เป็นอย่างไรบ้าง?',
     checkinDismiss: 'ปิด',
+    triggerInactivity: 'แค่เช็คอิน -- ยังมุ่งหน้าสู่เป้าหมายอยู่ไหม?',
+    triggerGoalDrift: 'คุณพูดถึงปัญหานี้หลายครั้งแล้ว อยากลองปรับแนวทางไหม?',
+    triggerDailyAlign: 'วันนี้จะทำอะไรสักอย่างที่พาคุณก้าวไปข้างหน้า?',
     voiceListening: 'กำลังฟัง...',
     voicePlay: 'ฟัง',
     voiceStop: 'หยุด',
@@ -420,6 +432,9 @@ const UI = {
     mainThread: '메인',
     checkinMsg: '만나서 반가워요! 오늘 기분이 어때요?',
     checkinDismiss: '닫기',
+    triggerInactivity: '잠깐 체크인 -- 아직 목표를 향해 나아가고 있나요?',
+    triggerGoalDrift: '이 문제를 여러 번 언급하셨어요. 접근 방식을 바꿔볼까요?',
+    triggerDailyAlign: '오늘 앞으로 나아가게 할 한 가지 행동은 뭔가요?',
     voiceListening: '듣고 있습니다...',
     voicePlay: '듣기',
     voiceStop: '중지',
@@ -973,6 +988,30 @@ function autoThreadName(msgs) {
   return first;
 }
 
+function getProactiveTrigger() {
+  var today = new Date().toISOString().slice(0, 10);
+  if (ST.lastActiveDate && ST.lastActiveDate !== today) {
+    var last = new Date(ST.lastActiveDate);
+    var now = new Date(today);
+    var diff = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+    if (diff >= 2) return 'inactivity';
+  }
+  var challenges = ST.patterns && ST.patterns.recurringChallenges ? ST.patterns.recurringChallenges : [];
+  var frequentChallenge = null;
+  for (var ci = 0; ci < challenges.length; ci++) {
+    if (challenges[ci].count >= 3) { frequentChallenge = challenges[ci]; break; }
+  }
+  if (frequentChallenge) return 'goalDrift';
+  return 'dailyAlign';
+}
+
+function getCheckinMessage() {
+  var trigger = getProactiveTrigger();
+  if (trigger === 'inactivity') return ui('triggerInactivity');
+  if (trigger === 'goalDrift') return ui('triggerGoalDrift');
+  return ui('triggerDailyAlign');
+}
+
 function shouldCheckin() {
   if (checkinDismissed) return false;
   var today = new Date().toDateString();
@@ -988,7 +1027,7 @@ function doCheckin() {
   ST.loading = true;
   save();
   render();
-  sendMsg(ui('checkinMsg'));
+  sendMsg(getCheckinMessage());
 }
 
 function dismissCheckin() {
@@ -1151,10 +1190,17 @@ function behavioralTriggers() {
     var last = new Date(ST.lastActiveDate);
     var now = new Date(today);
     var diff = Math.floor((now - last) / (1000 * 60 * 60 * 24));
-    if (diff >= 3) triggers.push({ type: 'absence', msg: 'User has been away for ' + diff + ' days. Gently welcome them back and ask how things have been.' });
+    if (diff >= 2) triggers.push({ type: 'absence', msg: 'User has been away for ' + diff + ' days. Welcome them back warmly and gently ask if they are still on track with their goals.' });
   }
   var trend = getMoodTrend();
   if (trend === 'declining') triggers.push({ type: 'mood', msg: 'User mood has been declining recently. Be extra supportive and check in on their wellbeing without being pushy.' });
+  var challenges = ST.patterns && ST.patterns.recurringChallenges ? ST.patterns.recurringChallenges : [];
+  for (var ci = 0; ci < challenges.length; ci++) {
+    if (challenges[ci].count >= 3) {
+      triggers.push({ type: 'goal_drift', msg: 'User has repeatedly mentioned this challenge (' + challenges[ci].count + ' times): "' + challenges[ci].text + '". If they bring it up again, proactively suggest redesigning their approach instead of just sympathizing.' });
+      break;
+    }
+  }
   if (ST.identityProfile && ST.identityProfile.goals) {
     var goal = ST.identityProfile.goals.tenYear;
     if (goal && goal !== '?') {
@@ -1755,8 +1801,9 @@ function renderChat(root) {
 
   var checkinHtml = '';
   if (showCheckin) {
+    var triggerMsg = getCheckinMessage();
     checkinHtml = '<div class="checkin-banner" id="checkin-go" data-testid="banner-checkin">' +
-      ui('checkinMsg') +
+      triggerMsg +
       '<button class="checkin-dismiss" id="checkin-dismiss" data-testid="button-checkin-dismiss">' + ui('checkinDismiss') + '</button>' +
       '</div>';
   }
