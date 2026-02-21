@@ -25,7 +25,7 @@ app.use(session({
   store: new PgSession({ pool, createTableIfMissing: true }),
   secret: process.env.SESSION_SECRET || 'life-assistant-dev-secret',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
   cookie: {
     maxAge: 30 * 24 * 60 * 60 * 1000,
     httpOnly: true,
@@ -85,7 +85,9 @@ app.get('/api/auth/me', async (req, res) => {
   try {
     const [user] = await db.select().from(users).where(eq(users.id, req.session.userId));
     if (!user) return res.json({ loggedIn: false });
-    res.json({ loggedIn: true, email: user.email });
+    const [data] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+    const tier = data ? data.tier : 'free';
+    res.json({ loggedIn: true, email: user.email, tier: tier });
   } catch(e) {
     res.json({ loggedIn: false });
   }
@@ -132,6 +134,29 @@ app.post('/api/data', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
+    let tier = 'guest';
+    if (req.session.userId) {
+      const [data] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+      tier = data ? data.tier : 'free';
+      const today = new Date().toISOString().slice(0, 10);
+      const currentCount = (data && data.msgCountDate === today) ? data.msgCount : 0;
+      const limit = tier === 'subscriber' ? 200 : 50;
+      if (currentCount >= limit) {
+        return res.status(429).json({ error: 'limit', limit: limit });
+      }
+      await db.update(userData).set({
+        msgCount: data && data.msgCountDate === today ? currentCount + 1 : 1,
+        msgCountDate: today,
+        updatedAt: new Date()
+      }).where(eq(userData.userId, req.session.userId));
+    } else {
+      if (!req.session.guestMsgCount) req.session.guestMsgCount = 0;
+      if (req.session.guestMsgCount >= 10) {
+        return res.status(429).json({ error: 'limit', limit: 10 });
+      }
+      req.session.guestMsgCount++;
+    }
+
     const userMsg = req.body.messages && req.body.messages.length > 0
       ? req.body.messages[req.body.messages.length - 1].content || ''
       : '';

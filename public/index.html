@@ -89,6 +89,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .checkin-banner{padding:16px 20px;background:linear-gradient(135deg,rgba(155,109,255,0.15),rgba(255,109,181,0.1));border-bottom:1px solid rgba(155,109,255,0.2);text-align:center;font-size:0.9rem;color:var(--text);cursor:pointer;transition:opacity 0.2s;}
 .checkin-banner:hover{opacity:0.85;}
 .checkin-dismiss{background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;margin-left:8px;font-family:'DM Sans',sans-serif;}
+.voice-mic{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.voice-mic:hover{background:rgba(155,109,255,0.15);border-color:var(--accent);color:var(--accent);}
+.voice-mic.recording{background:rgba(255,80,80,0.2);border-color:#ff5050;color:#ff5050;animation:pulse-mic 1s infinite;}
+@keyframes pulse-mic{0%,100%{box-shadow:0 0 0 0 rgba(255,80,80,0.3);}50%{box-shadow:0 0 0 8px rgba(255,80,80,0);}}
+.voice-play{background:none;border:none;color:var(--muted);font-size:0.7rem;cursor:pointer;padding:4px 8px;margin-top:4px;display:inline-flex;align-items:center;gap:4px;border-radius:8px;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.voice-play:hover{color:var(--accent);background:rgba(155,109,255,0.1);}
+.voice-play.speaking{color:var(--accent2);}
+.tier-badge{font-size:0.65rem;padding:2px 8px;border-radius:100px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.tier-guest{background:rgba(255,255,255,0.08);color:var(--muted);}
+.tier-free{background:rgba(155,109,255,0.15);color:var(--accent);}
+.tier-subscriber{background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(255,109,181,0.2));color:var(--gold);}
+.msg-limit{text-align:center;padding:6px;font-size:0.7rem;color:var(--muted);}
 @media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;font-size:0.9rem;padding:12px 16px;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}.chat-header{padding:12px 14px;}.chat-messages{padding:14px;gap:12px;}.chat-input-bar{padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));}.chat-input{padding:12px 14px;font-size:0.9rem;}.chat-send{padding:12px 18px;font-size:0.9rem;}.quick-actions{padding:0 14px 10px;gap:6px;}.quick-btn{padding:6px 12px;font-size:0.78rem;}.thread-tabs{padding:6px 10px;gap:4px;}.thread-tab{padding:5px 10px;font-size:0.75rem;}.thread-new{padding:5px 10px;font-size:0.78rem;}.msg.user .bubble{margin-left:20%;}}
 </style>
 </head>
@@ -147,6 +159,15 @@ const UI = {
     mainThread: 'Main',
     checkinMsg: 'Good to see you! How are you feeling today?',
     checkinDismiss: 'dismiss',
+    voiceListening: 'Listening...',
+    voicePlay: 'Listen',
+    voiceStop: 'Stop',
+    voiceNotSupported: 'Voice not supported in this browser',
+    tierGuest: 'Guest',
+    tierFree: 'Free',
+    tierSubscriber: 'Pro',
+    msgLimit: 'messages today',
+    limitReached: 'Message limit reached. Create an account or upgrade for more!',
     sections: {
       'Basic Context': 'Basic Context',
       'Dreams & Pain': 'Dreams & Pain',
@@ -194,6 +215,15 @@ const UI = {
     mainThread: 'メイン',
     checkinMsg: '会えて嬉しいです！今日の調子はどうですか？',
     checkinDismiss: '閉じる',
+    voiceListening: '聞いています...',
+    voicePlay: '聴く',
+    voiceStop: '停止',
+    voiceNotSupported: 'このブラウザでは音声がサポートされていません',
+    tierGuest: 'ゲスト',
+    tierFree: '無料',
+    tierSubscriber: 'プロ',
+    msgLimit: '今日のメッセージ',
+    limitReached: 'メッセージ制限に達しました。アカウントを作成するかアップグレードしてください！',
     sections: {
       'Basic Context': '基本情報',
       'Dreams & Pain': '夢と悩み',
@@ -241,6 +271,15 @@ const UI = {
     mainThread: 'Principal',
     checkinMsg: '¡Me alegra verte! ¿Cómo te sientes hoy?',
     checkinDismiss: 'cerrar',
+    voiceListening: 'Escuchando...',
+    voicePlay: 'Escuchar',
+    voiceStop: 'Parar',
+    voiceNotSupported: 'Voz no soportada en este navegador',
+    tierGuest: 'Invitado',
+    tierFree: 'Gratis',
+    tierSubscriber: 'Pro',
+    msgLimit: 'mensajes hoy',
+    limitReached: 'Limite de mensajes alcanzado. Crea una cuenta o mejora tu plan!',
     sections: {
       'Basic Context': 'Contexto Básico',
       'Dreams & Pain': 'Sueños y Dolor',
@@ -288,6 +327,15 @@ const UI = {
     mainThread: 'หลัก',
     checkinMsg: 'ดีใจที่ได้เจอ! วันนี้เป็นอย่างไรบ้าง?',
     checkinDismiss: 'ปิด',
+    voiceListening: 'กำลังฟัง...',
+    voicePlay: 'ฟัง',
+    voiceStop: 'หยุด',
+    voiceNotSupported: 'เบราว์เซอร์นี้ไม่รองรับเสียง',
+    tierGuest: 'ผู้เยี่ยมชม',
+    tierFree: 'ฟรี',
+    tierSubscriber: 'โปร',
+    msgLimit: 'ข้อความวันนี้',
+    limitReached: 'ถึงขีดจำกัดข้อความแล้ว สร้างบัญชีหรืออัปเกรดเพื่อใช้งานต่อ!',
     sections: {
       'Basic Context': 'ข้อมูลพื้นฐาน',
       'Dreams & Pain': 'ความฝันและความเจ็บปวด',
@@ -335,6 +383,15 @@ const UI = {
     mainThread: '메인',
     checkinMsg: '만나서 반가워요! 오늘 기분이 어때요?',
     checkinDismiss: '닫기',
+    voiceListening: '듣고 있습니다...',
+    voicePlay: '듣기',
+    voiceStop: '중지',
+    voiceNotSupported: '이 브라우저에서는 음성이 지원되지 않습니다',
+    tierGuest: '게스트',
+    tierFree: '무료',
+    tierSubscriber: '프로',
+    msgLimit: '오늘 메시지',
+    limitReached: '메시지 한도에 도달했습니다. 계정을 만들거나 업그레이드하세요!',
     sections: {
       'Basic Context': '기본 정보',
       'Dreams & Pain': '꿈과 고통',
@@ -602,10 +659,108 @@ function sectionName(s) {
   return UI[lang] && UI[lang].sections && UI[lang].sections[s] ? UI[lang].sections[s] : s;
 }
 
-var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '' };
-var AUTH = { loggedIn: false, email: '', checked: false, guest: false };
+var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0 };
+var AUTH = { loggedIn: false, email: '', checked: false, guest: false, tier: 'guest' };
 var savePending = null;
 var checkinDismissed = false;
+var voiceRecognition = null;
+var voiceIsRecording = false;
+var currentSpeech = null;
+
+var VOICE_LANGS = { en: 'en-US', ja: 'ja-JP', es: 'es-ES', th: 'th-TH', ko: 'ko-KR' };
+var TIER_LIMITS = { guest: 10, free: 50, subscriber: 200 };
+
+function hasVoiceInput() {
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+
+function hasVoiceOutput() {
+  return !!window.speechSynthesis;
+}
+
+function startVoiceInput() {
+  if (voiceIsRecording) { stopVoiceInput(); return; }
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { alert(ui('voiceNotSupported')); return; }
+  voiceRecognition = new SpeechRecognition();
+  voiceRecognition.lang = VOICE_LANGS[ST.lang || 'en'] || 'en-US';
+  voiceRecognition.interimResults = true;
+  voiceRecognition.continuous = false;
+  voiceRecognition.maxAlternatives = 1;
+  voiceIsRecording = true;
+  var ci = document.getElementById('ci');
+  var micBtn = document.getElementById('voice-mic');
+  if (micBtn) micBtn.classList.add('recording');
+  if (ci) ci.placeholder = ui('voiceListening');
+  var finalTranscript = '';
+  voiceRecognition.onresult = function(e) {
+    var interim = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) { finalTranscript += e.results[i][0].transcript; }
+      else { interim += e.results[i][0].transcript; }
+    }
+    if (ci) ci.value = finalTranscript + interim;
+  };
+  voiceRecognition.onend = function() {
+    voiceIsRecording = false;
+    if (micBtn) micBtn.classList.remove('recording');
+    if (ci) ci.placeholder = ui('askAnything');
+    if (finalTranscript.trim()) {
+      ci.value = finalTranscript.trim();
+      ST.autoSpeak = true;
+    }
+  };
+  voiceRecognition.onerror = function() {
+    voiceIsRecording = false;
+    if (micBtn) micBtn.classList.remove('recording');
+    if (ci) ci.placeholder = ui('askAnything');
+  };
+  voiceRecognition.start();
+}
+
+function stopVoiceInput() {
+  voiceIsRecording = false;
+  if (voiceRecognition) { try { voiceRecognition.stop(); } catch(e) {} }
+  var micBtn = document.getElementById('voice-mic');
+  if (micBtn) micBtn.classList.remove('recording');
+}
+
+function speakText(text, btnEl) {
+  if (!window.speechSynthesis) return;
+  if (currentSpeech) { window.speechSynthesis.cancel(); currentSpeech = null; }
+  if (btnEl && btnEl.classList && btnEl.classList.contains('speaking')) { btnEl.classList.remove('speaking'); btnEl.textContent = ui('voicePlay'); return; }
+  document.querySelectorAll('.voice-play.speaking').forEach(function(el) { el.classList.remove('speaking'); el.textContent = ui('voicePlay'); });
+  var utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = VOICE_LANGS[ST.lang || 'en'] || 'en-US';
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+  currentSpeech = utterance;
+  if (btnEl) { btnEl.classList.add('speaking'); btnEl.textContent = ui('voiceStop'); }
+  utterance.onend = function() { currentSpeech = null; if (btnEl) { try { btnEl.classList.remove('speaking'); btnEl.textContent = ui('voicePlay'); } catch(e){} } };
+  utterance.onerror = function() { currentSpeech = null; if (btnEl) { try { btnEl.classList.remove('speaking'); btnEl.textContent = ui('voicePlay'); } catch(e){} } };
+  window.speechSynthesis.speak(utterance);
+}
+
+function getTierLabel() {
+  var t = AUTH.tier || 'guest';
+  if (t === 'subscriber') return ui('tierSubscriber');
+  if (t === 'free' || AUTH.loggedIn) return ui('tierFree');
+  return ui('tierGuest');
+}
+
+function getTierClass() {
+  var t = AUTH.tier || 'guest';
+  if (t === 'subscriber') return 'tier-subscriber';
+  if (t === 'free' || AUTH.loggedIn) return 'tier-free';
+  return 'tier-guest';
+}
+
+function checkMsgLimit() {
+  if (AUTH.guest) {
+    if (ST.guestMsgCount >= TIER_LIMITS.guest) return false;
+  }
+  return true;
+}
 
 function save() {
   try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
@@ -644,6 +799,7 @@ async function checkAuth() {
     if (data.loggedIn) {
       AUTH.loggedIn = true;
       AUTH.email = data.email;
+      AUTH.tier = data.tier || 'free';
       await loadServerData();
     }
   } catch(e) {
@@ -869,6 +1025,15 @@ async function sendMsg(userText) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stream: true, system: systemPrompt(), messages: msgsForApi })
     });
+    if (res.status === 429) {
+      var curMsgs2 = getActiveMsgs();
+      curMsgs2[curMsgs2.length - 1].content = ui('limitReached');
+      setActiveMsgs(curMsgs2);
+      ST.loading = false;
+      ST.streaming = false;
+      render();
+      return;
+    }
     var reader = res.body.getReader();
     var decoder = new TextDecoder();
     var buffer = '';
@@ -902,9 +1067,18 @@ async function sendMsg(userText) {
   }
   ST.loading = false;
   ST.streaming = false;
+  var finalMsgs = getActiveMsgs();
+  var lastMsg = finalMsgs[finalMsgs.length - 1];
   save();
   render();
   setTimeout(function() { var el = document.getElementById('chat-end'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100);
+  if (ST.autoSpeak && lastMsg && lastMsg.role === 'assistant' && lastMsg.content && hasVoiceOutput()) {
+    ST.autoSpeak = false;
+    setTimeout(function() {
+      var playBtn = document.querySelector('[data-vidx="' + (finalMsgs.length - 1) + '"]');
+      speakText(lastMsg.content, playBtn || null);
+    }, 400);
+  }
 }
 
 function updateStreamBubble() {
@@ -921,7 +1095,7 @@ function reset() {
   if (!confirm(ui('deleteConfirm'))) return;
   var keepLang = ST.lang;
   try { localStorage.removeItem('la'); } catch(e) {}
-  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '' };
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0 };
   checkinDismissed = false;
   save();
   render();
@@ -1132,7 +1306,11 @@ function renderChat(root) {
     var bubbleId = isLastAssistant ? ' id="stream-bubble"' : '';
     var content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
     if (isLastAssistant && !content) content = '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
-    return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '"' + bubbleId + '>' + content + '</div></div>';
+    var ttsBtn = '';
+    if (m.role === 'assistant' && m.content && !isLastAssistant && hasVoiceOutput()) {
+      ttsBtn = '<button class="voice-play" data-vidx="' + idx + '" data-testid="voice-play-' + idx + '">' + ui('voicePlay') + '</button>';
+    }
+    return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '"' + bubbleId + '>' + content + ttsBtn + '</div></div>';
   }).join('');
 
   var threadHtml = '';
@@ -1174,6 +1352,7 @@ function renderChat(root) {
     '<div style="font-size:0.8rem;color:var(--muted)">' + ui('knows') + ' ' + esc(ST.ans.name || 'you') + ' ' + ui('completely') + '</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
+    '<span class="tier-badge ' + getTierClass() + '">' + getTierLabel() + '</span>' +
     (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span>' : '') +
     Object.keys(LANGS).map(function(k) {
       var active = (ST.lang || 'en') === k ? ' active' : '';
@@ -1189,6 +1368,7 @@ function renderChat(root) {
     quickHtml +
     '<div class="chat-input-bar">' +
     '<div class="chat-input-inner">' +
+    (hasVoiceInput() ? '<button class="voice-mic' + (voiceIsRecording ? ' recording' : '') + '" id="voice-mic" data-testid="button-voice-mic">' + (voiceIsRecording ? '...' : 'MIC') + '</button>' : '') +
     '<input class="chat-input" id="ci" placeholder="' + ui('askAnything') + '" ' + (isBusy ? 'disabled' : '') + ' data-testid="input-chat">' +
     '<button class="chat-send" id="cs" ' + (isBusy ? 'disabled' : '') + ' data-testid="button-send">' + ui('send') + '</button>' +
     '</div></div></div>';
@@ -1201,12 +1381,13 @@ function renderChat(root) {
     var txt = ci.value.trim();
     if (!txt || isBusy) return;
     ci.value = '';
+    if (!ST.autoSpeak) ST.autoSpeak = false;
     ST.loading = true;
     render();
     sendMsg(txt);
   }
-  ci.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } };
-  cs.onclick = doSend;
+  ci.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ST.autoSpeak = false; doSend(); } };
+  cs.onclick = function() { ST.autoSpeak = false; doSend(); };
   document.getElementById('rb').onclick = reset;
 
   document.querySelectorAll('.lang-mini').forEach(function(btn) {
@@ -1237,6 +1418,17 @@ function renderChat(root) {
   if (ciGo) ciGo.onclick = function(e) { if (e.target.id !== 'checkin-dismiss') doCheckin(); };
   var ciDis = document.getElementById('checkin-dismiss');
   if (ciDis) ciDis.onclick = function(e) { e.stopPropagation(); dismissCheckin(); };
+
+  var micBtn = document.getElementById('voice-mic');
+  if (micBtn) micBtn.onclick = startVoiceInput;
+
+  document.querySelectorAll('.voice-play').forEach(function(btn) {
+    btn.onclick = function() {
+      var idx = parseInt(btn.dataset.vidx);
+      var msgs = getActiveMsgs();
+      if (msgs[idx] && msgs[idx].content) speakText(msgs[idx].content, btn);
+    };
+  });
 }
 
 load();

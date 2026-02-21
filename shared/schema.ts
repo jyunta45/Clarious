@@ -18,6 +18,9 @@ export const userData = pgTable("user_data", {
   step: text("step").default("0").notNull(),
   lang: text("lang").default("en").notNull(),
   mirror: text("mirror").default(""),
+  tier: text("tier").default("free").notNull(),
+  msgCount: integer("msg_count").default(0).notNull(),
+  msgCountDate: text("msg_count_date").default(""),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 

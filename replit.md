@@ -34,7 +34,7 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 - **Database**: PostgreSQL with Drizzle ORM
   - `users` table: id, email, password_hash, created_at
-  - `user_data` table: id, user_id (unique FK), answers (JSONB), messages (JSONB), stage, step, lang, mirror, updated_at
+  - `user_data` table: id, user_id (unique FK), answers (JSONB), messages (JSONB), stage, step, lang, mirror, tier, msg_count, msg_count_date, updated_at
   - Session storage: `session` table (auto-created by connect-pg-simple)
   - Schema in `shared/schema.ts`, connection in `db/index.ts`
   - Push schema with: `npx drizzle-kit push --dialect postgresql --schema ./shared/schema.ts --url "$DATABASE_URL"`
@@ -45,6 +45,9 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
   - Progress tracking through the questionnaire
   - "Mirror" summary page
   - Streaming chat interface (SSE-based, text appears word-by-word)
+  - Conversation threads with auto-naming, quick-action buttons, daily check-in banner
+  - Voice input (Web Speech API microphone) and voice output (TTS on AI responses)
+  - User tier system: Guest (10 msgs), Free (50/day), Subscriber (200/day)
   - Dark theme with purple/pink gradient accents, Playfair Display and DM Sans fonts
   - Language switcher persistent across all screens
   - Data saves to both localStorage (offline) and server (when logged in) with debounced sync
@@ -63,6 +66,9 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 ## Recent Changes
 
+- **2026-02-21**: Added voice input (Web Speech API microphone) and voice output (TTS auto-read on AI responses)
+- **2026-02-21**: Added user tier system: Guest (10 msgs/session), Free (50 msgs/day), Subscriber (200 msgs/day) with server-side tracking
+- **2026-02-21**: Added conversation threads, quick-action buttons, context compression, daily check-in, mobile UX
 - **2026-02-21**: Added database + user accounts (PostgreSQL, Drizzle ORM, express-session, bcrypt auth, data persistence API, auth UI with guest mode)
 - **2026-02-21**: Implemented streaming responses via SSE
 - **2026-02-21**: Added multi-language support (EN, JA, ES, TH, KO)
@@ -82,9 +88,14 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 - [x] Streaming responses (SSE)
 - [x] Database + user accounts
-- [ ] Quick-action buttons in chat
-- [ ] Conversation threads/topics
-- [ ] Context compression (summarize old messages)
-- [ ] Better mobile UX
-- [ ] Daily check-in
-- [ ] Voice input
+- [x] Quick-action buttons in chat
+- [x] Conversation threads/topics
+- [x] Context compression (summarize old messages)
+- [x] Better mobile UX
+- [x] Daily check-in
+- [x] Voice input (Web Speech API)
+- [x] Voice output (TTS auto-read)
+- [x] User tier system (guest/free/subscriber)
+- [ ] Payment integration (Stripe)
+- [ ] Premium cloud voices (OpenAI TTS)
+- [ ] Admin panel for tier management
