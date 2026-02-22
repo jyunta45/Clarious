@@ -81,7 +81,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .quick-btn:hover{background:rgba(155,109,255,0.2);border-color:var(--accent);transform:translateY(-1px);}
 .thread-tabs{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;background:rgba(13,13,20,0.6);border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;}
 .thread-tabs::-webkit-scrollbar{display:none;}
-.thread-tab{padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:0.8rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:100px;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0;}
+.thread-tab{padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:0.8rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:100px;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px;}
+.thread-tab .thread-close{display:none;font-size:0.7rem;color:var(--muted);margin-left:2px;padding:0 2px;line-height:1;opacity:0.6;transition:opacity 0.15s;}
+.thread-tab:hover .thread-close{display:inline;}
+.thread-tab .thread-close:hover{opacity:1;color:#ff6b6b;}
 .thread-tab:hover{color:var(--text);border-color:rgba(155,109,255,0.3);}
 .thread-tab.active{background:rgba(155,109,255,0.2);border-color:var(--accent);color:#fff;}
 .thread-new{padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.85rem;background:none;border:1px dashed rgba(155,109,255,0.3);border-radius:100px;color:var(--accent);cursor:pointer;flex-shrink:0;}
@@ -1195,6 +1198,22 @@ function newThread() {
   var name = (threads.length + 1).toString();
   threads.push({ name: name, msgs: [{ role: 'assistant', content: chatGreeting() }] });
   ST.activeThread = threads.length - 1;
+  ST.msgs = threads[ST.activeThread].msgs;
+  save();
+  render();
+}
+
+function deleteThread(idx) {
+  var threads = getThreads();
+  if (threads.length <= 1) return;
+  threads.splice(idx, 1);
+  if (ST.activeThread >= threads.length) {
+    ST.activeThread = threads.length - 1;
+  } else if (ST.activeThread > idx) {
+    ST.activeThread--;
+  } else if (ST.activeThread === idx) {
+    ST.activeThread = Math.min(idx, threads.length - 1);
+  }
   ST.msgs = threads[ST.activeThread].msgs;
   save();
   render();
@@ -2439,7 +2458,8 @@ function renderChat(root) {
     for (var t = 0; t < threads.length; t++) {
       var tActive = t === ST.activeThread ? ' active' : '';
       var tName = threads[t].name || (t + 1);
-      threadHtml += '<button class="thread-tab' + tActive + '" data-tidx="' + t + '" data-testid="thread-tab-' + t + '">' + esc(tName) + '</button>';
+      var closeBtn = threads.length > 1 ? '<span class="thread-close" data-del="' + t + '" data-testid="thread-delete-' + t + '">&times;</span>' : '';
+      threadHtml += '<button class="thread-tab' + tActive + '" data-tidx="' + t + '" data-testid="thread-tab-' + t + '">' + esc(tName) + closeBtn + '</button>';
     }
     threadHtml += '<button class="thread-new" id="new-thread" data-testid="button-new-thread">' + ui('newThread') + '</button>';
     threadHtml += '</div>';
@@ -2522,7 +2542,17 @@ function renderChat(root) {
   });
 
   document.querySelectorAll('.thread-tab').forEach(function(btn) {
-    btn.onclick = function() { switchThread(parseInt(btn.dataset.tidx)); };
+    btn.onclick = function(e) {
+      if (e.target.classList.contains('thread-close')) return;
+      switchThread(parseInt(btn.dataset.tidx));
+    };
+  });
+  document.querySelectorAll('.thread-close').forEach(function(btn) {
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      var idx = parseInt(btn.dataset.del);
+      deleteThread(idx);
+    };
   });
   var ntBtn = document.getElementById('new-thread');
   if (ntBtn) ntBtn.onclick = newThread;
