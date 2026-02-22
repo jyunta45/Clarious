@@ -1,0 +1,152 @@
+// ===============================
+// ADAPTIVE RELATIONSHIP DEPTH ENGINE
+// ===============================
+
+const relationshipDB = new Map();
+
+/*
+User Profile Structure
+----------------------
+{
+  conversationCount,
+  depthLevel,
+  memories: [],
+  preferences: {}
+}
+*/
+
+function initUser(userId) {
+  if (!relationshipDB.has(userId)) {
+    relationshipDB.set(userId, {
+      conversationCount: 0,
+      depthLevel: 1,
+      memories: [],
+      preferences: {}
+    });
+  }
+  return relationshipDB.get(userId);
+}
+
+
+// -------------------------------
+// DEPTH PROGRESSION
+// -------------------------------
+function updateDepth(userId) {
+  const user = initUser(userId);
+
+  user.conversationCount++;
+
+  if (user.conversationCount > 50) user.depthLevel = 5;
+  else if (user.conversationCount > 30) user.depthLevel = 4;
+  else if (user.conversationCount > 15) user.depthLevel = 3;
+  else if (user.conversationCount > 5) user.depthLevel = 2;
+  else user.depthLevel = 1;
+
+  return user.depthLevel;
+}
+
+
+// -------------------------------
+// MEMORY STORAGE
+// -------------------------------
+function storeMemory(userId, message) {
+  const user = initUser(userId);
+
+  if (!message || message.length < 20) return;
+
+  user.memories.push({
+    text: message,
+    keywords: extractKeywords(message),
+    time: Date.now()
+  });
+
+  if (user.memories.length > 40)
+    user.memories.shift();
+}
+
+
+// -------------------------------
+// SIMPLE TOPIC MATCH
+// -------------------------------
+function extractKeywords(text) {
+  return text
+    .toLowerCase()
+    .split(/\W+/)
+    .filter(w => w.length > 4);
+}
+
+function recallRelevantMemory(userId, message) {
+  const user = initUser(userId);
+  const msgKeys = extractKeywords(message);
+
+  let bestMatch = null;
+  let bestScore = 0;
+
+  for (const mem of user.memories) {
+    const overlap =
+      mem.keywords.filter(k => msgKeys.includes(k)).length;
+
+    if (overlap > bestScore) {
+      bestScore = overlap;
+      bestMatch = mem;
+    }
+  }
+
+  return bestMatch?.text || null;
+}
+
+
+// -------------------------------
+// PERSONALITY EVOLUTION
+// -------------------------------
+function relationshipTone(depth) {
+
+  switch(depth){
+    case 1:
+      return "Professional, helpful, neutral.";
+    case 2:
+      return "Slightly warm and encouraging.";
+    case 3:
+      return "Familiar and supportive.";
+    case 4:
+      return "Understands user's patterns and goals.";
+    case 5:
+      return "Trusted companion tone with continuity awareness.";
+    default:
+      return "Helpful assistant.";
+  }
+}
+
+
+// -------------------------------
+// SYSTEM PROMPT BUILDER
+// -------------------------------
+function buildAdaptivePrompt(userId, userMessage) {
+
+  const depth = updateDepth(userId);
+  storeMemory(userId, userMessage);
+
+  const recalled = recallRelevantMemory(userId, userMessage);
+  const tone = relationshipTone(depth);
+
+  let memorySection = "";
+
+  if (recalled) {
+    memorySection =
+`Relevant past context from user:
+"${recalled}"
+`;
+  }
+
+  return `
+${memorySection}
+Relationship depth level: ${depth}
+
+Communication style:
+${tone}
+
+Respond with continuity awareness while remaining natural.
+`;
+}
+
+export { buildAdaptivePrompt };

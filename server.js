@@ -8,6 +8,7 @@ import connectPgSimple from 'connect-pg-simple';
 import { db } from './db/index.js';
 import { users, userData } from './shared/schema.js';
 import { eq } from 'drizzle-orm';
+import { buildAdaptivePrompt } from './adaptiveDepth.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -179,6 +180,10 @@ app.post('/api/chat', async (req, res) => {
     const trimmedMessages = messages.length > 16 ? messages.slice(messages.length - 16) : messages;
     const wantStream = req.body.stream === true;
 
+    const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
+    const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
+    const enhancedSystem = (req.body.system || '') + adaptiveLayer;
+
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
@@ -196,7 +201,7 @@ app.post('/api/chat', async (req, res) => {
           model: 'claude-sonnet-4-20250514',
           max_tokens: maxTokens,
           stream: true,
-          system: req.body.system,
+          system: enhancedSystem,
           messages: trimmedMessages
         })
       });
@@ -262,7 +267,7 @@ app.post('/api/chat', async (req, res) => {
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: maxTokens,
-          system: req.body.system,
+          system: enhancedSystem,
           messages: trimmedMessages
         })
       });
