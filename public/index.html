@@ -2037,6 +2037,47 @@ function langName() {
   return LANGS[lang] ? LANGS[lang].label : 'English';
 }
 
+var assistantEngine = {
+  calibrationDone: false,
+  chatCount: 0,
+  memories: [],
+  lastInputs: []
+};
+
+function buildAssistantPrompt(profile, userInput) {
+  assistantEngine.chatCount++;
+
+  assistantEngine.memories.push(userInput);
+  if (assistantEngine.memories.length > 20) {
+    assistantEngine.memories.shift();
+  }
+
+  if (!assistantEngine.calibrationDone) {
+    assistantEngine.calibrationDone = true;
+    return '\nBefore moving forward, begin a short calibration conversation.\n\nAsk ONE thoughtful reflective question to understand the story behind the user\'s answers.\n\nDo NOT give advice.\nDo NOT analyze.\nDo NOT summarize.\n\nFocus on background, decision patterns, or emotional drivers.\nSound natural and conversational.\n';
+  }
+
+  var memoryLayer = '';
+  if (assistantEngine.memories.length > 0) {
+    var randomMemory = assistantEngine.memories[Math.floor(Math.random() * assistantEngine.memories.length)];
+    memoryLayer = '\nRelevant past pattern from user history:\n"' + randomMemory + '"\nReference this naturally only if relevant.\n';
+  }
+
+  var shortMessage = userInput.length < 20;
+  assistantEngine.lastInputs.push(userInput);
+  if (assistantEngine.lastInputs.length > 5) assistantEngine.lastInputs.shift();
+  var repeated = assistantEngine.lastInputs.filter(function(i) { return i === userInput; }).length > 1;
+
+  var initiativeLayer = '';
+  if (shortMessage || repeated) {
+    initiativeLayer = '\nIf appropriate, introduce one proactive observation or thoughtful question\nthat helps the user gain clarity.\n\nOnly do this if it naturally follows the conversation.\nNever force engagement.\n';
+  }
+
+  var reflectionLayer = '\nAlways begin responses with recognition or reflection before offering guidance.\nBlend emotional understanding, strategy, behavioral realism, and identity naturally.\n';
+
+  return systemPrompt(userInput) + reflectionLayer + memoryLayer + initiativeLayer;
+}
+
 function systemPrompt(userText) {
   var userName = ST.ans.name || 'friend';
   var tone = ST.ans.tone || '';
@@ -2097,7 +2138,7 @@ async function sendMsg(userText) {
     var res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stream: true, system: systemPrompt(userText), messages: msgsForApi })
+      body: JSON.stringify({ stream: true, system: buildAssistantPrompt(buildProfile(), userText), messages: msgsForApi })
     });
     if (res.status === 429) {
       var curMsgs2 = getActiveMsgs();

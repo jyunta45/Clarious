@@ -1,0 +1,87 @@
+// ===== CLOSE STRATEGIC ASSISTANT ENGINE =====
+
+const assistantEngine = {
+  calibrationDone: false,
+  chatCount: 0,
+  memories: [],
+  lastInputs: []
+};
+
+function buildAssistantPrompt(profile, userInput) {
+
+  assistantEngine.chatCount++;
+
+  // Store Memory
+  assistantEngine.memories.push(userInput);
+  if (assistantEngine.memories.length > 20) {
+    assistantEngine.memories.shift();
+  }
+
+  // Calibration Conversation (runs once)
+  if (!assistantEngine.calibrationDone) {
+    assistantEngine.calibrationDone = true;
+
+    return `
+Before moving forward, begin a short calibration conversation.
+
+Ask ONE thoughtful reflective question to understand the story behind the user's answers.
+
+Do NOT give advice.
+Do NOT analyze.
+Do NOT summarize.
+
+Focus on background, decision patterns, or emotional drivers.
+Sound natural and conversational.
+`;
+  }
+
+  // Memory Reference
+  let memoryLayer = "";
+  if (assistantEngine.memories.length > 0) {
+    const randomMemory =
+      assistantEngine.memories[
+        Math.floor(Math.random() * assistantEngine.memories.length)
+      ];
+
+    memoryLayer = `
+Relevant past pattern from user history:
+"${randomMemory}"
+Reference this naturally only if relevant.
+`;
+  }
+
+  // Initiative Detection
+  const shortMessage = userInput.length < 20;
+
+  assistantEngine.lastInputs.push(userInput);
+  if (assistantEngine.lastInputs.length > 5)
+    assistantEngine.lastInputs.shift();
+
+  const repeated =
+    assistantEngine.lastInputs.filter(i => i === userInput).length > 1;
+
+  let initiativeLayer = "";
+
+  if (shortMessage || repeated) {
+    initiativeLayer = `
+If appropriate, introduce one proactive observation or thoughtful question
+that helps the user gain clarity.
+
+Only do this if it naturally follows the conversation.
+Never force engagement.
+`;
+  }
+
+  // Reflection Rule
+  const reflectionLayer = `
+Always begin responses with recognition or reflection before offering guidance.
+Blend emotional understanding, strategy, behavioral realism, and identity naturally.
+`;
+
+  return (
+    SYSTEM_PROMPT(profile) +
+    reflectionLayer +
+    memoryLayer +
+    initiativeLayer
+  );
+}
