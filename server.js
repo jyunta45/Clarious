@@ -9,6 +9,7 @@ import { db } from './db/index.js';
 import { users, userData } from './shared/schema.js';
 import { eq } from 'drizzle-orm';
 import { buildAdaptivePrompt } from './adaptiveDepth.js';
+import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -182,7 +183,9 @@ app.post('/api/chat', async (req, res) => {
 
     const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
     const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
-    const enhancedSystem = (req.body.system || '') + adaptiveLayer;
+    updateIdentity(userId, userMsg);
+    const identityLayer = buildIdentityPrompt(userId);
+    const enhancedSystem = (req.body.system || '') + '\n\n' + adaptiveLayer + '\n\n' + identityLayer;
 
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');

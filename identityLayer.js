@@ -1,0 +1,122 @@
+// =======================================
+// IDENTITY STABILIZATION LAYER
+// =======================================
+
+// Keeps user's evolving identity consistent
+// across conversations without heavy tokens.
+
+const identityDB = new Map();
+
+/*
+Identity Model
+--------------
+{
+  goals: [],
+  principles: [],
+  traits: [],
+  lastUpdate
+}
+*/
+
+function initIdentity(userId) {
+  if (!identityDB.has(userId)) {
+    identityDB.set(userId, {
+      goals: [],
+      principles: [],
+      traits: [],
+      lastUpdate: Date.now()
+    });
+  }
+
+  return identityDB.get(userId);
+}
+
+
+// ------------------------------------
+// UPDATE IDENTITY FROM USER MESSAGE
+// ------------------------------------
+function updateIdentity(userId, message) {
+
+  if (!message || message.length < 15) return;
+
+  const identity = initIdentity(userId);
+  const text = message.toLowerCase();
+
+  // Detect goals
+  if (
+    text.includes("want to") ||
+    text.includes("my goal") ||
+    text.includes("i will") ||
+    text.includes("trying to")
+  ) {
+    identity.goals.push(message);
+  }
+
+  // Detect principles / standards
+  if (
+    text.includes("important") ||
+    text.includes("should") ||
+    text.includes("need to") ||
+    text.includes("must")
+  ) {
+    identity.principles.push(message);
+  }
+
+  // Detect identity traits
+  if (
+    text.includes("i am") ||
+    text.includes("i'm becoming")
+  ) {
+    identity.traits.push(message);
+  }
+
+  // Limit size (cheap memory)
+  if (identity.goals.length > 8)
+    identity.goals.shift();
+
+  if (identity.principles.length > 8)
+    identity.principles.shift();
+
+  if (identity.traits.length > 8)
+    identity.traits.shift();
+
+  identity.lastUpdate = Date.now();
+}
+
+
+// ------------------------------------
+// BUILD IDENTITY PROMPT LAYER
+// ------------------------------------
+function buildIdentityPrompt(userId) {
+
+  const identity = initIdentity(userId);
+
+  const latestGoal =
+    identity.goals[identity.goals.length - 1] || "";
+
+  const latestPrinciple =
+    identity.principles[identity.principles.length - 1] || "";
+
+  const latestTrait =
+    identity.traits[identity.traits.length - 1] || "";
+
+  return `
+Identity Continuity Context:
+
+Emerging Goal:
+"${latestGoal}"
+
+Observed Principle:
+"${latestPrinciple}"
+
+Emerging Self-Perception:
+"${latestTrait}"
+
+Before responding:
+Maintain alignment with the user's long-term identity trajectory.
+Support decisions consistent with who they are becoming.
+Do not override human autonomy.
+`;
+}
+
+export { updateIdentity, buildIdentityPrompt };
