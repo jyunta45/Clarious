@@ -15,6 +15,7 @@ import { buildCapabilityLayer } from './capabilityLayer.js';
 import { chooseModel, buildAttentionLayer } from './hybridModel.js';
 import { buildContinuityLayer } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
+import { buildContext } from './contextBuilder.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -184,8 +185,7 @@ app.post('/api/chat', async (req, res) => {
     if (wordCount > 80) maxTokens = 800;
     if (req.body.max_tokens) maxTokens = Math.min(req.body.max_tokens, 1000);
 
-    const messages = req.body.messages || [];
-    const trimmedMessages = messages.length > 16 ? messages.slice(messages.length - 16) : messages;
+    const conversation = req.body.messages || [];
 
     const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
     const modelChoice = chooseModel(userId, userMsg);
@@ -205,6 +205,15 @@ app.post('/api/chat', async (req, res) => {
     const sessionLayer = getSessionInjection(userId);
     const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + (req.body.system || '');
 
+    const sessionSummary = sessionStore.has(userId) ? sessionStore.get(userId).rollingSummary : '';
+    const builtMessages = buildContext({
+      enhancedSystem,
+      conversation,
+      rollingSummary: sessionSummary
+    });
+    const systemContent = builtMessages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
+    const chatMessages = builtMessages.filter(m => m.role !== 'system');
+
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
@@ -222,8 +231,8 @@ app.post('/api/chat', async (req, res) => {
           model: selectedModel,
           max_tokens: maxTokens,
           stream: true,
-          system: enhancedSystem,
-          messages: trimmedMessages
+          system: systemContent,
+          messages: chatMessages
         })
       });
 
@@ -319,8 +328,8 @@ app.post('/api/chat', async (req, res) => {
         body: JSON.stringify({
           model: selectedModel,
           max_tokens: maxTokens,
-          system: enhancedSystem,
-          messages: trimmedMessages
+          system: systemContent,
+          messages: chatMessages
         })
       });
       const data = await response.json();
