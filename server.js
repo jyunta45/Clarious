@@ -12,7 +12,8 @@ import { buildAdaptivePrompt } from './adaptiveDepth.js';
 import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 import { buildCapabilityLayer } from './capabilityLayer.js';
-import { chooseModel, buildAttentionLayer } from './hybridModel.js';
+import { buildAttentionLayer } from './hybridModel.js';
+import { chooseModel } from './modelRouter.js';
 import { buildContinuityLayer } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
 import { buildContext } from './contextBuilder.js';
@@ -188,9 +189,14 @@ app.post('/api/chat', async (req, res) => {
     const conversation = req.body.messages || [];
 
     const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
-    const modelChoice = chooseModel(userId, userMsg);
-    const selectedModel = modelChoice === 'opus' ? 'claude-opus-4-20250514' : 'claude-sonnet-4-20250514';
+    const modelChoice = chooseModel(userMsg);
+    const modelName = modelChoice === 'haiku'
+      ? 'claude-haiku-4-20250414'
+      : modelChoice === 'sonnet'
+      ? 'claude-sonnet-4-20250514'
+      : 'claude-opus-4-20250514';
     if (modelChoice === 'opus') maxTokens = Math.max(maxTokens, 1000);
+    if (modelChoice === 'sonnet') maxTokens = Math.max(maxTokens, 600);
     const wantStream = req.body.stream === true;
 
     const now = new Date();
@@ -228,7 +234,7 @@ app.post('/api/chat', async (req, res) => {
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: selectedModel,
+          model: modelName,
           max_tokens: maxTokens,
           stream: true,
           system: systemContent,
@@ -302,7 +308,7 @@ app.post('/api/chat', async (req, res) => {
                 'anthropic-version': '2023-06-01'
               },
               body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-haiku-4-20250414',
                 max_tokens: 200,
                 messages: [{ role: 'user', content: summaryPrompt }]
               })
@@ -326,7 +332,7 @@ app.post('/api/chat', async (req, res) => {
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: selectedModel,
+          model: modelName,
           max_tokens: maxTokens,
           system: systemContent,
           messages: chatMessages
@@ -349,7 +355,7 @@ app.post('/api/chat', async (req, res) => {
                 'anthropic-version': '2023-06-01'
               },
               body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-haiku-4-20250414',
                 max_tokens: 200,
                 messages: [{ role: 'user', content: summaryPrompt }]
               })
