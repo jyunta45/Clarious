@@ -76,4 +76,27 @@ function chooseModel(userId, message) {
   return "sonnet";
 }
 
-export { chooseModel };
+// ======================================
+// HIGH ATTENTION SIGNAL
+// ======================================
+function buildAttentionLayer(modelChoice) {
+
+  if (modelChoice === "opus") {
+    return `
+High Attention Mode Active:
+
+- Treat this moment as psychologically important.
+- Slow reasoning slightly before responding.
+- Prioritize depth and clarity over speed.
+- Offer fewer insights, but make them precise.
+- Speak with careful consideration.
+`;
+  }
+
+  return `
+Standard Attention Mode:
+Maintain calm, efficient conversational flow.
+`;
+}
+
+export { chooseModel, buildAttentionLayer };

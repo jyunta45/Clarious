@@ -12,7 +12,7 @@ import { buildAdaptivePrompt } from './adaptiveDepth.js';
 import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 import { buildCapabilityLayer } from './capabilityLayer.js';
-import { chooseModel } from './hybridModel.js';
+import { chooseModel, buildAttentionLayer } from './hybridModel.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -196,7 +196,8 @@ app.post('/api/chat', async (req, res) => {
     const calmLayer = buildCalmAuthorityPrompt(userMsg);
     const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
     const capabilityLayer = buildCapabilityLayer(userMsg);
-    const enhancedSystem = timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + (req.body.system || '');
+    const attentionLayer = buildAttentionLayer(modelChoice);
+    const enhancedSystem = timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + (req.body.system || '');
 
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
