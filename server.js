@@ -13,7 +13,7 @@ import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 import { buildCapabilityLayer } from './capabilityLayer.js';
 import { buildAttentionLayer } from './hybridModel.js';
-import { chooseModel } from './modelRouter.js';
+import { resetDailyUsage, truncateInput, getDepthScore, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
 import { buildContinuityLayer } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
 import { buildContext } from './contextBuilder.js';
@@ -24,6 +24,8 @@ try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) {
 const app = express();
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__app_dirname, 'public')));
+
+const runtimeUsers = new Map();
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const PgSession = connectPgSimple(session);
@@ -174,29 +176,48 @@ app.post('/api/chat', async (req, res) => {
       req.session.guestMsgCount++;
     }
 
-    const userMsg = req.body.messages && req.body.messages.length > 0
+    const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
+
+    if (!runtimeUsers.has(userId)) {
+      runtimeUsers.set(userId, {
+        dailyTokens: 0,
+        softWarnedToday: false,
+        efficiencyMode: false,
+        lastUsageDate: new Date().toDateString()
+      });
+    }
+    const runtimeUser = runtimeUsers.get(userId);
+
+    resetDailyUsage(runtimeUser);
+
+    if (!req.session.lastActive) req.session.lastActive = Date.now();
+    checkSessionTimeout(req.session);
+    req.session.lastActive = Date.now();
+
+    const rawMsg = req.body.messages && req.body.messages.length > 0
       ? req.body.messages[req.body.messages.length - 1].content || ''
       : '';
 
-    const wordCount = userMsg.trim().split(/\s+/).length;
-    const isDeepQuestion = /plan|strategy|how to|step.?by.?step|explain|detail|breakdown|analyze|help me with|guide/i.test(userMsg);
+    const { text: userMsg, truncated } = truncateInput(rawMsg);
+    if (truncated && req.body.messages && req.body.messages.length > 0) {
+      req.body.messages[req.body.messages.length - 1].content = userMsg;
+    }
 
-    let maxTokens = 300;
-    if (wordCount > 30 || isDeepQuestion) maxTokens = 600;
-    if (wordCount > 80) maxTokens = 800;
-    if (req.body.max_tokens) maxTokens = Math.min(req.body.max_tokens, 1000);
+    const depth = getDepthScore(userMsg);
 
-    const conversation = req.body.messages || [];
+    const budgetState = checkBudget(runtimeUser, depth);
+    const modelChoice = budgetState.model;
+    const efficiencyMode = budgetState.efficiencyMode || false;
 
-    const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
-    const modelChoice = chooseModel(userMsg);
     const modelName = modelChoice === 'haiku'
       ? 'claude-haiku-4-20250414'
       : modelChoice === 'sonnet'
       ? 'claude-sonnet-4-20250514'
       : 'claude-opus-4-20250514';
-    if (modelChoice === 'opus') maxTokens = Math.max(maxTokens, 1000);
-    if (modelChoice === 'sonnet') maxTokens = Math.max(maxTokens, 600);
+
+    const tokenLimit = getMaxTokens(depth, efficiencyMode);
+
+    const conversation = req.body.messages || [];
     const wantStream = req.body.stream === true;
 
     const now = new Date();
@@ -209,7 +230,15 @@ app.post('/api/chat', async (req, res) => {
     const attentionLayer = buildAttentionLayer(modelChoice);
     const continuityLayer = buildContinuityLayer(userId, userMsg);
     const sessionLayer = getSessionInjection(userId);
-    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + (req.body.system || '');
+    let truncationNotice = '';
+    if (truncated) {
+      truncationNotice = '\nNote: The user sent a long message. Focus on the core of what they shared.\n';
+    }
+    let budgetNotice = '';
+    if (budgetState.systemNotice) {
+      budgetNotice = '\n' + budgetState.systemNotice + '\n';
+    }
+    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + truncationNotice + budgetNotice + (req.body.system || '');
 
     const sessionSummary = sessionStore.has(userId) ? sessionStore.get(userId).rollingSummary : '';
     const builtMessages = buildContext({
@@ -235,7 +264,7 @@ app.post('/api/chat', async (req, res) => {
         },
         body: JSON.stringify({
           model: modelName,
-          max_tokens: maxTokens,
+          max_tokens: tokenLimit,
           stream: true,
           system: systemContent,
           messages: chatMessages
@@ -295,6 +324,10 @@ app.post('/api/chat', async (req, res) => {
 
       storeTurn(userId, userMsg, fullReply);
 
+      const estimatedInput = systemContent.length / 4 + chatMessages.reduce((s, m) => s + (m.content || '').length / 4, 0);
+      const estimatedOutput = fullReply.length / 4;
+      runtimeUser.dailyTokens += Math.ceil(estimatedInput + estimatedOutput);
+
       if (Math.random() < 0.2 && sessionStore.has(userId)) {
         const session = sessionStore.get(userId);
         if (session.turns.length >= 6) {
@@ -333,7 +366,7 @@ app.post('/api/chat', async (req, res) => {
         },
         body: JSON.stringify({
           model: modelName,
-          max_tokens: maxTokens,
+          max_tokens: tokenLimit,
           system: systemContent,
           messages: chatMessages
         })
@@ -341,6 +374,10 @@ app.post('/api/chat', async (req, res) => {
       const data = await response.json();
       const assistantReply = data.content && data.content[0] ? data.content[0].text || '' : '';
       storeTurn(userId, userMsg, assistantReply);
+
+      if (data.usage) {
+        runtimeUser.dailyTokens += (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0);
+      }
 
       if (Math.random() < 0.2 && sessionStore.has(userId)) {
         const session = sessionStore.get(userId);
@@ -376,7 +413,7 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__app_dirname, 'public', 'index.html'));
 });
 
 const PORT = parseInt(process.env.PORT || '5000', 10);

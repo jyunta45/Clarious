@@ -1,0 +1,136 @@
+1. Where This Code Should Live
+
+Create (or paste into):
+
+/utils/aiController.js
+
+or
+
+/lib/runtimeControl.js
+
+✅ Do NOT paste inside server.js directly
+Keep it modular so every request can import it cleanly.
+
+Example:
+
+module.exports = {
+  resetDailyUsage,
+  truncateInput,
+  getDepthScore,
+  checkBudget,
+  selectModel,
+  maxTokens,
+  checkSessionTimeout,
+  shouldUpdateSummary,
+  isMeaningfulAssistantResponse
+};
+✅ 2. MOST IMPORTANT STEP
+Call Order (This Is What Actually Reduces Cost)
+
+At the start of every chat request, your route must follow this order.
+
+Inside your /chat endpoint:
+
+app.post("/chat", async (req, res) => {
+
+  const user = getUser(req);
+  const session = getSession(req);
+
+  // ✅ STEP 1 — daily reset
+  resetDailyUsage(user);
+
+  // ✅ STEP 2 — session timeout protection
+  checkSessionTimeout(session);
+
+  // ✅ STEP 3 — truncate input
+  const { text, truncated } =
+      truncateInput(req.body.message);
+
+  // ✅ STEP 4 — depth detection
+  const depth = getDepthScore(text);
+
+  // ✅ STEP 5 — budget + model routing
+  const budgetState =
+      checkBudget(user, depth);
+
+  const model = budgetState.model;
+  const efficiencyMode =
+      budgetState.efficiencyMode || false;
+
+  // ✅ STEP 6 — output limit
+  const max_tokens =
+      maxTokens(depth, efficiencyMode);
+
+👉 THIS sequence is what activates savings.
+
+If order changes → cost protection weakens.
+
+✅ 3. You Still Need ONE Helper
+
+Your depth scoring references:
+
+hasDecisionLanguage(m)
+
+You must define it or Node will crash.
+
+Add:
+
+function hasDecisionLanguage(text) {
+  return (
+    text.includes("should i") ||
+    text.includes("what should") ||
+    text.includes("decide") ||
+    text.includes("choose") ||
+    text.includes("not sure") ||
+    text.includes("i wonder")
+  );
+}
+
+Without this → runtime error.
+
+✅ 4. Token Accounting (Often Forgotten)
+
+After OpenAI responds:
+
+user.dailyTokens +=
+  response.usage.input_tokens +
+  response.usage.output_tokens;
+
+If you skip this:
+
+🚨 budget guardrail never activates.
+
+✅ 5. Trust Message for Truncation (Recommended)
+
+When truncated:
+
+if (truncated) {
+  systemNotice =
+    "Your message was long — I'm focusing on the core of what you shared.";
+}
+
+Prevents users thinking the AI ignored them.
+
+✅ 6. Reality Check — What Happens Now
+
+After this deploy:
+
+Before
+
+long sessions grow forever
+
+expensive model used too often
+
+unlimited verbosity
+
+runaway heavy users
+
+After
+
+context capped automatically
+
+expensive reasoning only when needed
+
+output volume controlled
+
+daily spending mathematically limited
