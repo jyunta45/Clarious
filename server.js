@@ -10,6 +10,7 @@ import { users, userData } from './shared/schema.js';
 import { eq } from 'drizzle-orm';
 import { buildAdaptivePrompt } from './adaptiveDepth.js';
 import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
+import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -185,7 +186,8 @@ app.post('/api/chat', async (req, res) => {
     const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
     updateIdentity(userId, userMsg);
     const identityLayer = buildIdentityPrompt(userId);
-    const enhancedSystem = (req.body.system || '') + '\n\n' + adaptiveLayer + '\n\n' + identityLayer;
+    const calmLayer = buildCalmAuthorityPrompt(userMsg);
+    const enhancedSystem = (req.body.system || '') + '\n\n' + adaptiveLayer + '\n\n' + identityLayer + '\n\n' + calmLayer;
 
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
