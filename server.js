@@ -184,12 +184,14 @@ app.post('/api/chat', async (req, res) => {
     const wantStream = req.body.stream === true;
 
     const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
+    const now = new Date();
+    const timeContext = `\nCurrent date: ${now.toDateString()}\nThe assistant exists in the present moment with the user.\nIf asked about time, assume awareness of the current year.\n`;
     updateIdentity(userId, userMsg);
     const identityLayer = buildIdentityPrompt(userId);
     const calmLayer = buildCalmAuthorityPrompt(userMsg);
     const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
     const capabilityLayer = buildCapabilityLayer(userMsg);
-    const enhancedSystem = identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + (req.body.system || '');
+    const enhancedSystem = timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + (req.body.system || '');
 
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
