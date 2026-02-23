@@ -327,6 +327,7 @@ app.post('/api/chat', async (req, res) => {
       const estimatedInput = systemContent.length / 4 + chatMessages.reduce((s, m) => s + (m.content || '').length / 4, 0);
       const estimatedOutput = fullReply.length / 4;
       runtimeUser.dailyTokens += Math.ceil(estimatedInput + estimatedOutput);
+      req.session.lastActive = Date.now();
 
       if (Math.random() < 0.2 && sessionStore.has(userId)) {
         const session = sessionStore.get(userId);
@@ -378,6 +379,7 @@ app.post('/api/chat', async (req, res) => {
       if (data.usage) {
         runtimeUser.dailyTokens += (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0);
       }
+      req.session.lastActive = Date.now();
 
       if (Math.random() < 0.2 && sessionStore.has(userId)) {
         const session = sessionStore.get(userId);
