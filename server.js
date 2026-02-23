@@ -16,7 +16,7 @@ import { buildAttentionLayer } from './hybridModel.js';
 import { resetDailyUsage, truncateInput, getDepthScore, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
 import { buildContinuityLayer } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
-import { buildContext } from './contextBuilder.js';
+import { buildContext, needsGroundingQuestion, groundingQuestion } from './contextBuilder.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -322,6 +322,15 @@ app.post('/api/chat', async (req, res) => {
         }
       }
 
+      if (needsGroundingQuestion(userMsg)) {
+        if (!req.session.lastGrounding || Date.now() - req.session.lastGrounding >= 180000) {
+          const gq = groundingQuestion();
+          fullReply += '\n\n' + gq;
+          res.write('data: ' + JSON.stringify({ text: '\n\n' + gq }) + '\n\n');
+          req.session.lastGrounding = Date.now();
+        }
+      }
+
       storeTurn(userId, userMsg, fullReply);
 
       const estimatedInput = systemContent.length / 4 + chatMessages.reduce((s, m) => s + (m.content || '').length / 4, 0);
@@ -373,7 +382,19 @@ app.post('/api/chat', async (req, res) => {
         })
       });
       const data = await response.json();
-      const assistantReply = data.content && data.content[0] ? data.content[0].text || '' : '';
+      let assistantReply = data.content && data.content[0] ? data.content[0].text || '' : '';
+
+      if (needsGroundingQuestion(userMsg)) {
+        if (!req.session.lastGrounding || Date.now() - req.session.lastGrounding >= 180000) {
+          const gq = groundingQuestion();
+          assistantReply += '\n\n' + gq;
+          if (data.content && data.content[0]) {
+            data.content[0].text = assistantReply;
+          }
+          req.session.lastGrounding = Date.now();
+        }
+      }
+
       storeTurn(userId, userMsg, assistantReply);
 
       if (data.usage) {
