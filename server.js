@@ -183,11 +183,11 @@ app.post('/api/chat', async (req, res) => {
     const wantStream = req.body.stream === true;
 
     const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
-    const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
     updateIdentity(userId, userMsg);
     const identityLayer = buildIdentityPrompt(userId);
     const calmLayer = buildCalmAuthorityPrompt(userMsg);
-    const enhancedSystem = (req.body.system || '') + '\n\n' + adaptiveLayer + '\n\n' + identityLayer + '\n\n' + calmLayer;
+    const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
+    const enhancedSystem = identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + (req.body.system || '');
 
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
