@@ -14,6 +14,7 @@ import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 import { buildCapabilityLayer } from './capabilityLayer.js';
 import { chooseModel, buildAttentionLayer } from './hybridModel.js';
 import { buildContinuityLayer } from './continuityEngine.js';
+import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -83,6 +84,8 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.post('/api/auth/logout', (req, res) => {
+  const userId = req.session.userId ? String(req.session.userId) : null;
+  if (userId) finalizeSession(userId);
   req.session.destroy(() => res.json({ ok: true }));
 });
 
@@ -199,7 +202,8 @@ app.post('/api/chat', async (req, res) => {
     const capabilityLayer = buildCapabilityLayer(userMsg);
     const attentionLayer = buildAttentionLayer(modelChoice);
     const continuityLayer = buildContinuityLayer(userId, userMsg);
-    const enhancedSystem = timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + (req.body.system || '');
+    const sessionLayer = getSessionInjection(userId);
+    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + (req.body.system || '');
 
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -234,6 +238,7 @@ app.post('/api/chat', async (req, res) => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let fullReply = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -248,6 +253,7 @@ app.post('/api/chat', async (req, res) => {
             try {
               const event = JSON.parse(dataStr);
               if (event.type === 'content_block_delta' && event.delta && event.delta.text) {
+                fullReply += event.delta.text;
                 res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
               }
             } catch(e) {}
@@ -264,10 +270,39 @@ app.post('/api/chat', async (req, res) => {
             try {
               const event = JSON.parse(dataStr);
               if (event.type === 'content_block_delta' && event.delta && event.delta.text) {
+                fullReply += event.delta.text;
                 res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
               }
             } catch(e) {}
           }
+        }
+      }
+
+      storeTurn(userId, userMsg, fullReply);
+
+      if (Math.random() < 0.2 && sessionStore.has(userId)) {
+        const session = sessionStore.get(userId);
+        if (session.turns.length >= 6) {
+          const summaryPrompt = buildRollingSummary(session.turns);
+          try {
+            const sumRes = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.ANTHROPIC_API_KEY,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 200,
+                messages: [{ role: 'user', content: summaryPrompt }]
+              })
+            });
+            const sumData = await sumRes.json();
+            if (sumData.content && sumData.content[0]) {
+              session.rollingSummary = sumData.content[0].text || '';
+            }
+          } catch(e) {}
         }
       }
 
@@ -289,6 +324,35 @@ app.post('/api/chat', async (req, res) => {
         })
       });
       const data = await response.json();
+      const assistantReply = data.content && data.content[0] ? data.content[0].text || '' : '';
+      storeTurn(userId, userMsg, assistantReply);
+
+      if (Math.random() < 0.2 && sessionStore.has(userId)) {
+        const session = sessionStore.get(userId);
+        if (session.turns.length >= 6) {
+          const summaryPrompt = buildRollingSummary(session.turns);
+          try {
+            const sumRes = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.ANTHROPIC_API_KEY,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 200,
+                messages: [{ role: 'user', content: summaryPrompt }]
+              })
+            });
+            const sumData = await sumRes.json();
+            if (sumData.content && sumData.content[0]) {
+              session.rollingSummary = sumData.content[0].text || '';
+            }
+          } catch(e) {}
+        }
+      }
+
       res.json(data);
     }
   } catch(e) {

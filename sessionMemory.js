@@ -173,6 +173,7 @@ ${session.lastSessionSummary}
 
 
 export {
+  sessionStore,
   storeTurn,
   buildRollingSummary,
   finalizeSession,
