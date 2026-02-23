@@ -1,0 +1,116 @@
+// ======================================
+// CONTINUITY LOOP ENGINE
+// ======================================
+
+const continuityDB = new Map();
+
+/*
+Structure:
+{
+  openLoops: [
+    {
+      text,
+      timestamp
+    }
+  ]
+}
+*/
+
+function initUser(userId) {
+  if (!continuityDB.has(userId)) {
+    continuityDB.set(userId, {
+      openLoops: []
+    });
+  }
+  return continuityDB.get(userId);
+}
+
+
+// --------------------------------------
+// DETECT MEANINGFUL MOMENTS
+// --------------------------------------
+function detectOpenLoop(message) {
+
+  const triggers = [
+    "I want to",
+    "I'm trying to",
+    "I struggle",
+    "I feel stuck",
+    "my goal",
+    "I hope",
+    "I want to become",
+    "I'm afraid",
+    "I need to change"
+  ];
+
+  return triggers.some(t =>
+    message.toLowerCase().includes(t.toLowerCase())
+  );
+}
+
+
+// --------------------------------------
+// STORE LOOP
+// --------------------------------------
+function storeLoop(userId, message) {
+
+  if (!detectOpenLoop(message)) return;
+
+  const user = initUser(userId);
+
+  user.openLoops.push({
+    text: message,
+    timestamp: Date.now()
+  });
+
+  if (user.openLoops.length > 10)
+    user.openLoops.shift();
+}
+
+
+// --------------------------------------
+// RECALL LOOP OCCASIONALLY
+// --------------------------------------
+function recallLoop(userId) {
+
+  const user = initUser(userId);
+
+  if (!user.openLoops.length) return null;
+
+  // 25% probability → natural feeling
+  if (Math.random() > 0.25) return null;
+
+  const randomLoop =
+    user.openLoops[
+      Math.floor(Math.random() * user.openLoops.length)
+    ];
+
+  return randomLoop.text;
+}
+
+
+// --------------------------------------
+// BUILD CONTINUITY PROMPT
+// --------------------------------------
+function buildContinuityLayer(userId, message) {
+
+  storeLoop(userId, message);
+
+  const recalled = recallLoop(userId);
+
+  if (!recalled) return "";
+
+  return `
+Continuity Awareness:
+
+The user previously expressed:
+"${recalled}"
+
+If naturally relevant, gently reconnect this past intention
+without forcing discussion or sounding like a reminder.
+`;
+}
+
+module.exports = {
+  buildContinuityLayer
+};
