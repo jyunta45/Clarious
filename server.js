@@ -12,6 +12,7 @@ import { buildAdaptivePrompt } from './adaptiveDepth.js';
 import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 import { buildCapabilityLayer } from './capabilityLayer.js';
+import { chooseModel } from './hybridModel.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -167,26 +168,6 @@ app.post('/api/chat', async (req, res) => {
       req.session.guestMsgCount++;
     }
 
-    function detectComplexity(msg, history) {
-      const deepPatterns = /\b(meaning of life|identity|who am i|life purpose|existential|moral dilemma|ethical|should i quit|divorce|breakup|career change|major decision|feeling lost|don't know what to do|crisis|depressed|suicidal|end it all|compare.*options|pros and cons|what would you do|long.?term|life.?changing|struggling with|torn between|crossroads|turning point|deeply|fundamentally|re-evaluate|soul.?searching)\b/i;
-      const multiLayerPatterns = /\b(on one hand|on the other|part of me|but also|conflicted|complicated|multiple factors|weighing|considering|dilemma|trade.?off)\b/i;
-
-      let score = 0;
-
-      if (deepPatterns.test(msg)) score += 3;
-      if (multiLayerPatterns.test(msg)) score += 2;
-      if (msg.split(/\s+/).length > 60) score += 1;
-      if (msg.includes('?') && (msg.match(/\?/g) || []).length >= 2) score += 1;
-
-      const recentMsgs = history.slice(-6);
-      const userMsgs = recentMsgs.filter(m => m.role === 'user');
-      for (const m of userMsgs) {
-        if (deepPatterns.test(m.content || '')) score += 1;
-      }
-
-      return score >= 3;
-    }
-
     const userMsg = req.body.messages && req.body.messages.length > 0
       ? req.body.messages[req.body.messages.length - 1].content || ''
       : '';
@@ -202,12 +183,12 @@ app.post('/api/chat', async (req, res) => {
     const messages = req.body.messages || [];
     const trimmedMessages = messages.length > 16 ? messages.slice(messages.length - 16) : messages;
 
-    const isDeepConversation = detectComplexity(userMsg, messages);
-    const selectedModel = isDeepConversation ? 'claude-opus-4-20250514' : 'claude-sonnet-4-20250514';
-    if (isDeepConversation) maxTokens = Math.max(maxTokens, 1000);
+    const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
+    const modelChoice = chooseModel(userId, userMsg);
+    const selectedModel = modelChoice === 'opus' ? 'claude-opus-4-20250514' : 'claude-sonnet-4-20250514';
+    if (modelChoice === 'opus') maxTokens = Math.max(maxTokens, 1000);
     const wantStream = req.body.stream === true;
 
-    const userId = req.session.userId ? String(req.session.userId) : 'guest_' + req.sessionID;
     const now = new Date();
     const timeContext = `\nCurrent date: ${now.toDateString()}\nThe assistant exists in the present moment with the user.\nIf asked about time, assume awareness of the current year.\n`;
     updateIdentity(userId, userMsg);

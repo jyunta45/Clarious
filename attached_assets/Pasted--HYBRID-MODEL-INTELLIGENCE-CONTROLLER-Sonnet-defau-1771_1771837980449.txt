@@ -1,0 +1,99 @@
+// ======================================
+// HYBRID MODEL INTELLIGENCE CONTROLLER
+// Sonnet (default) + Opus (deep moments)
+// With Opus Cooldown Protection
+// ======================================
+
+const hybridDB = new Map();
+
+/*
+User Hybrid State
+-----------------
+{
+  opusActive: false,
+  opusTurnsRemaining: 0,
+  lastTopic: ""
+}
+*/
+
+function initHybridUser(userId) {
+  if (!hybridDB.has(userId)) {
+    hybridDB.set(userId, {
+      opusActive: false,
+      opusTurnsRemaining: 0,
+      lastTopic: ""
+    });
+  }
+
+  return hybridDB.get(userId);
+}
+
+
+// ======================================
+// COMPLEXITY DETECTION
+// ======================================
+function detectComplexity(message) {
+
+  let score = 0;
+  const text = message.toLowerCase();
+
+  // identity / existential signals
+  if (/purpose|meaning|who am i|future|life direction/.test(text))
+    score++;
+
+  // emotional conflict
+  if (/torn|confused|lost|fear|anxious|stuck/.test(text))
+    score++;
+
+  // dual reasoning
+  if (/on one hand|part of me|but also|however/.test(text))
+    score++;
+
+  // long reflective message
+  if (message.length > 250)
+    score++;
+
+  return score;
+}
+
+
+// ======================================
+// MODEL SELECTION WITH COOLDOWN
+// ======================================
+function chooseModel(userId, message) {
+
+  const user = initHybridUser(userId);
+
+  const complexityScore = detectComplexity(message);
+
+  // ---- Activate Opus ----
+  if (complexityScore >= 3 && !user.opusActive) {
+
+    user.opusActive = true;
+    user.opusTurnsRemaining = 2; // ⭐ CRITICAL LIMIT
+
+    console.log("Opus activated");
+
+    return "opus";
+  }
+
+  // ---- Continue Opus Session ----
+  if (user.opusActive) {
+
+    if (user.opusTurnsRemaining > 0) {
+      user.opusTurnsRemaining--;
+      return "opus";
+    }
+
+    // Cooldown → return to Sonnet
+    user.opusActive = false;
+    console.log("Returning to Sonnet");
+  }
+
+  // Default
+  return "sonnet";
+}
+
+module.exports = {
+  chooseModel
+};
