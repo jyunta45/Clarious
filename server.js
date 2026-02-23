@@ -151,6 +151,15 @@ app.post('/api/data', async (req, res) => {
   }
 });
 
+function addIntentAnchor(response, userMessage) {
+  const sentenceCount = response.split(".").length;
+  if (sentenceCount > 3) {
+    return response +
+      "\n\nJust to make this useful — what part of this matters most for you right now?";
+  }
+  return response;
+}
+
 app.post('/api/chat', async (req, res) => {
   try {
     let tier = 'guest';
@@ -322,6 +331,13 @@ app.post('/api/chat', async (req, res) => {
         }
       }
 
+      const anchoredReply = addIntentAnchor(fullReply, userMsg);
+      if (anchoredReply !== fullReply) {
+        const anchorText = anchoredReply.slice(fullReply.length);
+        res.write('data: ' + JSON.stringify({ text: anchorText }) + '\n\n');
+        fullReply = anchoredReply;
+      }
+
       if (needsGroundingQuestion(userMsg)) {
         if (!req.session.lastGrounding || Date.now() - req.session.lastGrounding >= 180000) {
           const gq = groundingQuestion();
@@ -383,6 +399,7 @@ app.post('/api/chat', async (req, res) => {
       });
       const data = await response.json();
       let assistantReply = data.content && data.content[0] ? data.content[0].text || '' : '';
+      assistantReply = addIntentAnchor(assistantReply, userMsg);
 
       if (needsGroundingQuestion(userMsg)) {
         if (!req.session.lastGrounding || Date.now() - req.session.lastGrounding >= 180000) {
