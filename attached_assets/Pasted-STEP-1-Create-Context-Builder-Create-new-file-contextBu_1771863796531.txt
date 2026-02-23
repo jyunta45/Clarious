@@ -1,0 +1,114 @@
+STEP 1 — Create Context Builder
+
+Create new file:
+
+contextBuilder.js
+✅ Paste FULL CODE
+// ======================================
+// CONTEXT COMPRESSION ENGINE
+// ======================================
+
+/*
+Goal:
+Replace expensive raw history
+with summary + recent messages
+*/
+
+function buildContext({
+  enhancedSystem,
+  conversation,
+  rollingSummary
+}) {
+
+  const TURN_THRESHOLD = 6;
+  const RECENT_LIMIT = 4;
+
+  let messages = [];
+
+  // Always include system prompt
+  messages.push({
+    role: "system",
+    content: enhancedSystem
+  });
+
+  // ----------------------------------
+  // EARLY CONVERSATION
+  // send normal history
+  // ----------------------------------
+  if (conversation.length <= TURN_THRESHOLD) {
+
+    messages.push(...conversation);
+
+    return messages;
+  }
+
+  // ----------------------------------
+  // COMPRESSED MODE
+  // ----------------------------------
+
+  // Inject rolling summary
+  if (
+    rollingSummary &&
+    rollingSummary !==
+      "No significant session context to carry forward."
+  ) {
+    messages.push({
+      role: "system",
+      content:
+        "Conversation summary:\n" + rollingSummary
+    });
+  }
+
+  // Send only recent turns
+  const recentMessages =
+    conversation.slice(-RECENT_LIMIT);
+
+  messages.push(...recentMessages);
+
+  return messages;
+}
+
+module.exports = {
+  buildContext
+};
+✅ STEP 2 — Import Into server.js
+
+At top of server.js
+
+const { buildContext } =
+  require("./contextBuilder");
+✅ STEP 3 — Replace Message Sending Logic
+
+Find where you call the AI.
+
+You currently have something like:
+
+messages: [
+  { role: "system", content: enhancedSystem },
+  ...conversationHistory
+]
+❌ DELETE THAT
+✅ Replace With This
+const messages = buildContext({
+  enhancedSystem,
+  conversation: conversationHistory,
+  rollingSummary: sessionSummary
+});
+
+Then send:
+
+messages: messages
+
+to your model request.
+
+✅ STEP 4 — Resulting Behavior
+First 6 turns
+
+AI behaves normally.
+
+System
++ full conversation
+After turn 6 (automatic)
+System
++ rolling summary (~120 tokens)
++ last 4 messages (~600 tokens)
