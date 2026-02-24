@@ -243,11 +243,58 @@ function extractLastQuestion(text) {
   return null;
 }
 
-function buildQuestionControlLayer(userId) {
+function detectResponseMode(text) {
+  const hasQuestion = countQuestions(text) > 0;
+  if (hasQuestion) return 'clarification';
+
+  const sentences = text.split(/[.!]\s+/).filter(s => s.length > 10);
+  if (sentences.length === 0) return 'reflection';
+
+  let scores = { insight: 0, guidance: 0, challenge: 0, synthesis: 0, advancement: 0, reflection: 0 };
+
+  const lower = text.toLowerCase();
+  const insightPhrases = ['i notice', 'pattern here', 'seems like', 'what stands out', 'underlying', 'root of', 'real issue'];
+  const guidancePhrases = ['one approach', 'you might', 'i\'d suggest', 'worth trying', 'a practical step', 'start by', 'focus on'];
+  const challengePhrases = ['have you considered', 'worth examining', 'flip side', 'another angle', 'what if the opposite', 'blind spot'];
+  const synthesisPhrases = ['connecting', 'ties together', 'bigger picture', 'thread between', 'common theme', 'pulling together'];
+  const advancePhrases = ['next step', 'moving forward', 'from here', 'action you can take', 'concrete move', 'way forward'];
+
+  for (const p of insightPhrases) if (lower.includes(p)) scores.insight += 2;
+  for (const p of guidancePhrases) if (lower.includes(p)) scores.guidance += 2;
+  for (const p of challengePhrases) if (lower.includes(p)) scores.challenge += 2;
+  for (const p of synthesisPhrases) if (lower.includes(p)) scores.synthesis += 2;
+  for (const p of advancePhrases) if (lower.includes(p)) scores.advancement += 2;
+
+  let best = 'reflection';
+  let bestScore = 0;
+  for (const [mode, score] of Object.entries(scores)) {
+    if (score > bestScore) { bestScore = score; best = mode; }
+  }
+  return best;
+}
+
+function detectEmotionalDepth(userMessage) {
+  const strongEmotional = ['scared', 'afraid', 'anxious', 'overwhelmed', 'hopeless', 'exhausted', 'broken', 'crying', 'grief', 'depressed'];
+  const mildEmotional = ['worried', 'frustrated', 'confused', 'hurt', 'angry', 'sad', 'lonely', 'lost', 'stuck'];
+  const msg = userMessage.toLowerCase();
+  let strongCount = 0;
+  let mildCount = 0;
+  for (const word of strongEmotional) {
+    if (msg.includes(word)) strongCount++;
+  }
+  for (const word of mildEmotional) {
+    if (msg.includes(word)) mildCount++;
+  }
+  return strongCount >= 1 && (strongCount + mildCount) >= 2;
+}
+
+function buildQuestionControlLayer(userId, userMessage) {
   const mem = questionMemory.get(userId);
 
   let avoidRepeat = '';
   let cooldownRule = '';
+  let pacingRule = '';
+  let emotionalRule = '';
 
   if (mem && mem.lastQuestion) {
     avoidRepeat = `\nAvoid asking questions similar to: "${mem.lastQuestion}"\n`;
@@ -257,19 +304,47 @@ function buildQuestionControlLayer(userId) {
     cooldownRule = `\nA question was asked recently. Prefer reflection, insight, or synthesis instead of questioning this turn.\n`;
   }
 
+  if (mem && mem.lastMode) {
+    pacingRule = `\nYour last interaction style was "${mem.lastMode}". If possible, vary your approach — but if the situation genuinely calls for the same style again, that is acceptable.\n`;
+  }
+
+  if (detectEmotionalDepth(userMessage || '')) {
+    emotionalRule = `\nThe user's message contains deep emotional or reflective content. Prefer statements over questions. Allow processing space. Do not interrogate emotion.\n`;
+  }
+
   return `
-=== RESPONSE BEHAVIOR RULES ===
+=== RESPONSE INTENT SELECTION ===
+
+Before responding, silently determine the most helpful interaction mode.
+
+Possible modes:
+- Reflection (mirror understanding)
+- Insight (reveal pattern or implication)
+- Clarification (ask ONE question if needed)
+- Guidance (suggest direction)
+- Challenge (gently expose blind spot)
+- Synthesis (connect ideas)
+- Advancement (move thinking forward)
+
+Select ONE mode per response.
+Do not mention the mode.
+
+=== RESPONSE QUALITY RULES ===
+
+Every response should either:
+- increase clarity,
+- reveal something unnoticed,
+- or move the conversation forward.
+
+Avoid neutral or filler reflections.
+Avoid passive acknowledgment without substance.
+
+=== QUESTION RULES ===
 
 You are not required to ask questions.
 
-Before responding, decide whether asking a question
-will meaningfully improve understanding.
-
-If sufficient understanding already exists,
-do NOT ask a question.
-
-Questions should appear only when missing information
-prevents progress.
+Only ask a question when progress is genuinely blocked
+without the missing information.
 
 Never ask more than ONE question in a response.
 
@@ -280,16 +355,13 @@ question templates.
 
 Let questions emerge naturally from analysis of
 the user's message.
-${avoidRepeat}${cooldownRule}
-Your goal is not to maintain conversation
-through questioning.
+${avoidRepeat}${cooldownRule}${emotionalRule}
+=== CONVERSATIONAL PACING ===
 
-Your goal is to advance understanding.
-
-Sometimes reflect.
-Sometimes synthesize.
-Sometimes guide.
-Sometimes remain declarative.
+Maintain natural conversational rhythm.
+${pacingRule}
+Your goal is to advance understanding,
+not to maintain conversation through questioning.
 
 Natural conversation is preferred over coaching behavior.
 
@@ -375,7 +447,7 @@ app.post('/api/chat', async (req, res) => {
     const capabilityLayer = buildCapabilityLayer(userMsg);
     const attentionLayer = buildAttentionLayer(modelChoice);
     const continuityLayer = buildContinuityLayer(userId, userMsg);
-    const questionControlLayer = buildQuestionControlLayer(userId);
+    const questionControlLayer = buildQuestionControlLayer(userId, userMsg);
     const sessionLayer = getSessionInjection(userId);
     let truncationNotice = '';
     if (truncated) {
@@ -471,13 +543,14 @@ app.post('/api/chat', async (req, res) => {
 
       fullReply = enforceQuestionLimit(fullReply);
 
+      const detectedMode = detectResponseMode(fullReply);
       const lastQ = extractLastQuestion(fullReply);
-      if (lastQ) {
-        questionMemory.set(userId, { lastQuestion: lastQ, turnsSinceQuestion: 0 });
-      } else {
-        const mem = questionMemory.get(userId);
-        if (mem) mem.turnsSinceQuestion++;
-      }
+      const prevMem = questionMemory.get(userId) || {};
+      questionMemory.set(userId, {
+        lastQuestion: lastQ || prevMem.lastQuestion || null,
+        turnsSinceQuestion: lastQ ? 0 : (prevMem.turnsSinceQuestion || 0) + 1,
+        lastMode: detectedMode
+      });
 
       storeTurn(userId, userMsg, fullReply);
 
@@ -533,13 +606,14 @@ app.post('/api/chat', async (req, res) => {
       let assistantReply = data.content && data.content[0] ? data.content[0].text || '' : '';
       assistantReply = enforceQuestionLimit(assistantReply);
 
+      const detectedMode2 = detectResponseMode(assistantReply);
       const lastQ = extractLastQuestion(assistantReply);
-      if (lastQ) {
-        questionMemory.set(userId, { lastQuestion: lastQ, turnsSinceQuestion: 0 });
-      } else {
-        const mem = questionMemory.get(userId);
-        if (mem) mem.turnsSinceQuestion++;
-      }
+      const prevMem2 = questionMemory.get(userId) || {};
+      questionMemory.set(userId, {
+        lastQuestion: lastQ || prevMem2.lastQuestion || null,
+        turnsSinceQuestion: lastQ ? 0 : (prevMem2.turnsSinceQuestion || 0) + 1,
+        lastMode: detectedMode2
+      });
 
       if (data.content && data.content[0]) {
         data.content[0].text = assistantReply;
