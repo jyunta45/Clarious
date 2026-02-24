@@ -1,13 +1,14 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 import pg from 'pg';
 import connectPgSimple from 'connect-pg-simple';
 import { db } from './db/index.js';
 import { users, userData } from './shared/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { buildAdaptivePrompt } from './adaptiveDepth.js';
 import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 import { buildCalmAuthorityPrompt } from './calmAuthority.js';
@@ -91,6 +92,59 @@ app.post('/api/auth/logout', (req, res) => {
   const userId = req.session.userId ? String(req.session.userId) : null;
   if (userId) finalizeSession(userId);
   req.session.destroy(() => res.json({ ok: true }));
+});
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim()));
+
+    const resetToken = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
+
+    if (user) {
+      await db.execute(
+        sql`UPDATE users SET reset_token = ${resetToken}, reset_token_expires = ${expires} WHERE id = ${user.id}`
+      );
+    }
+
+    res.json({ ok: true, code: resetToken, message: 'Reset code generated. Use it to set a new password.' });
+  } catch(e) {
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) return res.status(400).json({ error: 'Email, code, and new password are required' });
+    if (newPassword.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim()));
+    if (!user) return res.status(400).json({ error: 'Invalid email or code' });
+
+    const result = await db.execute(
+      sql`SELECT reset_token, reset_token_expires FROM users WHERE id = ${user.id}`
+    );
+    const row = result.rows && result.rows[0];
+    if (!row || !row.reset_token || row.reset_token !== code.toUpperCase()) {
+      return res.status(400).json({ error: 'Invalid or expired reset code' });
+    }
+    if (new Date(row.reset_token_expires) < new Date()) {
+      return res.status(400).json({ error: 'Reset code has expired. Please request a new one.' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await db.execute(
+      sql`UPDATE users SET password_hash = ${passwordHash}, reset_token = NULL, reset_token_expires = NULL WHERE id = ${user.id}`
+    );
+
+    res.json({ ok: true, message: 'Password has been reset. You can now log in.' });
+  } catch(e) {
+    res.status(500).json({ error: 'Something went wrong' });
+  }
 });
 
 app.get('/api/auth/me', async (req, res) => {
