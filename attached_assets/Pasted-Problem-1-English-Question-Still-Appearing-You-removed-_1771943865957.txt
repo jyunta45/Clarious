@@ -1,0 +1,180 @@
+Problem 1 — English Question Still Appearing
+
+You removed templates in logic, but the sentence:
+
+“Just to make this useful — what part of this matters most for you right now?”
+
+is still inside your system prompt or hidden instruction layer.
+
+This means:
+
+👉 the model is still being instructed somewhere to append a grounding question.
+
+This is not generation behavior.
+This is prompt inheritance.
+
+✅ Where This Is Coming From (Very Likely)
+
+Check your Replit files for ANY of these:
+
+1️⃣ systemPrompt / basePrompt
+
+Look for:
+
+const systemPrompt =
+
+or
+
+messages: [
+  { role: "system", content: "..." }
+]
+
+Search inside for:
+
+useful
+matters most
+grounding
+anchor
+reflection question
+
+You will almost certainly find something like:
+
+End responses with a grounding question
+
+or
+
+Ask what matters most right now
+
+or even hidden wording like:
+
+help focus the user
+
+✅ DELETE that instruction completely.
+
+Not modify.
+Not soften.
+Remove.
+
+✅ Problem 2 — Korean + English Mixing
+
+This part:
+
+한국어 response
+↓
+English closing question
+
+means your language control is split.
+
+Your AI is doing:
+
+Main response → follow user language
+Closing instruction → English default
+
+Because the appended sentence comes from a fixed prompt written in English.
+
+✅ Fix Language Lock (VERY IMPORTANT)
+
+Add this to your system prompt:
+
+Always respond entirely in the user's language.
+
+Never switch languages within the same response.
+
+If the user writes in Korean, the entire response,
+including reflections or questions,
+must be in Korean.
+
+This immediately stops bilingual leakage.
+
+✅ Problem 3 — Why It Keeps Spamming Every Turn
+
+This is critical.
+
+Your cooldown system only works if the AI generated the question.
+
+But right now:
+
+Prompt → forces question
+Cooldown → cannot stop it
+
+Because it’s injected before your limiter logic.
+
+So every response still ends with it.
+
+✅ Correct Execution Order
+
+Your pipeline must be:
+
+SYSTEM PROMPT (no forced question)
+↓
+AI generates response
+↓
+Question limiter
+↓
+Cooldown check
+↓
+Send
+
+NOT:
+
+SYSTEM PROMPT adds question
+↓
+Limiter tries fixing afterward
+✅ Immediate Debug Checklist (Do This Now)
+
+In Replit:
+
+✅ Step 1
+
+Global search:
+
+what part of this matters
+
+Delete everywhere.
+
+✅ Step 2
+
+Search:
+
+useful —
+
+Delete.
+
+✅ Step 3
+
+Search:
+
+grounding
+anchor
+closing question
+reflection question
+
+Remove instructions.
+
+✅ Step 4
+
+Restart Replit server completely.
+
+(Not refresh — restart.)
+
+Old prompts stay cached otherwise.
+
+✅ After Fix — Expected Behavior
+
+Before:
+
+Insight
+Insight
+Insight
+FORCED QUESTION
+
+After:
+
+Insight
+Guidance
+(or)
+Reflection
+(or)
+Single natural question
+(or)
+No question

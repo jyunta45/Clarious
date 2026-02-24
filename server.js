@@ -365,6 +365,22 @@ not to maintain conversation through questioning.
 
 Natural conversation is preferred over coaching behavior.
 
+=== LANGUAGE RULES ===
+
+Always respond entirely in the user's language.
+
+Never switch languages within the same response.
+
+If the user writes in Korean, the entire response,
+including reflections or questions, must be in Korean.
+
+If the user writes in Japanese, respond entirely in Japanese.
+If in Spanish, entirely in Spanish.
+If in Thai, entirely in Thai.
+
+Never mix languages. Never append English phrases
+to non-English responses.
+
 ================================
 `;
 }
