@@ -69,33 +69,4 @@ function buildContext({
   return messages;
 }
 
-function needsGroundingQuestion(userMessage) {
-  const triggers = [
-    "difference",
-    "better",
-    "why",
-    "compare",
-    "unique",
-    "chatgpt",
-    "gemini"
-  ];
-
-  const msg = userMessage.toLowerCase();
-  return triggers.some(t => msg.includes(t));
-}
-
-function groundingQuestion() {
-  const questions = [
-    "What decision are you thinking through right now?",
-    "What feels most unclear for you today?",
-    "What are you trying to move forward on?",
-    "Where do you feel stuck lately?",
-    "What matters most for you right now?"
-  ];
-
-  return questions[
-    Math.floor(Math.random() * questions.length)
-  ];
-}
-
-export { buildContext, needsGroundingQuestion, groundingQuestion };
+export { buildContext };

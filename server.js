@@ -17,7 +17,7 @@ import { buildAttentionLayer } from './hybridModel.js';
 import { resetDailyUsage, truncateInput, getDepthScore, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
 import { buildContinuityLayer } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
-import { buildContext, needsGroundingQuestion, groundingQuestion } from './contextBuilder.js';
+import { buildContext } from './contextBuilder.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -205,13 +205,96 @@ app.post('/api/data', async (req, res) => {
   }
 });
 
-function addIntentAnchor(response, userMessage) {
-  const sentenceCount = response.split(".").length;
-  if (sentenceCount > 3) {
-    return response +
-      "\n\nJust to make this useful — what part of this matters most for you right now?";
+// ======================================
+// QUESTION CONTROL SYSTEM
+// ======================================
+
+const questionMemory = new Map();
+
+function countQuestions(text) {
+  return (text.match(/\?/g) || []).length;
+}
+
+function enforceQuestionLimit(text) {
+  if (countQuestions(text) <= 1) return text;
+
+  let found = 0;
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '?') {
+      found++;
+      if (found <= 1) {
+        result += '?';
+      } else {
+        result += '.';
+      }
+    } else {
+      result += text[i];
+    }
   }
-  return response;
+  return result;
+}
+
+function extractLastQuestion(text) {
+  const match = text.match(/([^.!?\n]*\?)/g);
+  if (match && match.length > 0) {
+    return match[match.length - 1].trim();
+  }
+  return null;
+}
+
+function buildQuestionControlLayer(userId) {
+  const mem = questionMemory.get(userId);
+
+  let avoidRepeat = '';
+  let cooldownRule = '';
+
+  if (mem && mem.lastQuestion) {
+    avoidRepeat = `\nAvoid asking questions similar to: "${mem.lastQuestion}"\n`;
+  }
+
+  if (mem && mem.turnsSinceQuestion !== undefined && mem.turnsSinceQuestion < 2) {
+    cooldownRule = `\nA question was asked recently. Prefer reflection, insight, or synthesis instead of questioning this turn.\n`;
+  }
+
+  return `
+=== RESPONSE BEHAVIOR RULES ===
+
+You are not required to ask questions.
+
+Before responding, decide whether asking a question
+will meaningfully improve understanding.
+
+If sufficient understanding already exists,
+do NOT ask a question.
+
+Questions should appear only when missing information
+prevents progress.
+
+Never ask more than ONE question in a response.
+
+Often the best response contains no question at all.
+
+Do not use repeated coaching phrases or reusable
+question templates.
+
+Let questions emerge naturally from analysis of
+the user's message.
+${avoidRepeat}${cooldownRule}
+Your goal is not to maintain conversation
+through questioning.
+
+Your goal is to advance understanding.
+
+Sometimes reflect.
+Sometimes synthesize.
+Sometimes guide.
+Sometimes remain declarative.
+
+Natural conversation is preferred over coaching behavior.
+
+================================
+`;
 }
 
 app.post('/api/chat', async (req, res) => {
@@ -292,6 +375,7 @@ app.post('/api/chat', async (req, res) => {
     const capabilityLayer = buildCapabilityLayer(userMsg);
     const attentionLayer = buildAttentionLayer(modelChoice);
     const continuityLayer = buildContinuityLayer(userId, userMsg);
+    const questionControlLayer = buildQuestionControlLayer(userId);
     const sessionLayer = getSessionInjection(userId);
     let truncationNotice = '';
     if (truncated) {
@@ -301,7 +385,7 @@ app.post('/api/chat', async (req, res) => {
     if (budgetState.systemNotice) {
       budgetNotice = '\n' + budgetState.systemNotice + '\n';
     }
-    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + truncationNotice + budgetNotice + (req.body.system || '');
+    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + questionControlLayer + '\n\n' + truncationNotice + budgetNotice + (req.body.system || '');
 
     const sessionSummary = sessionStore.has(userId) ? sessionStore.get(userId).rollingSummary : '';
     const builtMessages = buildContext({
@@ -385,20 +469,14 @@ app.post('/api/chat', async (req, res) => {
         }
       }
 
-      const anchoredReply = addIntentAnchor(fullReply, userMsg);
-      if (anchoredReply !== fullReply) {
-        const anchorText = anchoredReply.slice(fullReply.length);
-        res.write('data: ' + JSON.stringify({ text: anchorText }) + '\n\n');
-        fullReply = anchoredReply;
-      }
+      fullReply = enforceQuestionLimit(fullReply);
 
-      if (needsGroundingQuestion(userMsg)) {
-        if (!req.session.lastGrounding || Date.now() - req.session.lastGrounding >= 180000) {
-          const gq = groundingQuestion();
-          fullReply += '\n\n' + gq;
-          res.write('data: ' + JSON.stringify({ text: '\n\n' + gq }) + '\n\n');
-          req.session.lastGrounding = Date.now();
-        }
+      const lastQ = extractLastQuestion(fullReply);
+      if (lastQ) {
+        questionMemory.set(userId, { lastQuestion: lastQ, turnsSinceQuestion: 0 });
+      } else {
+        const mem = questionMemory.get(userId);
+        if (mem) mem.turnsSinceQuestion++;
       }
 
       storeTurn(userId, userMsg, fullReply);
@@ -453,17 +531,18 @@ app.post('/api/chat', async (req, res) => {
       });
       const data = await response.json();
       let assistantReply = data.content && data.content[0] ? data.content[0].text || '' : '';
-      assistantReply = addIntentAnchor(assistantReply, userMsg);
+      assistantReply = enforceQuestionLimit(assistantReply);
 
-      if (needsGroundingQuestion(userMsg)) {
-        if (!req.session.lastGrounding || Date.now() - req.session.lastGrounding >= 180000) {
-          const gq = groundingQuestion();
-          assistantReply += '\n\n' + gq;
-          if (data.content && data.content[0]) {
-            data.content[0].text = assistantReply;
-          }
-          req.session.lastGrounding = Date.now();
-        }
+      const lastQ = extractLastQuestion(assistantReply);
+      if (lastQ) {
+        questionMemory.set(userId, { lastQuestion: lastQ, turnsSinceQuestion: 0 });
+      } else {
+        const mem = questionMemory.get(userId);
+        if (mem) mem.turnsSinceQuestion++;
+      }
+
+      if (data.content && data.content[0]) {
+        data.content[0].text = assistantReply;
       }
 
       storeTurn(userId, userMsg, assistantReply);
