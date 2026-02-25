@@ -2,9 +2,6 @@
 // AI RUNTIME CONTROLLER
 // ─────────────────────────────────────────
 
-// ─────────────────────────────────────────
-// DAILY RESET (call first on every request)
-// ─────────────────────────────────────────
 function resetDailyUsage(user) {
   const today = new Date().toDateString();
   if (user.lastUsageDate !== today) {
@@ -15,9 +12,6 @@ function resetDailyUsage(user) {
   }
 }
 
-// ─────────────────────────────────────────
-// INPUT TRUNCATION
-// ─────────────────────────────────────────
 function truncateInput(input) {
   const MAX_CHARS = 3200;
   if (input.length > MAX_CHARS) {
@@ -27,55 +21,24 @@ function truncateInput(input) {
 }
 
 // ─────────────────────────────────────────
-// DECISION LANGUAGE DETECTION
+// OUTPUT TOKEN LIMIT
 // ─────────────────────────────────────────
-function hasDecisionLanguage(text) {
-  return (
-    text.includes("should i") ||
-    text.includes("what should") ||
-    text.includes("decide") ||
-    text.includes("choose") ||
-    text.includes("not sure") ||
-    text.includes("i wonder")
-  );
+function maxTokens(complexity, efficiencyMode = false) {
+  if (efficiencyMode) return 180;
+  if (complexity === "LOW") return 300;
+  if (complexity === "HIGH") return 600;
+  return 300;
 }
 
 // ─────────────────────────────────────────
-// DEPTH SCORING
-// ─────────────────────────────────────────
-const depthKeywords = [
-  "anxious","depressed","stuck","confused",
-  "purpose","meaning","afraid","failure",
-  "lost","change","worth it","don't know"
-];
-
-function getDepthScore(message) {
-  let score = 0;
-  const m = message.toLowerCase();
-  if (message.split(" ").length > 150) score++;
-  if (depthKeywords.some(k => m.includes(k))) score++;
-  if (hasDecisionLanguage(m)) score++;
-  return Math.min(score, 3);
-}
-
-// ─────────────────────────────────────────
-// MODEL SELECTION
-// ─────────────────────────────────────────
-function selectModel(depth) {
-  if (depth === 0) return "haiku";
-  if (depth <= 2) return "sonnet";
-  return "opus";
-}
-
-// ─────────────────────────────────────────
-// BUDGET + MODEL SELECTION
+// BUDGET + MODEL OVERRIDE
 // ─────────────────────────────────────────
 const DAILY_LIMIT = 135000;
 
-function checkBudget(user, currentDepth) {
+function checkBudget(user, complexity, selectModel) {
   if (user.efficiencyMode) {
     return {
-      model: "haiku",
+      model: "claude-haiku-4-5-20251001",
       efficiencyMode: true,
       systemNotice: "Running in efficiency mode for today."
     };
@@ -86,30 +49,19 @@ function checkBudget(user, currentDepth) {
   ) {
     user.softWarnedToday = true;
     return {
-      model: selectModel(currentDepth),
-      systemNotice:
-        "You're having a deep day. I'll keep responses focused."
+      model: selectModel(complexity),
+      systemNotice: "You're having a deep day. I'll keep responses focused."
     };
   }
   if (user.dailyTokens > DAILY_LIMIT) {
     user.efficiencyMode = true;
     return {
-      model: "haiku",
+      model: "claude-haiku-4-5-20251001",
       efficiencyMode: true,
       systemNotice: "Running in efficiency mode for today."
     };
   }
-  return { model: selectModel(currentDepth) };
-}
-
-// ─────────────────────────────────────────
-// OUTPUT TOKEN LIMIT
-// ─────────────────────────────────────────
-function maxTokens(depth, efficiencyMode = false) {
-  if (efficiencyMode) return 180;
-  if (depth === 0) return 200;
-  if (depth <= 2) return 400;
-  return 600;
+  return { model: selectModel(complexity) };
 }
 
 // ─────────────────────────────────────────
@@ -123,26 +75,20 @@ function checkSessionTimeout(session) {
   }
 }
 
-// ─────────────────────────────────────────
-// SUMMARY UPDATE TRIGGER
-// ─────────────────────────────────────────
 function shouldUpdateSummary(turnCount, meaningfulTurn) {
   return turnCount % 4 === 0 || meaningfulTurn === true;
 }
 
-// ─────────────────────────────────────────
-// MEANINGFUL TURN DETECTION
-// ─────────────────────────────────────────
 function isMeaningfulAssistantResponse(response) {
   const r = response.toLowerCase();
   return (
-    r.includes("because")   ||
-    r.includes("however")   ||
-    r.includes("depends")   ||
-    r.includes("instead")   ||
-    r.includes("consider")  ||
-    r.includes("option")    ||
-    r.includes("step")      ||
+    r.includes("because") ||
+    r.includes("however") ||
+    r.includes("depends") ||
+    r.includes("instead") ||
+    r.includes("consider") ||
+    r.includes("option") ||
+    r.includes("step") ||
     r.includes("trade-off") ||
     response.split(".").length > 6
   );
@@ -151,10 +97,8 @@ function isMeaningfulAssistantResponse(response) {
 export {
   resetDailyUsage,
   truncateInput,
-  getDepthScore,
-  checkBudget,
-  selectModel,
   maxTokens,
+  checkBudget,
   checkSessionTimeout,
   shouldUpdateSummary,
   isMeaningfulAssistantResponse

@@ -66,6 +66,7 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 ## Recent Changes
 
+- **2026-02-25**: Major AI engine upgrade: (1) New complexity detection with strong/medium signal scoring replaces old depth scoring, (2) 2-tier model routing: Haiku for LOW complexity, Sonnet for HIGH complexity (no more Opus), (3) Structured memory system with goals/struggles/strengths/decisionPatterns/identityDirection — AI extracts facts via Haiku, merges without overwriting, 6-hour cooldown, (4) Memory context injection into system prompt (under 60 tokens), (5) New capability layer system prompt with situation/cognitive-need/leadership-calibration framework, (6) Updated token limits: LOW=300, HIGH=600, efficiency=180.
 - **2026-02-24**: Forgot password feature: 3-step flow (enter email → get reset code → set new password). Reset tokens expire after 15 min. Anti-enumeration protection (same response for existing/non-existing emails). All 5 languages. Zero API cost. Database columns: reset_token, reset_token_expires on users table.
 - **2026-02-21**: Visible Personal Evolution / Growth panel: monthly evolution summary (days active, messages, topics, habit rates, mood trend), pattern insights (human-readable sentences from raw data), habit consistency trends (4-week completion rate bars), mood journey visualization (dot-line trend), milestone detection and celebration badges (streak milestones, days active, memory count, all-habits-done). Gold "Growth" button in chat header. Mutually exclusive with Patterns panel. Zero API cost. All 5 languages.
 - **2026-02-21**: Habit integration: add/track daily habits with streak counting, best-streak tracking, goal linking, completion progress. Habits section in Patterns panel with checkboxes, add-habit form, remove. habitsPromptBlock() injects habit status into AI system prompt. Proactive trigger when habits are unchecked. All stored in existing patterns JSONB (no new columns). Zero API cost. All 5 languages.
@@ -83,7 +84,7 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 ## External Dependencies
 
-- **Anthropic Claude API**: Core AI. Requires `ANTHROPIC_API_KEY`. Model: `claude-sonnet-4-20250514`.
+- **Anthropic Claude API**: Core AI. Requires `ANTHROPIC_API_KEY`. Models: `claude-haiku-4-5-20251001` (LOW complexity + memory extraction), `claude-sonnet-4-20250514` (HIGH complexity).
 - **Google Fonts**: Playfair Display and DM Sans
 - **PostgreSQL**: User data persistence. Uses `DATABASE_URL` environment variable.
 - **Express.js**: Web server, port 5000, bound to `0.0.0.0`

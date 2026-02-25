@@ -9,13 +9,13 @@ import connectPgSimple from 'connect-pg-simple';
 import { db } from './db/index.js';
 import { users, userData } from './shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
-import { buildAdaptivePrompt } from './adaptiveDepth.js';
+import { buildAdaptivePrompt, detectComplexity, selectModel } from './adaptiveDepth.js';
 import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 import { buildCapabilityLayer } from './capabilityLayer.js';
 import { buildAttentionLayer } from './hybridModel.js';
-import { resetDailyUsage, truncateInput, getDepthScore, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
-import { buildContinuityLayer } from './continuityEngine.js';
+import { resetDailyUsage, truncateInput, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
+import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
 import { buildContext } from './contextBuilder.js';
 
@@ -437,22 +437,25 @@ app.post('/api/chat', async (req, res) => {
       req.body.messages[req.body.messages.length - 1].content = userMsg;
     }
 
-    const depth = getDepthScore(userMsg);
+    const complexity = detectComplexity(userMsg);
 
-    const budgetState = checkBudget(runtimeUser, depth);
-    const modelChoice = budgetState.model;
+    const budgetState = checkBudget(runtimeUser, complexity, selectModel);
+    const modelName = budgetState.model;
     const efficiencyMode = budgetState.efficiencyMode || false;
 
-    const modelName = modelChoice === 'haiku'
-      ? 'claude-haiku-4-5-20251001'
-      : modelChoice === 'sonnet'
-      ? 'claude-sonnet-4-20250514'
-      : 'claude-opus-4-20250514';
-
-    const tokenLimit = getMaxTokens(depth, efficiencyMode);
+    const tokenLimit = getMaxTokens(complexity, efficiencyMode);
 
     const conversation = req.body.messages || [];
     const wantStream = req.body.stream === true;
+
+    let userMemoryData = null;
+    if (req.session.userId) {
+      const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+      if (uData && uData.memories) {
+        loadMemoryFromDB(userId, uData.memories);
+      }
+    }
+    const userMemory = initMemory(userId);
 
     const now = new Date();
     const timeContext = `\nCurrent date: ${now.toDateString()}\nThe assistant exists in the present moment with the user.\nIf asked about time, assume awareness of the current year.\n`;
@@ -460,8 +463,8 @@ app.post('/api/chat', async (req, res) => {
     const identityLayer = buildIdentityPrompt(userId);
     const calmLayer = buildCalmAuthorityPrompt(userMsg);
     const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
-    const capabilityLayer = buildCapabilityLayer(userMsg);
-    const attentionLayer = buildAttentionLayer(modelChoice);
+    const capabilityLayer = buildCapabilityLayer();
+    const attentionLayer = buildAttentionLayer(complexity === "HIGH" ? "opus" : "sonnet");
     const continuityLayer = buildContinuityLayer(userId, userMsg);
     const questionControlLayer = buildQuestionControlLayer(userId, userMsg);
     const sessionLayer = getSessionInjection(userId);
@@ -479,7 +482,8 @@ app.post('/api/chat', async (req, res) => {
     const builtMessages = buildContext({
       enhancedSystem,
       conversation,
-      rollingSummary: sessionSummary
+      rollingSummary: sessionSummary,
+      userMemory
     });
     const systemContent = builtMessages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
     const chatMessages = builtMessages.filter(m => m.role !== 'system');
@@ -575,6 +579,41 @@ app.post('/api/chat', async (req, res) => {
       runtimeUser.dailyTokens += Math.ceil(estimatedInput + estimatedOutput);
       req.session.lastActive = Date.now();
 
+      if (shouldUpdateMemory(userId, complexity, req.session)) {
+        try {
+          const extractPrompt = buildMemoryExtractionPrompt(userMsg);
+          const memRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': process.env.ANTHROPIC_API_KEY,
+              'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 200,
+              messages: [{ role: 'user', content: extractPrompt }]
+            })
+          });
+          const memData = await memRes.json();
+          if (memData.content && memData.content[0]) {
+            const rawText = memData.content[0].text || '';
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const extracted = JSON.parse(jsonMatch[0]);
+              mergeExtractedMemory(userId, extracted, req.session);
+              if (req.session.userId) {
+                const memToSave = getMemoryForSave(userId);
+                await db.update(userData).set({
+                  memories: memToSave,
+                  updatedAt: new Date()
+                }).where(eq(userData.userId, req.session.userId));
+              }
+            }
+          }
+        } catch(e) {}
+      }
+
       if (Math.random() < 0.2 && sessionStore.has(userId)) {
         const session = sessionStore.get(userId);
         if (session.turns.length >= 6) {
@@ -641,6 +680,41 @@ app.post('/api/chat', async (req, res) => {
         runtimeUser.dailyTokens += (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0);
       }
       req.session.lastActive = Date.now();
+
+      if (shouldUpdateMemory(userId, complexity, req.session)) {
+        try {
+          const extractPrompt = buildMemoryExtractionPrompt(userMsg);
+          const memRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': process.env.ANTHROPIC_API_KEY,
+              'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 200,
+              messages: [{ role: 'user', content: extractPrompt }]
+            })
+          });
+          const memData2 = await memRes.json();
+          if (memData2.content && memData2.content[0]) {
+            const rawText = memData2.content[0].text || '';
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const extracted = JSON.parse(jsonMatch[0]);
+              mergeExtractedMemory(userId, extracted, req.session);
+              if (req.session.userId) {
+                const memToSave = getMemoryForSave(userId);
+                await db.update(userData).set({
+                  memories: memToSave,
+                  updatedAt: new Date()
+                }).where(eq(userData.userId, req.session.userId));
+              }
+            }
+          }
+        } catch(e) {}
+      }
 
       if (Math.random() < 0.2 && sessionStore.has(userId)) {
         const session = sessionStore.get(userId);
