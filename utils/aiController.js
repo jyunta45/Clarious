@@ -25,9 +25,9 @@ function truncateInput(input) {
 // ─────────────────────────────────────────
 function maxTokens(complexity, efficiencyMode = false) {
   if (efficiencyMode) return 180;
-  if (complexity === "LOW") return 300;
-  if (complexity === "HIGH") return 600;
-  return 300;
+  if (complexity === "LOW") return 500;
+  if (complexity === "HIGH") return 1024;
+  return 500;
 }
 
 // ─────────────────────────────────────────
