@@ -1,0 +1,151 @@
+"exploring"     → no identity direction yet
+"executing"     → consistent goals, high follow-through  
+"restructuring" → direction exists but repeated struggles
+"developing"    → default, healthy middle ground
+```
+
+This is the kind of signal that makes responses feel calibrated without the AI needing to figure it out each time. The thresholds are conservative — `goalConsistency > 0.7` is a high bar, `recurringStruggles > 2` is real friction. No hallucination risk because it's pure computation from existing data.
+
+---
+
+## One Thing to Clarify Before Building
+
+**Where does `patterns.goalConsistency` come from?**
+
+Your pattern tracking system tracks topic frequency, recurring challenges, and goal mentions — but `goalConsistency` as a specific numeric field may not exist yet. Before the agent builds this, confirm:
+```
+Option A: goalConsistency already exists as a field in your 
+          patterns data → use it directly ✅
+
+Option B: it doesn't exist yet → replace with:
+          memory.goals?.length > 2 ? "executing" : "developing"
+          (simpler, same effect, no new computation needed)
+```
+
+Tell the agent which option applies to your data.
+
+---
+
+## The "Only User State Speaks to AI" Rule Is the Most Important Line
+
+This is the architectural principle that makes everything else stable. Once this is in place, every future feature you add — new tracking, new signals, new memory fields — just feeds into `userStateEngine.js` upstream. The AI prompt never changes structure. You just enrich the state object.
+
+That's how you scale without breaking things.
+
+---
+
+## Replit Agent Instruction — Safe Version
+```
+Please create a new file called userStateEngine.js 
+and modify contextBuilder.js only.
+Do not touch any other files.
+
+---
+
+CREATE userStateEngine.js with this content:
+
+export function buildUserState({
+  memory,
+  sessionSummary,
+  moodTrend,
+  patterns,
+  relationshipDepth
+}) {
+  return {
+    direction:
+      memory.identityDirection || null,
+
+    currentFocus:
+      memory.goals?.slice(-2) || [],
+
+    recurringFriction:
+      memory.recurringStruggles?.slice(-2) || [],
+
+    emotionalTrend:
+      moodTrend || "stable",
+
+    decisionStyle:
+      memory.decisionPatterns?.slice(-1)[0] || null,
+
+    growthPhase: inferGrowthPhase(memory, patterns),
+
+    relationshipDepth
+  };
+}
+
+function inferGrowthPhase(memory, patterns) {
+  if (!memory.identityDirection)
+    return "exploring";
+
+  if (patterns?.goalConsistency > 0.7)
+    return "executing";
+
+  if (memory.recurringStruggles?.length > 2)
+    return "restructuring";
+
+  return "developing";
+}
+
+---
+
+MODIFY contextBuilder.js only:
+
+1. Import buildUserState from userStateEngine.js
+
+2. Replace current memory injection logic with:
+
+const userState = buildUserState({
+  memory: userMemory,
+  sessionSummary,
+  moodTrend,
+  patterns,
+  relationshipDepth
+});
+
+function buildStateContext(state) {
+  if (!state.direction && !state.currentFocus.length)
+    return "";
+
+  return `
+User Direction: ${state.direction || "forming"}
+Current Focus: ${state.currentFocus.join(", ") || "exploration"}
+Recurring Friction: ${state.recurringFriction.join(", ") || "none"}
+Emotional Trend: ${state.emotionalTrend}
+Growth Phase: ${state.growthPhase}
+`.trim();
+}
+
+finalPrompt = SYSTEM_PROMPT + "\n\n" + buildStateContext(userState);
+
+3. Remove any previous direct memory injection blocks.
+   userStateEngine.js is now the only thing that builds 
+   the context block. Nothing else injects into the prompt.
+
+---
+
+CRITICAL RULES:
+- Do not modify continuityEngine.js
+- Do not modify adaptiveDepth.js  
+- Do not modify capabilityLayer.js
+- Do not modify server.js
+- Do not modify database schema
+- Do not touch habit tracking, mood tracking, or onboarding
+- Do not touch index.html
+- After changes verify server starts and AI streaming works
+- If patterns.goalConsistency does not exist as a field,
+  replace that condition with:
+  memory.goals?.length > 2
+  and return "executing" in that case
+```
+
+---
+
+## Final Architecture After This Is Done
+```
+DATA LAYER:                    STATE LAYER:         AI LAYER:
+───────────────                ────────────         ─────────
+continuityEngine  ──→          userState    ──→     finalPrompt
+memory system     ──→          (single      ──→     (one clean
+mood tracking     ──→          authority)   ──→      block)
+pattern tracking  ──→                       
+relationship      ──→
