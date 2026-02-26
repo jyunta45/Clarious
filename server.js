@@ -152,6 +152,23 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 });
 
+app.get('/debug/memory-status/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await db
+      .select({
+        userId: userData.userId,
+        memorySeeded: userData.memorySeeded,
+        lastIdentityUpdate: userData.lastIdentityUpdate
+      })
+      .from(userData)
+      .where(eq(userData.userId, parseInt(userId)));
+    res.json(result[0] || { error: "User not found" });
+  } catch(e) {
+    res.status(500).json({ error: "Query failed" });
+  }
+});
+
 app.get('/api/auth/me', async (req, res) => {
   if (!req.session.userId) return res.json({ loggedIn: false });
   try {
