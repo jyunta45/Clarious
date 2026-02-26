@@ -18,6 +18,7 @@ import { resetDailyUsage, truncateInput, checkBudget, maxTokens as getMaxTokens,
 import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
 import { buildContext } from './contextBuilder.js';
+import { seedMemoryFromOnboarding } from './onboardingIdentitySync.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -199,6 +200,54 @@ app.post('/api/data', async (req, res) => {
     } else {
       await db.update(userData).set(updateFields).where(eq(userData.userId, req.session.userId));
     }
+
+    if (stage === 'chat' && answers && Object.keys(answers).length > 0) {
+      const record = existing.length > 0 ? existing[0] : null;
+      if (record && !record.memorySeeded) {
+        try {
+          async function callModel(model, systemPrompt, userContent) {
+            const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.ANTHROPIC_API_KEY,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: model,
+                max_tokens: 300,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: userContent }]
+              })
+            });
+            const data = await apiRes.json();
+            return data.content && data.content[0] ? data.content[0].text : '{}';
+          }
+
+          const baseMemory = {
+            goals: [],
+            recurringStruggles: [],
+            strengths: [],
+            decisionPatterns: [],
+            identityDirection: "",
+            lastUpdated: null
+          };
+
+          const seededMemory = await seedMemoryFromOnboarding(
+            answers,
+            baseMemory,
+            callModel
+          );
+
+          await db.update(userData).set({
+            memories: seededMemory,
+            memorySeeded: true,
+            updatedAt: new Date()
+          }).where(eq(userData.userId, req.session.userId));
+        } catch(e) {}
+      }
+    }
+
     res.json({ ok: true });
   } catch(e) {
     res.status(500).json({ error: 'Failed to save data' });

@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, jsonb, uniqueIndex, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -7,6 +7,8 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  resetToken: text("reset_token"),
+  resetTokenExpires: timestamp("reset_token_expires"),
 });
 
 export const userData = pgTable("user_data", {
@@ -26,6 +28,7 @@ export const userData = pgTable("user_data", {
   moodLog: jsonb("mood_log").$type<Array<{ date: string; score: number; note: string; hour?: number }>>().default([]),
   threadSummaries: jsonb("thread_summaries").$type<Record<string, string>>().default({}),
   lastActiveDate: text("last_active_date").default(""),
+  memorySeeded: boolean("memory_seeded").default(false).notNull(),
   patterns: jsonb("patterns").$type<{
     topics: Record<string, number>;
     recurringChallenges: Array<{ text: string; count: number; firstSeen: string; lastSeen: string }>;
