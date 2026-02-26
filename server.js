@@ -152,6 +152,10 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 });
 
+app.get('/debug/test', (req, res) => {
+  res.send('DEBUG WORKING');
+});
+
 app.get('/debug/memory-status/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
