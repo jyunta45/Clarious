@@ -29,6 +29,11 @@ try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) {
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
+
+app.get('/debug/test', (req, res) => {
+  res.send('DEBUG WORKING');
+});
+
 app.use(express.static(path.join(__app_dirname, 'public')));
 
 const runtimeUsers = new Map();
@@ -150,10 +155,6 @@ app.post('/api/auth/reset-password', async (req, res) => {
   } catch(e) {
     res.status(500).json({ error: 'Something went wrong' });
   }
-});
-
-app.get('/debug/test', (req, res) => {
-  res.send('DEBUG WORKING');
 });
 
 app.get('/debug/memory-status/:userId', async (req, res) => {
