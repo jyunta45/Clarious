@@ -23,11 +23,16 @@ function truncateInput(input) {
 // ─────────────────────────────────────────
 // OUTPUT TOKEN LIMIT
 // ─────────────────────────────────────────
-function maxTokens(complexity, efficiencyMode = false) {
-  if (efficiencyMode) return 180;
-  if (complexity === "LOW") return 500;
-  if (complexity === "HIGH") return 1024;
-  return 500;
+const CJK_LANGS = ['ja', 'th', 'ko'];
+
+function maxTokens(complexity, efficiencyMode = false, lang = 'en') {
+  const isCJK = CJK_LANGS.includes(lang);
+  const multiplier = isCJK ? 1.8 : 1;
+
+  if (efficiencyMode) return Math.round(180 * multiplier);
+  if (complexity === "LOW") return Math.round(500 * multiplier);
+  if (complexity === "HIGH") return Math.round(1024 * multiplier);
+  return Math.round(500 * multiplier);
 }
 
 // ─────────────────────────────────────────

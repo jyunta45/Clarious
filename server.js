@@ -567,7 +567,15 @@ app.post('/api/chat', async (req, res) => {
     const modelName = budgetState.model;
     const efficiencyMode = budgetState.efficiencyMode || false;
 
-    const tokenLimit = getMaxTokens(complexity, efficiencyMode);
+    let userLang = 'en';
+    if (req.session.userId) {
+      try {
+        const [langData] = await db.select({ lang: userData.lang }).from(userData).where(eq(userData.userId, req.session.userId));
+        if (langData && langData.lang) userLang = langData.lang;
+      } catch(e) {}
+    }
+
+    const tokenLimit = getMaxTokens(complexity, efficiencyMode, userLang);
 
     const conversation = req.body.messages || [];
     const wantStream = req.body.stream === true;
