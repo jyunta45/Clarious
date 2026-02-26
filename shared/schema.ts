@@ -29,6 +29,7 @@ export const userData = pgTable("user_data", {
   threadSummaries: jsonb("thread_summaries").$type<Record<string, string>>().default({}),
   lastActiveDate: text("last_active_date").default(""),
   memorySeeded: boolean("memory_seeded").default(false).notNull(),
+  lastIdentityUpdate: timestamp("last_identity_update"),
   patterns: jsonb("patterns").$type<{
     topics: Record<string, number>;
     recurringChallenges: Array<{ text: string; count: number; firstSeen: string; lastSeen: string }>;

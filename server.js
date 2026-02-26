@@ -19,6 +19,9 @@ import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory,
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
 import { buildContext } from './contextBuilder.js';
 import { seedMemoryFromOnboarding } from './onboardingIdentitySync.js';
+import { detectIdentityShift } from './identityShiftDetector.js';
+import { cooldownPassed } from './identityCooldown.js';
+import { runHaikuMemoryMerge } from './memoryMerge.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -484,6 +487,49 @@ app.post('/api/chat', async (req, res) => {
     const { text: userMsg, truncated } = truncateInput(rawMsg);
     if (truncated && req.body.messages && req.body.messages.length > 0) {
       req.body.messages[req.body.messages.length - 1].content = userMsg;
+    }
+
+    if (req.session.userId && detectIdentityShift(userMsg)) {
+      try {
+        const [uDataShift] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+        if (uDataShift && cooldownPassed(uDataShift.lastIdentityUpdate)) {
+          async function callModelForShift(model, systemPrompt, userContent) {
+            const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.ANTHROPIC_API_KEY,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: model,
+                max_tokens: 300,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: userContent }]
+              })
+            });
+            const d = await apiRes.json();
+            return d.content && d.content[0] ? d.content[0].text : '{}';
+          }
+
+          const existingMem = uDataShift.memories && typeof uDataShift.memories === 'object' && !Array.isArray(uDataShift.memories)
+            ? uDataShift.memories
+            : { goals: [], recurringStruggles: [], strengths: [], decisionPatterns: [], identityDirection: "", lastUpdated: null };
+
+          const updatedMem = await runHaikuMemoryMerge({
+            userId: req.session.userId,
+            message: userMsg,
+            existingMemory: existingMem,
+            callModel: callModelForShift
+          });
+
+          await db.update(userData).set({
+            memories: updatedMem,
+            lastIdentityUpdate: new Date(),
+            updatedAt: new Date()
+          }).where(eq(userData.userId, req.session.userId));
+        }
+      } catch(e) {}
     }
 
     const complexity = detectComplexity(userMsg);
