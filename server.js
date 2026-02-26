@@ -236,7 +236,7 @@ app.post('/api/data', async (req, res) => {
             lastUpdated: null
           };
 
-          const seededMemory = await seedMemoryFromOnboarding(
+          const { memory: seededMemory } = await seedMemoryFromOnboarding(
             answers,
             baseMemory,
             callModel
