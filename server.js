@@ -30,10 +30,6 @@ try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) {
 const app = express();
 app.use(express.json({ limit: '2mb' }));
 
-app.get('/debug/test', (req, res) => {
-  res.send('DEBUG WORKING');
-});
-
 app.use(express.static(path.join(__app_dirname, 'public')));
 
 const runtimeUsers = new Map();
@@ -261,26 +257,6 @@ app.post('/api/data', async (req, res) => {
     res.json({ ok: true });
   } catch(e) {
     res.status(500).json({ error: 'Failed to save data' });
-  }
-});
-
-// ======================================
-app.get('/debug/memory-status/:userId', async (req, res) => {
-  try {
-    const uid = parseInt(req.params.userId);
-    if (isNaN(uid)) return res.json({ error: "Invalid user ID" });
-    const result = await db.select().from(userData).where(eq(userData.userId, uid));
-    if (!result[0]) return res.json({ error: "User not found" });
-    const r = result[0];
-    res.json({
-      userId: r.userId,
-      memorySeeded: r.memorySeeded,
-      lastIdentityUpdate: r.lastIdentityUpdate,
-      hasMemories: !!(r.memories && Object.keys(r.memories).length > 0),
-      stage: r.stage
-    });
-  } catch(e) {
-    res.status(500).json({ error: "Query failed", detail: e.message });
   }
 });
 
