@@ -22,6 +22,7 @@ import { seedMemoryFromOnboarding } from './onboardingIdentitySync.js';
 import { detectIdentityShift } from './identityShiftDetector.js';
 import { cooldownPassed } from './identityCooldown.js';
 import { runHaikuMemoryMerge } from './memoryMerge.js';
+import { repairLegacyIdentity } from './legacyIdentityRepair.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -487,6 +488,33 @@ app.post('/api/chat', async (req, res) => {
     const { text: userMsg, truncated } = truncateInput(rawMsg);
     if (truncated && req.body.messages && req.body.messages.length > 0) {
       req.body.messages[req.body.messages.length - 1].content = userMsg;
+    }
+
+    if (req.session.userId) {
+      try {
+        const [uDataRepair] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+        if (uDataRepair && !uDataRepair.memorySeeded && uDataRepair.answers && Object.keys(uDataRepair.answers).length > 0 && uDataRepair.stage === 'chat') {
+          async function callModelForRepair(model, systemPrompt, userContent) {
+            const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.ANTHROPIC_API_KEY,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: model,
+                max_tokens: 300,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: userContent }]
+              })
+            });
+            const d = await apiRes.json();
+            return d.content && d.content[0] ? d.content[0].text : '{}';
+          }
+          await repairLegacyIdentity({ userRecord: uDataRepair, callModel: callModelForRepair, db, userData, eq });
+        }
+      } catch(e) {}
     }
 
     if (req.session.userId && detectIdentityShift(userMsg)) {
