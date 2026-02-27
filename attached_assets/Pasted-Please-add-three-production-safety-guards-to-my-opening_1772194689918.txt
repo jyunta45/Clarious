@@ -1,0 +1,201 @@
+Please add three production safety guards to my opening message system. 
+Read all existing files first before making any changes.
+Do not break existing functionality.
+
+---
+
+CONTEXT:
+I have a file called openingMessageEngine.js that builds 
+the first message users see when they open the app.
+I also have updateGuidanceDay() somewhere in 
+continuityEngine.js or server.js.
+I have a daily reset function in server.js.
+User data is stored in PostgreSQL via Drizzle ORM 
+in the user_data table.
+
+---
+
+CHANGE 1 — Add "Do Not Repeat Yesterday" Guard
++ Fallback Message Pool
+
+In openingMessageEngine.js:
+
+Step 1: Add this fallback pool at the top of the file:
+
+const fallbackOpenings = [
+  {
+    text: `What's been taking most of your attention lately?`,
+    type: "fallback",
+    chips: [
+      "Something at work",
+      "A personal situation",
+      "A decision I'm sitting on",
+      "Just thinking out loud"
+    ]
+  },
+  {
+    text: `What's on your mind today?`,
+    type: "fallback",
+    chips: [
+      "Something specific",
+      "General check-in",
+      "I want to think something through",
+      "Not sure yet"
+    ]
+  },
+  {
+    text: `What would make today feel worthwhile?`,
+    type: "fallback",
+    chips: [
+      "One clear win",
+      "Getting unstuck on something",
+      "Some clarity",
+      "Just showing up"
+    ]
+  },
+  {
+    text: `Where are you starting from today?`,
+    type: "fallback",
+    chips: [
+      "Good place",
+      "Bit off track",
+      "Uncertain",
+      "Ready to move"
+    ]
+  }
+];
+
+function buildFallbackOpening(lastMessage) {
+  const available = fallbackOpenings.filter(
+    f => f.text !== lastMessage
+  );
+  const index = 
+    Math.floor(Date.now() / 86400000) % available.length;
+  return available[index];
+}
+
+Step 2: Rename the existing buildOpeningMessage() function to
+_buildOpeningMessage() (add underscore prefix).
+Keep all internal logic exactly the same.
+
+Step 3: Add a new public buildOpeningMessage() wrapper
+that replaces the old one:
+
+export function buildOpeningMessage(params) {
+  try {
+    const opening = _buildOpeningMessage(params);
+
+    // Guard 1 — Do not repeat yesterday's message
+    if (opening.text === params.userData?.lastOpeningMessage) {
+      return buildFallbackOpening(
+        params.userData?.lastOpeningMessage
+      );
+    }
+
+    return opening;
+
+  } catch (error) {
+    // Guard 2 — Silent fail fallback
+    console.error("Opening message build failed:", error);
+    return buildFallbackOpening(
+      params.userData?.lastOpeningMessage
+    );
+  }
+}
+
+Step 4: Make sure params passed to buildOpeningMessage()
+includes userData object which contains lastOpeningMessage field.
+Update all callers of buildOpeningMessage() to pass userData.
+
+Step 5: After the opening message is sent to the client,
+save it to the database:
+
+await db.update(userDataTable)
+  .set({ lastOpeningMessage: opening.text })
+  .where(eq(userDataTable.userId, userId));
+
+If lastOpeningMessage column does not exist in user_data table,
+add it as a text column with default null.
+Use Drizzle ORM to add this — check if schema migration
+is needed or if JSONB column already stores this.
+
+---
+
+CHANGE 2 — Add Guidance Freeze Rule
+
+Find the updateGuidanceDay() function wherever it lives
+(likely continuityEngine.js or server.js).
+
+Add this guard BEFORE the guidance day increment line:
+
+// GUARD 3 — Only advance if user actually sent a message today
+// Opening the app alone does not count as engagement
+if (!userData.userSentMessageToday) {
+  return userData;  // Freeze — do not advance guidance day
+}
+
+// Reset the flag after advancing
+userData.userSentMessageToday = false;
+
+The full guard order inside updateGuidanceDay() should be:
+
+1. if (!userData.guidanceMode) return userData;
+2. if (userData.lastGuidanceDate === today) return userData;
+3. if (daysAway >= 2) { pause and return }
+4. if (!userData.userSentMessageToday) { freeze and return }
+5. Advance guidanceDay
+6. Reset userSentMessageToday = false
+7. Check for graduation
+
+---
+
+CHANGE 3 — Set Engagement Flag When User Sends Message
+
+In server.js, find the route or handler that receives
+user chat messages (likely POST /api/chat or similar).
+
+At the moment a user message is received — before 
+the AI call — add:
+
+await db.update(userDataTable)
+  .set({ userSentMessageToday: true })
+  .where(eq(userDataTable.userId, req.session.userId));
+
+---
+
+CHANGE 4 — Add userSentMessageToday to Daily Reset
+
+Find the resetDailyUsage() function in server.js.
+
+Add this line inside the reset block:
+
+user.userSentMessageToday = false;
+
+So the full reset block resets:
+- dailyTokens = 0
+- softWarnedToday = false
+- efficiencyMode = false
+- userSentMessageToday = false   ← add this
+- lastUsageDate = today
+
+If userSentMessageToday does not exist as a field in 
+user_data, add it. Check if it fits in existing JSONB 
+column or needs a new column. Use Drizzle ORM approach
+consistent with the rest of the codebase.
+
+---
+
+CRITICAL RULES:
+- Read ALL files before making changes
+- Do not rewrite any logic that already works
+- Do not touch authentication, habits, mood, 
+  onboarding, or any other feature
+- Do not change the frontend index.html unless 
+  strictly necessary to pass userData to opening message
+- Keep all existing exports intact
+- If a database column needs to be added, do it safely
+  without dropping or modifying existing columns
+- After all changes, verify server starts successfully
+  and AI streaming still works
+- If anything is unclear about where a function lives,
+  search the codebase before asking

@@ -8,6 +8,7 @@ function resetDailyUsage(user) {
     user.dailyTokens = 0;
     user.softWarnedToday = false;
     user.efficiencyMode = false;
+    user.userSentMessageToday = false;
     user.lastUsageDate = today;
   }
 }

@@ -23,6 +23,7 @@ import { detectIdentityShift } from './identityShiftDetector.js';
 import { cooldownPassed } from './identityCooldown.js';
 import { runHaikuMemoryMerge } from './memoryMerge.js';
 import { repairLegacyIdentity } from './legacyIdentityRepair.js';
+import { buildOpeningMessage } from './openingMessageEngine.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -260,6 +261,34 @@ app.post('/api/data', async (req, res) => {
   }
 });
 
+app.get('/api/opening-message', async (req, res) => {
+  try {
+    let params = { userData: {} };
+    if (req.session.userId) {
+      const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+      if (uData) {
+        params = {
+          userName: uData.answers?.name || '',
+          lang: uData.lang || 'en',
+          memories: uData.memories || {},
+          patterns: uData.patterns || {},
+          userData: { lastOpeningMessage: uData.lastOpeningMessage }
+        };
+      }
+    }
+    const opening = buildOpeningMessage(params);
+    if (req.session.userId) {
+      await db.update(userData).set({
+        lastOpeningMessage: opening.text,
+        updatedAt: new Date()
+      }).where(eq(userData.userId, req.session.userId));
+    }
+    res.json(opening);
+  } catch(e) {
+    res.json({ text: "What's on your mind today?", type: "fallback", chips: ["Something specific", "General check-in", "Not sure yet"] });
+  }
+});
+
 // QUESTION CONTROL SYSTEM
 // ======================================
 
@@ -454,6 +483,7 @@ app.post('/api/chat', async (req, res) => {
       await db.update(userData).set({
         msgCount: data && data.msgCountDate === today ? currentCount + 1 : 1,
         msgCountDate: today,
+        userSentMessageToday: true,
         updatedAt: new Date()
       }).where(eq(userData.userId, req.session.userId));
     } else {
