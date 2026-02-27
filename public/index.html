@@ -1364,6 +1364,30 @@ function shouldCheckin() {
   return true;
 }
 
+var openingMessageLoaded = false;
+var openingChips = null;
+
+async function loadOpeningMessage() {
+  var activeMsgs = getActiveMsgs();
+  if (activeMsgs.length > 0) return;
+  if (openingMessageLoaded) return;
+  if (ST.loading || ST.streaming) return;
+  openingMessageLoaded = true;
+  try {
+    var res = await fetch('/api/opening-message', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    var data = await res.json();
+    if (data && data.text) {
+      openingChips = data.chips || null;
+      activeMsgs.push({ role: 'assistant', content: data.text });
+      setActiveMsgs(activeMsgs);
+      render();
+    }
+  } catch (e) {}
+}
+
 function doCheckin() {
   var today = new Date().toDateString();
   ST.lastCheckin = today;
@@ -2623,8 +2647,17 @@ function renderChat(root) {
       '</div>';
   }
 
+  var openingChipsHtml = '';
+  if (openingChips && activeMsgs.length === 1 && activeMsgs[0].role === 'assistant' && !isBusy) {
+    openingChipsHtml = '<div class="quick-actions" data-testid="opening-chips">';
+    for (var oci = 0; oci < openingChips.length; oci++) {
+      openingChipsHtml += '<button class="quick-btn" data-qtext="' + esc(openingChips[oci]) + '" data-testid="opening-chip-' + oci + '">' + esc(openingChips[oci]) + '</button>';
+    }
+    openingChipsHtml += '</div>';
+  }
+
   var quickHtml = '';
-  if (showQuickActions) {
+  if (showQuickActions && !openingChipsHtml) {
     var actions = ui('quickActions') || [];
     if (actions.length > 0) {
       quickHtml = '<div class="quick-actions" data-testid="quick-actions">';
@@ -2657,7 +2690,7 @@ function renderChat(root) {
     checkinHtml +
     '<div class="chat-messages" id="cm">' + msgsHtml +
     '<div id="chat-end"></div></div>' +
-    quickHtml +
+    openingChipsHtml + quickHtml +
     '<div class="chat-input-bar">' +
     '<div class="chat-input-inner">' +
     (hasVoiceInput() ? '<button class="voice-mic' + (voiceIsRecording ? ' recording' : '') + '" id="voice-mic" data-testid="button-voice-mic">' + (voiceIsRecording ? '...' : 'MIC') + '</button>' : '') +
@@ -2804,6 +2837,10 @@ function renderChat(root) {
     panel.remove();
     if (chatWrap) chatWrap.insertAdjacentHTML('beforeend', renderPatternsPanel());
     bindPatternsPanel();
+  }
+
+  if (activeMsgs.length === 0 && !isBusy) {
+    loadOpeningMessage();
   }
 }
 

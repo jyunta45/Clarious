@@ -1,0 +1,129 @@
+// In index.html — find where chat initializes
+// Add this when chat view opens:
+
+async function loadOpeningMessage() {
+  try {
+    const response = await fetch('/api/opening-message', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    const data = await response.json();
+    
+    if (data.message) {
+      // Display as first AI message in chat
+      // Use your existing message display function
+      displayAIMessage(data.message.text);
+      
+      // If message has chips, show them
+      if (data.message.chips) {
+        showPromptChips(data.message.chips);
+      }
+    }
+    
+  } catch (error) {
+    // Silent fail — quick actions still show
+    console.error('Opening message failed:', error);
+  }
+}
+
+// Call when chat opens:
+loadOpeningMessage();
+```
+
+That's the entire connection. One function. One fetch. One display call.
+
+---
+
+## What to Tell the Replit Agent
+```
+Please connect my opening message backend endpoint 
+to the frontend chat interface.
+
+CONTEXT:
+- I have a backend endpoint at /api/opening-message 
+  that returns a personalized message object with 
+  text and chips fields
+- My frontend index.html has quick action buttons 
+  and a check-in banner that currently show on chat open
+- I want the personalized backend message to appear 
+  as the first AI message when chat loads
+- Quick action buttons should remain visible below the message
+
+CHANGE 1 — Frontend index.html:
+
+Find the function or code section that runs when 
+the chat view opens or initializes.
+
+Add a fetch call to /api/opening-message at that point.
+
+When response arrives:
+- Display the message.text as an AI message 
+  using the existing message display function
+- If message.chips exists and is not null,
+  show them as tappable prompt buttons below the message
+  that send their text as a user message when tapped
+- If the fetch fails for any reason, do nothing —
+  let the existing quick actions handle it silently
+
+CHANGE 2 — Keep existing quick actions:
+Do NOT remove the existing quick action buttons 
+or check-in banner.
+They should remain visible below the opening message
+as additional options for the user.
+
+CHANGE 3 — Avoid duplicate opening messages:
+If the chat already has messages in it 
+(returning to an existing conversation),
+do NOT show the opening message.
+Only show it when the chat is fresh/empty.
+
+CRITICAL RULES:
+- Read index.html fully before making changes
+- Use the existing message display function — 
+  do not create a new one
+- Do not change any backend logic
+- Do not change authentication or session handling
+- Do not change any other frontend functionality
+- After changes verify the opening message appears
+  correctly on fresh chat open
+- Verify quick actions still work after the change
+```
+
+---
+
+## The Experience After This Change
+```
+USER WITH MEMORY (been using 2+ weeks):
+Opens chat →
+"You've been working toward [their goal].
+ What's today's move?"
+[Quick actions still available below]
+→ Feels like Jarvis
+
+USER WITHOUT MEMORY YET (new user, day 1-7):
+Opens chat →
+Guidance day message appears
+[Quick actions still available below]
+→ Feels guided and supported
+
+USER IF BACKEND FAILS:
+Opens chat →
+Quick actions appear as normal
+→ No broken experience
+→ User never knows anything failed
+```
+
+---
+
+## Bottom Line
+```
+The intelligence is built.
+The display system is built.
+They just don't know about each other yet.
+
+One fetch call fixes that.
+Every user then gets the personalized
+experience you built all this for.
+
+Connect them.
