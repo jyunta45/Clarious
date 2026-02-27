@@ -1369,7 +1369,7 @@ var openingChips = null;
 
 async function loadOpeningMessage() {
   var activeMsgs = getActiveMsgs();
-  if (activeMsgs.length > 0) return;
+  if (activeMsgs.length > 1) return;
   if (openingMessageLoaded) return;
   if (ST.loading || ST.streaming) return;
   openingMessageLoaded = true;
@@ -1381,7 +1381,11 @@ async function loadOpeningMessage() {
     var data = await res.json();
     if (data && data.text) {
       openingChips = data.chips || null;
-      activeMsgs.push({ role: 'assistant', content: data.text });
+      if (activeMsgs.length === 1 && activeMsgs[0].role === 'assistant') {
+        activeMsgs[0].content = data.text;
+      } else if (activeMsgs.length === 0) {
+        activeMsgs.push({ role: 'assistant', content: data.text });
+      }
       setActiveMsgs(activeMsgs);
       render();
     }
@@ -2839,7 +2843,7 @@ function renderChat(root) {
     bindPatternsPanel();
   }
 
-  if (activeMsgs.length === 0 && !isBusy) {
+  if (activeMsgs.length <= 1 && !isBusy) {
     loadOpeningMessage();
   }
 }
