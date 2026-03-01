@@ -747,30 +747,55 @@ app.post('/api/chat', async (req, res) => {
     const systemContent = builtMessages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
     const chatMessages = builtMessages.filter(m => m.role !== 'system');
 
+    if (chatMessages.length === 0) {
+      console.error('[CHAT ERROR] No chat messages after buildContext. conversation length:', conversation.length);
+      if (wantStream) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.flushHeaders();
+        res.write('data: ' + JSON.stringify({ type: 'error', error: { message: 'Empty conversation' } }) + '\n\n');
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      }
+      return res.status(400).json({ error: 'No messages provided' });
+    }
+
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders();
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: modelName,
-          max_tokens: tokenLimit,
-          stream: true,
-          system: systemContent,
-          messages: chatMessages
-        })
-      });
+      async function callAnthropicStream() {
+        return fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: modelName,
+            max_tokens: tokenLimit,
+            stream: true,
+            system: systemContent,
+            messages: chatMessages
+          })
+        });
+      }
+
+      let response = await callAnthropicStream();
+
+      if (!response.ok && (response.status === 529 || response.status === 503 || response.status === 500)) {
+        console.log('[CHAT] Retrying after', response.status);
+        await new Promise(r => setTimeout(r, 1500));
+        response = await callAnthropicStream();
+      }
 
       if (!response.ok) {
-        const errData = await response.json();
+        const errData = await response.json().catch(() => ({ error: 'Unknown API error' }));
+        console.error('[CHAT ERROR] API response not OK:', response.status, JSON.stringify(errData));
         res.write('data: ' + JSON.stringify({ type: 'error', error: errData }) + '\n\n');
         res.write('data: [DONE]\n\n');
         res.end();

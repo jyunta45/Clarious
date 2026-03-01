@@ -2321,7 +2321,14 @@ async function sendMsg(userText) {
         if (dataStr === '[DONE]') continue;
         try {
           var evt = JSON.parse(dataStr);
-          if (evt.text) {
+          if (evt.type === 'error') {
+            console.error('Stream error from API:', evt.error);
+            var errMsgs = getActiveMsgs();
+            if (errMsgs.length > 0 && !errMsgs[errMsgs.length - 1].content) {
+              errMsgs[errMsgs.length - 1].content = ui('chatError');
+              setActiveMsgs(errMsgs);
+            }
+          } else if (evt.text) {
             var curMsgs = getActiveMsgs();
             curMsgs[curMsgs.length - 1].content += evt.text;
             updateStreamBubble();
