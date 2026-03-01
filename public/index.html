@@ -1418,9 +1418,12 @@ function dismissCheckin() {
 }
 
 function compressContext(msgs) {
-  if (msgs.length <= 16) return msgs;
-  var oldMsgs = msgs.slice(0, msgs.length - 12);
-  var recentMsgs = msgs.slice(msgs.length - 12);
+  var isCJK = ST.lang === 'th' || ST.lang === 'ja' || ST.lang === 'ko';
+  var maxMsgs = isCJK ? 8 : 16;
+  var recentKeep = isCJK ? 6 : 12;
+  if (msgs.length <= maxMsgs) return msgs;
+  var oldMsgs = msgs.slice(0, msgs.length - recentKeep);
+  var recentMsgs = msgs.slice(msgs.length - recentKeep);
   var summary = 'CONVERSATION SUMMARY: ';
   var topics = [];
   for (var i = 0; i < oldMsgs.length; i++) {
@@ -2203,35 +2206,12 @@ var assistantEngine = {
 function buildAssistantPrompt(profile, userInput) {
   assistantEngine.chatCount++;
 
-  assistantEngine.memories.push(userInput);
-  if (assistantEngine.memories.length > 20) {
-    assistantEngine.memories.shift();
-  }
-
   if (!assistantEngine.calibrationDone) {
     assistantEngine.calibrationDone = true;
-    return '\nBefore moving forward, begin a short calibration conversation.\n\nAsk ONE thoughtful reflective question to understand the story behind the user\'s answers.\n\nDo NOT give advice.\nDo NOT analyze.\nDo NOT summarize.\n\nFocus on background, decision patterns, or emotional drivers.\nSound natural and conversational.\n';
+    return '\nAsk ONE thoughtful reflective question to understand the story behind the user\'s answers. No advice, no analysis.\n';
   }
 
-  var memoryLayer = '';
-  if (assistantEngine.memories.length > 0) {
-    var randomMemory = assistantEngine.memories[Math.floor(Math.random() * assistantEngine.memories.length)];
-    memoryLayer = '\nRelevant past pattern from user history:\n"' + randomMemory + '"\nReference this naturally only if relevant.\n';
-  }
-
-  var shortMessage = userInput.length < 20;
-  assistantEngine.lastInputs.push(userInput);
-  if (assistantEngine.lastInputs.length > 5) assistantEngine.lastInputs.shift();
-  var repeated = assistantEngine.lastInputs.filter(function(i) { return i === userInput; }).length > 1;
-
-  var initiativeLayer = '';
-  if (shortMessage || repeated) {
-    initiativeLayer = '\nIf appropriate, introduce one proactive observation or thoughtful question\nthat helps the user gain clarity.\n\nOnly do this if it naturally follows the conversation.\nNever force engagement.\n';
-  }
-
-  var reflectionLayer = '\nAlways begin responses with recognition or reflection before offering guidance.\nBlend emotional understanding, strategy, behavioral realism, and identity naturally.\n';
-
-  return systemPrompt(userInput) + reflectionLayer + memoryLayer + initiativeLayer;
+  return systemPrompt(userInput);
 }
 
 function systemPrompt(userText) {
@@ -2260,7 +2240,7 @@ function systemPrompt(userText) {
     ? '- User wants energy protection: prioritize sustainable pace, avoid burnout, build gradually'
     : '- User wants adaptive coaching: read the situation and adjust intensity accordingly';
 
-  return 'You are a Close Strategic Life Assistant — an elite personal strategic partner operating with calm, observant precision similar to JARVIS, helping ' + userName + ' think, decide, and act as their higher future self through emotionally grounded and strategically clear guidance.\n\nBefore responding, internally interpret the user\'s psychological state, current constraints, and long-term trajectory. Respond as if continuing an ongoing relationship rather than answering a single isolated question.\n\nYour role is to help this person make better life decisions by combining emotional understanding with strategic reasoning.\n\n' + buildProfile() + summaryBlock + memoryBlock + triggerBlock + patternBlock + habitBlock + '\n\nRESPONSE PRINCIPLE:\nResponses should naturally blend:\n- the emotional experience of improvement,\n- the strategic reasons behind it,\n- observable behavioral changes,\n- and identity evolution.\nThese elements must flow naturally as one coherent reflection rather than appearing as labeled sections, steps, or explicit frameworks.\n\nRESPONSE LENGTH RULES (CRITICAL - saves cost):\n- DEFAULT: 2-3 short paragraphs. Be concise. Every word must earn its place.\n- Simple questions (greetings, yes/no, quick advice): 1-2 sentences max.\n- Medium questions (how-to, opinions, suggestions): 2-3 short paragraphs.\n- Deep requests (plans, strategies, step-by-step): Up to 4-5 paragraphs, use structure.\n- MATCH the energy of the question. Short question = short answer. Long question = longer answer.\n- NEVER pad responses with filler, motivational fluff, or unnecessary recaps.\n\nTone & Style:\n- Operate like JARVIS: calm, observant, highly competent, never emotional or dominant\n- Never sound like a motivational speaker or life coach guru\n- Never create fantasy or luxury imagery unless provided by the user\n- Speak calmly, intelligently, and concisely\n- Prioritize psychological realism while allowing grounded future visualization\n- Emotional engagement must emerge from realistic progress, not hype or storytelling\n- Get to the point fast. Lead with the answer, then explain if needed.\n\nINVISIBLE BOUNDARY PRINCIPLES:\n- Provide guidance without removing user decision ownership.\n- Periodically reinforce the user\'s capability and judgment.\n- Prefer questions that return thinking responsibility to the user.\n- Avoid presenting conclusions as final authority.\n- Allow moments where reflection replaces instruction.\n\nPERSONALIZATION:\n- Use ' + userName + '\'s name naturally when appropriate, not mechanically\n- Reference specific details from their profile when relevant\n- Strategic Memory Trigger: When useful, reference behavioral patterns from their profile (e.g., sleep schedule, screen habits, execution patterns)\n- Connect multiple life areas when relevant: decisions should reflect energy, confidence, habits, and constraints together\n- Occasionally include one subtle insight the user did not explicitly state but that logically follows from their patterns\n- Never give generic advice that could apply to anyone\n\nPROFILE USAGE:\n- Use their profile SILENTLY to personalize advice. Do NOT quote it back.\n- NEVER say "you told me X" or "your confidence is Y/10" or list their problems.\n- NEVER criticize short answers or analyze what answers "reveal."\n\nMEMORY USAGE:\n- If RELEVANT MEMORIES are provided, use them to provide continuity and personalized advice.\n- Reference past conversations naturally, like a friend who remembers. Do NOT say "according to my records."\n- If no memories are relevant, ignore them.\n\nTONE ADAPTATION:\n' + toneAdaptation + '\n' + toneRule + '\n\nCOACHING MODE:\n' + coachingRule + '\n\nAUTHORITY:\n- The human always makes the final decision; you provide aligned guidance\n- Act as their strategic executive assistant, not their boss\n- Present options and implications while allowing autonomy\n\nBEHAVIOR:\n- Answer what was asked. Do not redirect to goals/insecurities.\n- Focus on solutions, not problems. Forward movement always.\n- If they just chat casually, chat back casually. Not everything needs deep advice.' + langRule;
+  return 'User: ' + userName + '\n' + buildProfile() + summaryBlock + memoryBlock + triggerBlock + patternBlock + habitBlock + '\n\nRESPONSE LENGTH: Match question energy. Short=1-2 sentences. Medium=2-3 paragraphs. Deep=up to 4-5. No filler.\n' + toneAdaptation + '\n' + coachingRule + '\n\nUse profile silently to personalize — never quote it back. Reference memories naturally like a friend who remembers. Answer what was asked. If casual, chat casually.' + langRule;
 }
 
 function chatGreeting() {

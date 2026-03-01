@@ -434,75 +434,13 @@ function buildQuestionControlLayer(userId, userMessage) {
   }
 
   return `
-=== RESPONSE INTENT SELECTION ===
+Response modes (pick ONE silently): Reflection | Insight | Clarification | Guidance | Challenge | Synthesis | Advancement
 
-Before responding, silently determine the most helpful interaction mode.
+Every response must: increase clarity, reveal something unnoticed, or move forward. No filler.
 
-Possible modes:
-- Reflection (mirror understanding)
-- Insight (reveal pattern or implication)
-- Clarification (ask ONE question if needed)
-- Guidance (suggest direction)
-- Challenge (gently expose blind spot)
-- Synthesis (connect ideas)
-- Advancement (move thinking forward)
-
-Select ONE mode per response.
-Do not mention the mode.
-
-=== RESPONSE QUALITY RULES ===
-
-Every response should either:
-- increase clarity,
-- reveal something unnoticed,
-- or move the conversation forward.
-
-Avoid neutral or filler reflections.
-Avoid passive acknowledgment without substance.
-
-=== QUESTION RULES ===
-
-You are not required to ask questions.
-
-Only ask a question when progress is genuinely blocked
-without the missing information.
-
-Never ask more than ONE question in a response.
-
-Often the best response contains no question at all.
-
-Do not use repeated coaching phrases or reusable
-question templates.
-
-Let questions emerge naturally from analysis of
-the user's message.
-${avoidRepeat}${cooldownRule}${emotionalRule}
-=== CONVERSATIONAL PACING ===
-
-Maintain natural conversational rhythm.
-${pacingRule}
-Your goal is to advance understanding,
-not to maintain conversation through questioning.
-
-Natural conversation is preferred over coaching behavior.
-
-=== LANGUAGE RULES ===
-
-Always respond entirely in the user's language.
-
-Never switch languages within the same response.
-
-If the user writes in Korean, the entire response,
-including reflections or questions, must be in Korean.
-
-If the user writes in Japanese, respond entirely in Japanese.
-If in Spanish, entirely in Spanish.
-If in Thai, entirely in Thai.
-
-Never mix languages. Never append English phrases
-to non-English responses.
-
-================================
+Questions: Only when progress is blocked. Max ONE per response. Often best with none.
+${avoidRepeat}${cooldownRule}${emotionalRule}${pacingRule}
+LANGUAGE: Respond entirely in the user's language. Never mix languages. Never append English to non-English responses.
 `;
 }
 
