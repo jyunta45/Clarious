@@ -723,11 +723,21 @@ app.post('/api/chat', async (req, res) => {
         });
       }
 
+      const estimatedSystemTokens = Math.ceil(systemContent.length / 4);
+      const estimatedMsgTokens = Math.ceil(chatMessages.reduce((s, m) => s + (m.content || '').length / 4, 0));
+      console.log('[CHAT] model=' + modelName + ' tokens=' + tokenLimit + ' system~' + estimatedSystemTokens + ' msgs~' + estimatedMsgTokens + ' lang=' + (lang || 'en') + ' msgs=' + chatMessages.length);
+
       let response = await callAnthropicStream();
 
       if (!response.ok && (response.status === 529 || response.status === 503 || response.status === 500)) {
         console.log('[CHAT] Retrying after', response.status);
-        await new Promise(r => setTimeout(r, 1500));
+        await new Promise(r => setTimeout(r, 2000));
+        response = await callAnthropicStream();
+      }
+
+      if (!response.ok && response.status === 529) {
+        console.log('[CHAT] Retry 2 after 529');
+        await new Promise(r => setTimeout(r, 3000));
         response = await callAnthropicStream();
       }
 
@@ -745,61 +755,69 @@ app.post('/api/chat', async (req, res) => {
       let buffer = '';
       let fullReply = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6).trim();
-            if (!dataStr || dataStr === '[DONE]') continue;
-            try {
-              const event = JSON.parse(dataStr);
-              if (event.type === 'content_block_delta' && event.delta && event.delta.text) {
-                fullReply += event.delta.text;
-                res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
-              }
-            } catch(e) {}
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              if (!dataStr || dataStr === '[DONE]') continue;
+              try {
+                const event = JSON.parse(dataStr);
+                if (event.type === 'content_block_delta' && event.delta && event.delta.text) {
+                  fullReply += event.delta.text;
+                  res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
+                } else if (event.type === 'error') {
+                  console.error('[STREAM ERROR]', JSON.stringify(event));
+                }
+              } catch(e) {}
+            }
           }
         }
-      }
 
-      if (buffer.trim()) {
-        const remaining = buffer.split('\n');
-        for (const line of remaining) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6).trim();
-            if (!dataStr || dataStr === '[DONE]') continue;
-            try {
-              const event = JSON.parse(dataStr);
-              if (event.type === 'content_block_delta' && event.delta && event.delta.text) {
-                fullReply += event.delta.text;
-                res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
-              }
-            } catch(e) {}
+        if (buffer.trim()) {
+          const remaining = buffer.split('\n');
+          for (const line of remaining) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              if (!dataStr || dataStr === '[DONE]') continue;
+              try {
+                const event = JSON.parse(dataStr);
+                if (event.type === 'content_block_delta' && event.delta && event.delta.text) {
+                  fullReply += event.delta.text;
+                  res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
+                }
+              } catch(e) {}
+            }
           }
         }
+      } catch(streamErr) {
+        console.error('[STREAM READ ERROR]', streamErr.message || streamErr);
       }
 
-      fullReply = enforceQuestionLimit(fullReply);
+      try {
+        fullReply = enforceQuestionLimit(fullReply);
+        const detectedMode = detectResponseMode(fullReply);
+        const lastQ = extractLastQuestion(fullReply);
+        const prevMem = questionMemory.get(userId) || {};
+        questionMemory.set(userId, {
+          lastQuestion: lastQ || prevMem.lastQuestion || null,
+          turnsSinceQuestion: lastQ ? 0 : (prevMem.turnsSinceQuestion || 0) + 1,
+          lastMode: detectedMode
+        });
+        storeTurn(userId, userMsg, fullReply);
 
-      const detectedMode = detectResponseMode(fullReply);
-      const lastQ = extractLastQuestion(fullReply);
-      const prevMem = questionMemory.get(userId) || {};
-      questionMemory.set(userId, {
-        lastQuestion: lastQ || prevMem.lastQuestion || null,
-        turnsSinceQuestion: lastQ ? 0 : (prevMem.turnsSinceQuestion || 0) + 1,
-        lastMode: detectedMode
-      });
-
-      storeTurn(userId, userMsg, fullReply);
-
-      const estimatedInput = systemContent.length / 4 + chatMessages.reduce((s, m) => s + (m.content || '').length / 4, 0);
-      const estimatedOutput = fullReply.length / 4;
-      runtimeUser.dailyTokens += Math.ceil(estimatedInput + estimatedOutput);
-      req.session.lastActive = Date.now();
+        const estimatedInput = systemContent.length / 4 + chatMessages.reduce((s, m) => s + (m.content || '').length / 4, 0);
+        const estimatedOutput = fullReply.length / 4;
+        runtimeUser.dailyTokens += Math.ceil(estimatedInput + estimatedOutput);
+        req.session.lastActive = Date.now();
+      } catch(postErr) {
+        console.error('[POST-STREAM ERROR]', postErr.message || postErr);
+      }
 
       if (shouldUpdateMemory(userId, complexity, req.session)) {
         try {
