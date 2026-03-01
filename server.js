@@ -985,7 +985,14 @@ app.post('/api/chat', async (req, res) => {
       res.json(data);
     }
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    console.error('[CHAT FATAL]', e.message || e);
+    if (!res.headersSent) {
+      res.status(500).json({ error: e.message });
+    } else if (!res.writableEnded) {
+      res.write('data: ' + JSON.stringify({ type: 'error', error: { message: e.message } }) + '\n\n');
+      res.write('data: [DONE]\n\n');
+      res.end();
+    }
   }
 });
 
