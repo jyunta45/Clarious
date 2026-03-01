@@ -237,6 +237,7 @@ const UI = {
     reset: 'Reset',
     deleteConfirm: 'Delete everything?',
     errorMsg: 'Something went wrong. Please refresh.',
+    chatError: 'Something went wrong. Please try again.',
     login: 'Log In',
     signup: 'Create Account',
     email: 'Email',
@@ -338,6 +339,7 @@ const UI = {
     reset: 'リセット',
     deleteConfirm: 'すべて削除しますか？',
     errorMsg: 'エラーが発生しました。更新してください。',
+    chatError: 'エラーが発生しました。もう一度お試しください。',
     login: 'ログイン',
     signup: 'アカウント作成',
     email: 'メール',
@@ -439,6 +441,7 @@ const UI = {
     reset: 'Restablecer',
     deleteConfirm: '¿Eliminar todo?',
     errorMsg: 'Algo salió mal. Por favor actualiza.',
+    chatError: 'Algo salió mal. Inténtalo de nuevo.',
     login: 'Iniciar Sesión',
     signup: 'Crear Cuenta',
     email: 'Correo electrónico',
@@ -540,6 +543,7 @@ const UI = {
     reset: 'รีเซ็ต',
     deleteConfirm: 'ลบทั้งหมด?',
     errorMsg: 'เกิดข้อผิดพลาด กรุณารีเฟรช',
+    chatError: 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง',
     login: 'เข้าสู่ระบบ',
     signup: 'สร้างบัญชี',
     email: 'อีเมล',
@@ -641,6 +645,7 @@ const UI = {
     reset: '초기화',
     deleteConfirm: '모든 것을 삭제하시겠습니까?',
     errorMsg: '문제가 발생했습니다. 새로고침해주세요.',
+    chatError: '문제가 발생했습니다. 다시 시도해주세요.',
     login: '로그인',
     signup: '계정 만들기',
     email: '이메일',
@@ -2327,7 +2332,7 @@ async function sendMsg(userText) {
   } catch(e) {
     var aMsgs = getActiveMsgs();
     if (aMsgs.length > 0 && !aMsgs[aMsgs.length - 1].content) {
-      aMsgs[aMsgs.length - 1].content = 'Something went wrong. Please try again.';
+      aMsgs[aMsgs.length - 1].content = ui('chatError');
       setActiveMsgs(aMsgs);
     }
   }
