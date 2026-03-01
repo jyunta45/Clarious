@@ -276,6 +276,7 @@ app.get('/api/opening-message', async (req, res) => {
           habits: habits,
           lastActiveAt: uData.lastActiveAt || uData.lastActiveDate || null,
           guidanceDay: uData.guidanceDay || 1,
+          lang: uData.lang || 'en',
           userData: { lastOpeningMessage: uData.lastOpeningMessage }
         };
       }
@@ -297,7 +298,15 @@ app.get('/api/opening-message', async (req, res) => {
       const openedMultiple = (uData.guidanceDayOpenCount || 0) >= 2;
       const notEngaged = !uData.userSentMessageToday;
       if (openedMultiple && notEngaged) {
-        stallNudge = "A quick message today keeps your progress moving.";
+        const nudges = {
+          en: "A quick message today keeps your progress moving.",
+          ja: "今日ひとことメッセージを送るだけで、前に進み続けられます。",
+          es: "Un mensaje rápido hoy mantiene tu progreso en marcha.",
+          th: "ส่งข้อความสั้นๆ วันนี้ เพื่อให้ความก้าวหน้าของคุณไม่หยุด",
+          ko: "오늘 짧은 메시지 하나가 당신의 성장을 이어갑니다."
+        };
+        const lang = uData.lang || 'en';
+        stallNudge = nudges[lang] || nudges.en;
       }
       await db.update(userData).set({
         guidanceDayOpenCount: (uData.guidanceDayOpenCount || 0) + 1,
