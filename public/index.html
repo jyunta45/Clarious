@@ -80,6 +80,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .auth-info .logout-btn:hover{color:var(--accent2);}
 .guest-link{text-align:center;color:var(--muted);font-size:0.85rem;margin-top:8px;cursor:pointer;}
 .guest-link:hover{color:var(--accent);}
+.guidance-nudge{padding:4px 20px 10px;text-align:center;font-size:0.82rem;color:rgba(255,255,255,0.5);font-style:italic;font-family:'DM Sans',sans-serif;}
 .quick-actions{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 12px;justify-content:center;}
 .quick-btn{padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:0.82rem;background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.25);border-radius:100px;color:var(--accent);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
 .quick-btn:hover{background:rgba(155,109,255,0.2);border-color:var(--accent);transform:translateY(-1px);}
@@ -1366,6 +1367,7 @@ function shouldCheckin() {
 
 var openingMessageLoaded = false;
 var openingChips = null;
+var openingNudge = null;
 
 async function loadOpeningMessage() {
   var activeMsgs = getActiveMsgs();
@@ -1381,6 +1383,7 @@ async function loadOpeningMessage() {
     var data = await res.json();
     if (data && data.text) {
       openingChips = data.chips || null;
+      openingNudge = data.nudge || null;
       if (activeMsgs.length === 1 && activeMsgs[0].role === 'assistant') {
         activeMsgs[0].content = data.text;
       } else if (activeMsgs.length === 0) {
@@ -2651,6 +2654,11 @@ function renderChat(root) {
       '</div>';
   }
 
+  var nudgeHtml = '';
+  if (openingNudge && activeMsgs.length === 1 && activeMsgs[0].role === 'assistant' && !isBusy) {
+    nudgeHtml = '<div class="guidance-nudge" data-testid="guidance-nudge">' + esc(openingNudge) + '</div>';
+  }
+
   var openingChipsHtml = '';
   if (openingChips && activeMsgs.length === 1 && activeMsgs[0].role === 'assistant' && !isBusy) {
     openingChipsHtml = '<div class="quick-actions" data-testid="opening-chips">';
@@ -2694,7 +2702,7 @@ function renderChat(root) {
     checkinHtml +
     '<div class="chat-messages" id="cm">' + msgsHtml +
     '<div id="chat-end"></div></div>' +
-    openingChipsHtml + quickHtml +
+    nudgeHtml + openingChipsHtml + quickHtml +
     '<div class="chat-input-bar">' +
     '<div class="chat-input-inner">' +
     (hasVoiceInput() ? '<button class="voice-mic' + (voiceIsRecording ? ' recording' : '') + '" id="voice-mic" data-testid="button-voice-mic">' + (voiceIsRecording ? '...' : 'MIC') + '</button>' : '') +

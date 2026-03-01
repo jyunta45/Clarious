@@ -32,6 +32,11 @@ export const userData = pgTable("user_data", {
   lastIdentityUpdate: timestamp("last_identity_update"),
   lastOpeningMessage: text("last_opening_message"),
   userSentMessageToday: boolean("user_sent_message_today").default(false).notNull(),
+  guidanceMode: boolean("guidance_mode").default(true).notNull(),
+  guidanceDay: integer("guidance_day").default(1).notNull(),
+  lastGuidanceDate: text("last_guidance_date"),
+  lastActiveAt: text("last_active_at"),
+  guidanceDayOpenCount: integer("guidance_day_open_count").default(0).notNull(),
   patterns: jsonb("patterns").$type<{
     topics: Record<string, number>;
     recurringChallenges: Array<{ text: string; count: number; firstSeen: string; lastSeen: string }>;

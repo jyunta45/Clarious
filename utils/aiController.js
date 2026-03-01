@@ -9,6 +9,7 @@ function resetDailyUsage(user) {
     user.softWarnedToday = false;
     user.efficiencyMode = false;
     user.userSentMessageToday = false;
+    user.guidanceDayOpenCount = 0;
     user.lastUsageDate = today;
   }
 }

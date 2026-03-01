@@ -1,0 +1,669 @@
+Please implement my complete opening message and guidance 
+system. This is a full implementation — not partial updates.
+Read ALL existing files first before making any changes.
+Do not break any existing functionality.
+
+---
+
+OVERVIEW OF WHAT THIS IMPLEMENTS:
+1. Complete openingMessageEngine.js (full replacement)
+2. Guidance day tracker with all guards
+3. Guidance memory awareness in AI prompt
+4. Silent stall prevention nudge
+5. Micro-completion graduation signal
+6. All required database fields
+7. All server.js updates
+
+---
+
+PART 1 — REPLACE openingMessageEngine.js ENTIRELY
+
+Replace the entire file with this exact content:
+
+// openingMessageEngine.js — COMPLETE FINAL VERSION
+
+// ── FALLBACK POOL ─────────────────────────────
+// Used when: message would repeat, or any error occurs.
+// Rotates daily so never shows same fallback twice.
+
+const fallbackOpenings = [
+  {
+    text: `What's been taking most of your attention lately?`,
+    type: "fallback",
+    chips: [
+      "Something at work",
+      "A personal situation",
+      "A decision I'm sitting on",
+      "Just thinking out loud"
+    ]
+  },
+  {
+    text: `What's on your mind today?`,
+    type: "fallback",
+    chips: [
+      "Something specific",
+      "General check-in",
+      "I want to think something through",
+      "Not sure yet"
+    ]
+  },
+  {
+    text: `What would make today feel worthwhile?`,
+    type: "fallback",
+    chips: [
+      "One clear win",
+      "Getting unstuck on something",
+      "Some clarity",
+      "Just showing up"
+    ]
+  },
+  {
+    text: `Where are you starting from today?`,
+    type: "fallback",
+    chips: [
+      "Good place",
+      "Bit off track",
+      "Uncertain",
+      "Ready to move"
+    ]
+  }
+];
+
+function buildFallbackOpening(lastMessage) {
+  const available = fallbackOpenings.filter(
+    f => f.text !== lastMessage
+  );
+  const index =
+    Math.floor(Date.now() / 86400000) % available.length;
+  return available[index];
+}
+
+// ── GUIDANCE MESSAGES (Day 1-8) ───────────────
+// Each day teaches something different.
+// Day-specific chips match the lesson.
+// No morning restriction — fires any hour of day.
+// Habit check is skipped during guidance days 1-7.
+// Day 2 has no time assumption ("yesterday" removed).
+// Day 8 fires exactly once then system sets day to 9.
+
+const guidanceMessages = {
+
+  1: {
+    text: `This is your thinking space.\n\nNo right answers. No performance.\n\nWhat's one thing on your mind right now — big or small?`,
+    chips: [
+      "Something at work",
+      "A personal decision",
+      "How I'm feeling",
+      "Just thinking out loud"
+    ]
+  },
+
+  2: {
+    text: `You've started using this space.\n\nNow the habit builds.\n\nWhat's the one move that matters most today?`,
+    chips: [
+      "My top priority today",
+      "Something I keep avoiding",
+      "A goal I'm working on",
+      "Not sure yet"
+    ]
+  },
+
+  3: {
+    text: `You're building a habit of checking in.\n\nThat alone is more than most people do.\n\nWhat's feeling clearer — and what still feels foggy?`,
+    chips: [
+      "Starting to get clearer on something",
+      "Still foggy about something",
+      "Both honestly",
+      "Let's explore it"
+    ]
+  },
+
+  4: {
+    text: `Four days in.\n\nI've been paying attention.\n\nWhat pattern are you starting to notice about yourself?`,
+    chips: [
+      "I notice I keep...",
+      "I tend to avoid...",
+      "I'm strongest when...",
+      "I'm not sure yet"
+    ]
+  },
+
+  5: {
+    text: `You've been showing up consistently.\n\nConsistency is data.\n\nWhat does it tell you about what actually matters to you?`,
+    chips: [
+      "What I keep coming back to",
+      "What I actually care about",
+      "What's been distracting me",
+      "Something shifted"
+    ]
+  },
+
+  6: {
+    text: `One more day before this space becomes fully yours.\n\nWhat's one thing you'd want to revisit from this week?`,
+    chips: [
+      "A conversation worth revisiting",
+      "Something unresolved",
+      "A win I didn't acknowledge",
+      "Something I learned"
+    ]
+  },
+
+  7: {
+    text: `Seven days.\n\nYou know how this works now.\n\nWhat do you want to use this space for today?`,
+    chips: [
+      "Something I want to work on",
+      "A decision I'm facing",
+      "How I'm feeling today",
+      "Let's just talk"
+    ]
+  },
+
+  8: {
+    text: `You don't need guided prompts anymore.\n\nYou've built a real thinking habit here.\n\nThis space now adapts fully to you.\n\nWhat's on your mind today?`,
+    chips: [
+      "Something I want to explore",
+      "A decision I'm sitting on",
+      "How I'm feeling today",
+      "Let's just talk"
+    ]
+  }
+
+};
+
+// ── PUBLIC WRAPPER (safe entry point) ─────────
+// This is the ONLY function called from outside.
+// Wraps everything in try/catch.
+// Handles all failures silently.
+// Prevents repeat messages.
+
+export function buildOpeningMessage(params) {
+  try {
+    const opening = _buildOpeningMessage(params);
+
+    // GUARD 1 — Do not repeat yesterday's message
+    if (opening.text === params.userData?.lastOpeningMessage) {
+      return buildFallbackOpening(
+        params.userData?.lastOpeningMessage
+      );
+    }
+
+    return opening;
+
+  } catch (error) {
+    // GUARD 2 — Silent fail, never show blank screen
+    console.error("Opening message build failed:", error);
+    return buildFallbackOpening(
+      params.userData?.lastOpeningMessage
+    );
+  }
+}
+
+// ── PRIVATE BUILDER ───────────────────────────
+// Priority order (top wins):
+// 1. Returning user (2+ days away)
+// 2. Guidance days 1-7 (any time of day)
+// 3. Graduation day 8 (fires once, any time)
+// 4. Missed habit (post-graduation only)
+// 5. Time-based defaults
+
+function _buildOpeningMessage({
+  userMemory,
+  sessionSummary,
+  habits,
+  lastActiveAt,
+  guidanceDay,
+  userData
+}) {
+  const now      = new Date();
+  const hour     = now.getHours();
+  const daysAway = lastActiveAt
+    ? (Date.now() - new Date(lastActiveAt)) / 86400000
+    : 0;
+  const isMorning = hour >= 5 && hour <= 11;
+
+  // ── PRIORITY 1 — RETURNING USER ──────────────
+  // Life context always wins over everything.
+  // If away 2+ days, acknowledge it first.
+
+  if (daysAway >= 2) {
+    const days = Math.floor(daysAway);
+    if (sessionSummary?.focus) {
+      return {
+        text: `You've been away for ${days} day${days > 1 ? 's' : ''}.\n\nLast time you were working on ${sessionSummary.focus}.\n\nWhere does that stand now?`,
+        type: "returning",
+        chips: [
+          "Catch you up on what happened",
+          "I need to get back on track",
+          "Something changed",
+          "Let's review my direction"
+        ]
+      };
+    }
+    return {
+      text: `You've been away for ${days} day${days > 1 ? 's' : ''}.\n\nWhat's been taking your attention?`,
+      type: "returning",
+      chips: [
+        "A lot happened",
+        "I need to reset",
+        "Something changed for me",
+        "Just checking back in"
+      ]
+    };
+  }
+
+  // ── PRIORITY 2 — GUIDANCE DAYS 1-7 ───────────
+  // Fires any time of day — no morning restriction.
+  // Habit check intentionally skipped during this phase.
+  // Teaching is more important than accountability
+  // during the first 7 active engaged days.
+
+  if (guidanceDay >= 1 && guidanceDay <= 7) {
+    const message = guidanceMessages[guidanceDay];
+    return {
+      text:  message.text,
+      type:  "guidance",
+      day:   guidanceDay,
+      chips: message.chips
+    };
+  }
+
+  // ── PRIORITY 3 — GRADUATION DAY 8 ────────────
+  // Fires exactly once at any time of day.
+  // After firing, endpoint sets guidanceDay to 9
+  // so this block never executes again.
+
+  if (guidanceDay === 😎 {
+    return {
+      text:  guidanceMessages[8].text,
+      type:  "transition",
+      chips: guidanceMessages[8].chips
+    };
+  }
+
+  // ── PRIORITY 4 — MISSED HABIT ─────────────────
+  // Only runs post-graduation (guidanceDay >= 9).
+  // Only fires for established users with real streaks.
+  // Protects new users and guidance-phase users.
+
+  const userEstablished = userMemory?.goals?.length > 0;
+  const missedHabit = userEstablished &&
+    habits?.find(h =>
+      h.completedYesterday === false &&
+      h.streak > 2
+    );
+
+  if (missedHabit) {
+    return {
+      text: `You missed "${missedHabit.name}" yesterday.\n\nNot a judgment — what got in the way?`,
+      type: "habit",
+      chips: [
+        "Reset momentum today",
+        "Let's figure out what happened",
+        "Adjust the habit",
+        "Something else came up"
+      ]
+    };
+  }
+
+  // ── PRIORITY 5 — TIME-BASED DEFAULTS ─────────
+  // Memory-aware where possible.
+  // Falls back to generic if no memory yet.
+
+  if (hour >= 0 && hour < 5) {
+    return {
+      text: `You're up late.\n\nWhat's on your mind?`,
+      type: "latenight",
+      chips: [
+        "Can't sleep — something's on my mind",
+        "Working late on something",
+        "Just needed to talk",
+        "Help me wind down"
+      ]
+    };
+  }
+
+  if (isMorning) {
+    const focus = userMemory?.goals?.slice(-1)[0] || null;
+    return {
+      text: focus
+        ? `Morning. You're working toward ${focus}.\n\nWhat's today's move?`
+        : `What matters most to move forward today?`,
+      type: "morning",
+      chips: [
+        "Help me plan today",
+        "I'm struggling with something",
+        "Accountability check",
+        "Just talk"
+      ]
+    };
+  }
+
+  if (hour >= 12 && hour <= 17) {
+    return {
+      text: `How is today tracking compared to what you intended?`,
+      type: "afternoon",
+      chips: [
+        "I'm behind on something",
+        "Need to refocus",
+        "Decision I'm sitting on",
+        "Check in on my habits"
+      ]
+    };
+  }
+
+  return {
+    text: `What's one thing that moved forward today —\nand one thing worth carrying into tomorrow?`,
+    type: "evening",
+    chips: [
+      "Review my day",
+      "Something's bothering me",
+      "Tomorrow's intention",
+      "What patterns do you see?"
+    ]
+  };
+}
+
+---
+
+PART 2 — UPDATE THE OPENING MESSAGE ENDPOINT
+
+Find the endpoint serving /api/opening-message.
+
+Step 1: Call buildOpeningMessage with full params:
+
+const opening = buildOpeningMessage({
+  userMemory,
+  sessionSummary,
+  habits,
+  lastActiveAt,
+  guidanceDay:  userData.guidanceDay,
+  userData: {
+    lastOpeningMessage: userData.lastOpeningMessage
+  }
+});
+
+Step 2: Check for silent guidance stall nudge
+BEFORE sending response:
+
+function checkGuidanceStall(userData) {
+  if (!userData.guidanceMode) return null;
+
+  const openedMultipleTimes =
+    (userData.guidanceDayOpenCount || 0) >= 2;
+
+  const notEngagedToday =
+    !userData.userSentMessageToday;
+
+  if (openedMultipleTimes && notEngagedToday) {
+    return "A quick message today keeps your progress moving.";
+  }
+
+  return null;
+}
+
+const stallNudge = checkGuidanceStall(userData);
+
+Step 3: Increment open count if in guidance mode:
+
+if (userData.guidanceMode) {
+  await db.update(userDataTable)
+    .set({
+      guidanceDayOpenCount:
+        (userData.guidanceDayOpenCount || 0) + 1
+    })
+    .where(eq(userDataTable.userId, userId));
+}
+
+Step 4: Send response including nudge:
+
+res.json({
+  message: opening,
+  nudge:   stallNudge || null
+});
+
+Step 5: After sending response, write these to database:
+
+// Save to prevent repeat tomorrow
+await db.update(userDataTable)
+  .set({ lastOpeningMessage: opening.text })
+  .where(eq(userDataTable.userId, userId));
+
+// If graduation message just fired, advance to 9
+// so it never fires again
+if (opening.type === "transition") {
+  await db.update(userDataTable)
+    .set({ guidanceDay: 9 })
+    .where(eq(userDataTable.userId, userId));
+}
+
+---
+
+PART 3 — UPDATE updateGuidanceDay()
+
+Find updateGuidanceDay() in continuityEngine.js or server.js.
+Replace the entire function with this:
+
+async function updateGuidanceDay(userData) {
+
+  // Already graduated — nothing to do
+  if (!userData.guidanceMode) return userData;
+
+  const today = new Date().toDateString();
+
+  // Already counted today — no double increment
+  if (userData.lastGuidanceDate === today) return userData;
+
+  // GUARD — Pause after 2+ day absence
+  // Guidance reflects real engagement not calendar days
+  const daysAway = userData.lastActiveAt
+    ? (Date.now() - new Date(userData.lastActiveAt)) / 86400000
+    : 0;
+
+  if (daysAway >= 2) {
+    userData.lastActiveAt = Date.now();
+    return userData;  // Pause — do not advance
+  }
+
+  // GUARD — Freeze if user opened app but never talked
+  // Sending a message sets userSentMessageToday = true
+  // Opening the app alone does not count as engagement
+  if (!userData.userSentMessageToday) {
+    return userData;  // Freeze — do not advance
+  }
+
+  // All guards passed — advance guidance day
+  userData.guidanceDay          = (userData.guidanceDay || 0) + 1;
+  userData.lastGuidanceDate     = today;
+  userData.lastActiveAt         = Date.now();
+  userData.userSentMessageToday = false;
+
+  // Graduation — user completed 7 active engaged days
+  if (userData.guidanceDay > 7) {
+    userData.guidanceMode = false;
+    userData.guidanceDay  = 8;
+
+    // Silent graduation memory write
+    // Unlocks collaborative_autonomous leadership style
+    // AI becomes more direct and peer-level after this
+    if (!userData.userMemory)
+      userData.userMemory = {};
+    if (!userData.userMemory.meta)
+      userData.userMemory.meta = {};
+
+    userData.userMemory.meta.guidanceCompleted   = true;
+    userData.userMemory.meta.guidanceCompletedAt = new Date().toISOString();
+    userData.userMemory.meta.leadershipStyle     = "collaborative_autonomous";
+
+    await db.update(userDataTable)
+      .set({
+        guidanceMode: false,
+        guidanceDay:  8,
+        userMemory:   userData.userMemory
+      })
+      .where(eq(userDataTable.userId, userData.userId));
+  }
+
+  return userData;
+}
+
+---
+
+PART 4 — ADD GUIDANCE MEMORY AWARENESS TO AI PROMPT
+
+Find contextBuilder.js or wherever finalPrompt is assembled
+(where SYSTEM_PROMPT and memory block are joined).
+
+Add this function:
+
+function buildGuidanceContext(userData) {
+  // Graduated users get no guidance context
+  if (!userData.guidanceMode && userData.guidanceDay >= 9) {
+    return "";
+  }
+
+  const day = userData.guidanceDay || 1;
+  let toneInstruction = "";
+
+  if (day <= 3) {
+    toneInstruction =
+      `User is in early guidance phase (Day ${day} of 7).
+Be more supportive and gentle.
+Normalize the process of self-reflection.
+They are still learning how to use this space.
+Avoid deep challenges — focus on making them feel safe.`;
+  }
+  else if (day <= 6) {
+    toneInstruction =
+      `User is in mid guidance phase (Day ${day} of 7).
+Shift toward reflective questioning.
+Help them notice patterns in what they share.
+They are becoming comfortable — gently go deeper.
+Begin connecting their statements to their stated goals.`;
+  }
+  else {
+    toneInstruction =
+      `User is completing guidance phase (Day ${day} of 7).
+Treat them as a capable self-reflector.
+Move toward peer-level collaboration.
+They have shown consistency — match their maturity.
+Challenge them more directly when appropriate.`;
+  }
+
+  return `\nGUIDANCE CONTEXT:\n${toneInstruction}`;
+}
+
+Then find the line where finalPrompt is built.
+Update it to include guidance context:
+
+const guidanceContext = buildGuidanceContext(userData);
+const finalPrompt = SYSTEM_PROMPT
+  + "\n\n" + memoryBlock
+  + guidanceContext;
+
+Make sure userData is available at prompt assembly time.
+Pass it in from the request handler if needed.
+
+---
+
+PART 5 — MARK ENGAGEMENT WHEN USER SENDS MESSAGE
+
+In server.js, find the route handling incoming chat messages
+(likely POST /api/chat or similar).
+
+At the very start of that handler before the AI call,
+add these two writes:
+
+// Mark that user actually engaged today
+// This allows guidance day to advance
+await db.update(userDataTable)
+  .set({
+    userSentMessageToday:  true,
+    guidanceDayOpenCount:  0    // reset stall counter on engagement
+  })
+  .where(eq(userDataTable.userId, req.session.userId));
+
+---
+
+PART 6 — UPDATE DAILY RESET
+
+Find resetDailyUsage() in server.js.
+
+Make sure all these fields reset together:
+
+function resetDailyUsage(user) {
+  const today = new Date().toDateString();
+  if (user.lastUsageDate !== today) {
+    user.dailyTokens          = 0;
+    user.softWarnedToday      = false;
+    user.efficiencyMode       = false;
+    user.userSentMessageToday = false;
+    user.guidanceDayOpenCount = 0;
+    user.lastUsageDate        = today;
+  }
+}
+
+---
+
+PART 7 — UPDATE FRONTEND index.html
+
+Find where the opening message API response is handled.
+
+After displaying the opening message,
+check if response.nudge exists.
+
+If it does, display it as a small subtle text line
+directly below the opening message:
+
+if (data.nudge) {
+  const nudgeEl = document.createElement('p');
+  nudgeEl.className = 'guidance-nudge';
+  nudgeEl.textContent = data.nudge;
+  // Append below opening message container
+  openingMessageContainer.appendChild(nudgeEl);
+}
+
+Style it in CSS as:
+- Small font size (0.8rem or similar)
+- Muted color (gray, low opacity)
+- No border, no background
+- Just quiet text below the message
+- Should not draw attention — just inform
+
+---
+
+PART 8 — DATABASE FIELDS REQUIRED
+
+Check user_data table for these fields.
+Add any that are missing safely using Drizzle ORM.
+Do NOT drop or modify any existing columns.
+Check if fields fit in existing JSONB column
+or need separate columns — follow existing pattern.
+
+Fields needed:
+- guidanceMode          (boolean,   default true)
+- guidanceDay           (integer,   default 1)
+- guidanceMode          (boolean,   default true)
+- lastGuidanceDate      (text,      default null)
+- lastActiveAt          (text,      default null)
+- lastOpeningMessage    (text,      default null)
+- userSentMessageToday  (boolean,   default false)
+- guidanceDayOpenCount  (integer,   default 0)
+
+---
+
+CRITICAL RULES:
+- Read ALL existing files before touching anything
+- Do not rewrite any logic not listed above
+- Do not touch authentication, streaming,
+  onboarding, habits, mood tracking,
+  pattern tracking, or growth panel
+- Do not remove any existing features
+- Keep all existing exports intact
+- If a function location is unclear,
+  search the codebase before assuming
+- After all changes:
+  → verify server starts successfully
+  → verify AI streaming still works
+  → verify opening message appears on fresh chat
+  → verify chips are tappable
+  → verify existing quick actions still work

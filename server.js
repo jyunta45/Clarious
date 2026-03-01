@@ -264,28 +264,57 @@ app.post('/api/data', async (req, res) => {
 app.get('/api/opening-message', async (req, res) => {
   try {
     let params = { userData: {} };
+    let uData = null;
     if (req.session.userId) {
-      const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+      const [row] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+      uData = row;
       if (uData) {
+        const habits = uData.patterns?.habits || [];
         params = {
-          userName: uData.answers?.name || '',
-          lang: uData.lang || 'en',
-          memories: uData.memories || {},
-          patterns: uData.patterns || {},
+          userMemory: uData.memories || {},
+          sessionSummary: null,
+          habits: habits,
+          lastActiveAt: uData.lastActiveAt || uData.lastActiveDate || null,
+          guidanceDay: uData.guidanceDay || 1,
           userData: { lastOpeningMessage: uData.lastOpeningMessage }
         };
       }
     }
+    if (uData && req.session.userId) {
+      await updateGuidanceDay(req.session.userId);
+      const [refreshed] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+      if (refreshed) {
+        uData = refreshed;
+        params.guidanceDay = refreshed.guidanceDay || 1;
+        params.lastActiveAt = refreshed.lastActiveAt || refreshed.lastActiveDate || null;
+      }
+    }
+
     const opening = buildOpeningMessage(params);
-    if (req.session.userId) {
+
+    let stallNudge = null;
+    if (uData && uData.guidanceMode) {
+      const openedMultiple = (uData.guidanceDayOpenCount || 0) >= 2;
+      const notEngaged = !uData.userSentMessageToday;
+      if (openedMultiple && notEngaged) {
+        stallNudge = "A quick message today keeps your progress moving.";
+      }
       await db.update(userData).set({
-        lastOpeningMessage: opening.text,
+        guidanceDayOpenCount: (uData.guidanceDayOpenCount || 0) + 1,
         updatedAt: new Date()
       }).where(eq(userData.userId, req.session.userId));
     }
-    res.json(opening);
+
+    if (req.session.userId) {
+      const updateFields = {
+        lastOpeningMessage: opening.text,
+        updatedAt: new Date()
+      };
+      await db.update(userData).set(updateFields).where(eq(userData.userId, req.session.userId));
+    }
+    res.json({ ...opening, nudge: stallNudge || null });
   } catch(e) {
-    res.json({ text: "What's on your mind today?", type: "fallback", chips: ["Something specific", "General check-in", "Not sure yet"] });
+    res.json({ text: "What's on your mind today?", type: "fallback", chips: ["Something specific", "General check-in", "Not sure yet"], nudge: null });
   }
 });
 
@@ -468,6 +497,54 @@ to non-English responses.
 `;
 }
 
+async function updateGuidanceDay(userId) {
+  try {
+    const [uGuidance] = await db.select().from(userData).where(eq(userData.userId, userId));
+    if (!uGuidance || !uGuidance.guidanceMode) return;
+
+    const today = new Date().toDateString();
+    if (uGuidance.lastGuidanceDate === today) return;
+
+    const daysAway = uGuidance.lastActiveAt
+      ? (Date.now() - new Date(uGuidance.lastActiveAt).getTime()) / 86400000
+      : 0;
+
+    if (daysAway >= 2) {
+      await db.update(userData).set({
+        lastActiveAt: new Date().toISOString(),
+        updatedAt: new Date()
+      }).where(eq(userData.userId, userId));
+      return;
+    }
+
+    if (!uGuidance.userSentMessageToday) return;
+
+    const newDay = (uGuidance.guidanceDay || 0) + 1;
+    const updateFields = {
+      guidanceDay: newDay,
+      lastGuidanceDate: today,
+      lastActiveAt: new Date().toISOString(),
+      userSentMessageToday: false,
+      guidanceDayOpenCount: 0,
+      updatedAt: new Date()
+    };
+
+    if (newDay > 7) {
+      updateFields.guidanceMode = false;
+      updateFields.guidanceDay = 8;
+      const existingMem = uGuidance.memories && typeof uGuidance.memories === 'object' && !Array.isArray(uGuidance.memories)
+        ? uGuidance.memories : {};
+      if (!existingMem.meta) existingMem.meta = {};
+      existingMem.meta.guidanceCompleted = true;
+      existingMem.meta.guidanceCompletedAt = new Date().toISOString();
+      existingMem.meta.leadershipStyle = "collaborative_autonomous";
+      updateFields.memories = existingMem;
+    }
+
+    await db.update(userData).set(updateFields).where(eq(userData.userId, userId));
+  } catch(e) {}
+}
+
 app.post('/api/chat', async (req, res) => {
   try {
     let tier = 'guest';
@@ -484,6 +561,8 @@ app.post('/api/chat', async (req, res) => {
         msgCount: data && data.msgCountDate === today ? currentCount + 1 : 1,
         msgCountDate: today,
         userSentMessageToday: true,
+        guidanceDayOpenCount: 0,
+        lastActiveAt: new Date().toISOString(),
         updatedAt: new Date()
       }).where(eq(userData.userId, req.session.userId));
     } else {
@@ -640,12 +719,21 @@ app.post('/api/chat', async (req, res) => {
     }
     const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + questionControlLayer + '\n\n' + truncationNotice + budgetNotice + (req.body.system || '');
 
+    let guidanceData = null;
+    if (req.session.userId) {
+      try {
+        const [gData] = await db.select({ guidanceMode: userData.guidanceMode, guidanceDay: userData.guidanceDay }).from(userData).where(eq(userData.userId, req.session.userId));
+        if (gData) guidanceData = gData;
+      } catch(e) {}
+    }
+
     const sessionSummary = sessionStore.has(userId) ? sessionStore.get(userId).rollingSummary : '';
     const builtMessages = buildContext({
       enhancedSystem,
       conversation,
       rollingSummary: sessionSummary,
-      userMemory
+      userMemory,
+      guidanceData
     });
     const systemContent = builtMessages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
     const chatMessages = builtMessages.filter(m => m.role !== 'system');
