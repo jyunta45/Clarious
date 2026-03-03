@@ -35,7 +35,8 @@ app.use(express.static(path.join(__app_dirname, 'public')));
 
 const runtimeUsers = new Map();
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5, idleTimeoutMillis: 30000 });
+pool.on('error', (err) => { console.error('[SESSION DB] Pool error:', err.message); });
 const PgSession = connectPgSimple(session);
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -998,6 +999,13 @@ app.post('/api/chat', async (req, res) => {
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__app_dirname, 'public', 'index.html'));
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT]', err.message || err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[UNHANDLED REJECTION]', reason);
 });
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
