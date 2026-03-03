@@ -1019,5 +1019,9 @@ process.on('unhandledRejection', (reason) => {
   console.error('[UNHANDLED REJECTION]', reason);
 });
 
+export { app };
+
 const PORT = parseInt(process.env.PORT || '5000', 10);
-app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
+if (!process.env.DEFER_LISTEN) {
+  app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
+}
