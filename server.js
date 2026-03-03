@@ -725,7 +725,7 @@ app.post('/api/chat', async (req, res) => {
 
       const estimatedSystemTokens = Math.ceil(systemContent.length / 4);
       const estimatedMsgTokens = Math.ceil(chatMessages.reduce((s, m) => s + (m.content || '').length / 4, 0));
-      console.log('[CHAT] model=' + modelName + ' tokens=' + tokenLimit + ' system~' + estimatedSystemTokens + ' msgs~' + estimatedMsgTokens + ' lang=' + (lang || 'en') + ' msgs=' + chatMessages.length);
+      console.log('[CHAT] model=' + modelName + ' tokens=' + tokenLimit + ' system~' + estimatedSystemTokens + ' msgs~' + estimatedMsgTokens + ' lang=' + (userLang || 'en') + ' msgs=' + chatMessages.length);
 
       let response = await callAnthropicStream();
 
