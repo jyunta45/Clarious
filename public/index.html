@@ -2271,11 +2271,15 @@ async function sendMsg(userText) {
   render();
   var msgsForApi = compressContext(activeMsgs.slice(0, -1)).map(function(m) { return { role: m.role, content: m.content }; });
   try {
+    var controller = new AbortController();
+    var fetchTimeout = setTimeout(function() { controller.abort(); }, 60000);
     var res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stream: true, system: buildAssistantPrompt(buildProfile(), userText), messages: msgsForApi })
+      body: JSON.stringify({ stream: true, system: buildAssistantPrompt(buildProfile(), userText), messages: msgsForApi }),
+      signal: controller.signal
     });
+    clearTimeout(fetchTimeout);
     if (res.status === 429) {
       var curMsgs2 = getActiveMsgs();
       curMsgs2[curMsgs2.length - 1].content = ui('limitReached');
@@ -2284,6 +2288,9 @@ async function sendMsg(userText) {
       ST.streaming = false;
       render();
       return;
+    }
+    if (!res.ok) {
+      throw new Error('Server error: ' + res.status);
     }
     var reader = res.body.getReader();
     var decoder = new TextDecoder();
@@ -2317,10 +2324,50 @@ async function sendMsg(userText) {
       }
     }
   } catch(e) {
+    console.error('Chat fetch error:', e.message || e);
     var aMsgs = getActiveMsgs();
     if (aMsgs.length > 0 && !aMsgs[aMsgs.length - 1].content) {
-      aMsgs[aMsgs.length - 1].content = ui('chatError');
-      setActiveMsgs(aMsgs);
+      try {
+        console.log('Retrying chat request...');
+        var retryRes = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stream: true, system: buildAssistantPrompt(buildProfile(), userText), messages: msgsForApi })
+        });
+        if (retryRes.ok) {
+          var retryReader = retryRes.body.getReader();
+          var retryDecoder = new TextDecoder();
+          var retryBuf = '';
+          while (true) {
+            var rc = await retryReader.read();
+            if (rc.done) break;
+            retryBuf += retryDecoder.decode(rc.value, { stream: true });
+            var rLines = retryBuf.split('\n');
+            retryBuf = rLines.pop() || '';
+            for (var ri = 0; ri < rLines.length; ri++) {
+              var rLine = rLines[ri].trim();
+              if (!rLine.startsWith('data: ')) continue;
+              var rData = rLine.slice(6);
+              if (rData === '[DONE]') continue;
+              try {
+                var rEvt = JSON.parse(rData);
+                if (rEvt.text) {
+                  var rMsgs = getActiveMsgs();
+                  rMsgs[rMsgs.length - 1].content += rEvt.text;
+                  updateStreamBubble();
+                }
+              } catch(re) {}
+            }
+          }
+        } else {
+          aMsgs[aMsgs.length - 1].content = ui('chatError');
+          setActiveMsgs(aMsgs);
+        }
+      } catch(retryErr) {
+        console.error('Retry also failed:', retryErr.message || retryErr);
+        aMsgs[aMsgs.length - 1].content = ui('chatError');
+        setActiveMsgs(aMsgs);
+      }
     }
   }
   ST.loading = false;

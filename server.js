@@ -29,6 +29,9 @@ var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
 
 const app = express();
+
+app.get('/health', (req, res) => { res.status(200).send('ok'); });
+
 app.use(express.json({ limit: '2mb' }));
 
 app.use(express.static(path.join(__app_dirname, 'public')));
