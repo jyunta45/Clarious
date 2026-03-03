@@ -38,24 +38,32 @@ app.use(express.static(path.join(__app_dirname, 'public')));
 
 const runtimeUsers = new Map();
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5, idleTimeoutMillis: 30000 });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000 });
 pool.on('error', (err) => { console.error('[SESSION DB] Pool error:', err.message); });
 const PgSession = connectPgSimple(session);
 
 const isProduction = process.env.NODE_ENV === 'production';
 app.set('trust proxy', 1);
-app.use(session({
+
+const sessionMiddleware = session({
   store: new PgSession({ pool, createTableIfMissing: true }),
   secret: process.env.SESSION_SECRET || 'life-assistant-dev-secret',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     maxAge: 30 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: 'lax',
     secure: isProduction
   }
-}));
+});
+
+app.use(function(req, res, next) {
+  if (req.path.startsWith('/api')) {
+    return sessionMiddleware(req, res, next);
+  }
+  next();
+});
 
 app.post('/api/auth/signup', async (req, res) => {
   try {
