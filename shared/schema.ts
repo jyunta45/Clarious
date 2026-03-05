@@ -37,6 +37,7 @@ export const userData = pgTable("user_data", {
   lastGuidanceDate: text("last_guidance_date"),
   lastActiveAt: text("last_active_at"),
   guidanceDayOpenCount: integer("guidance_day_open_count").default(0).notNull(),
+  openLoops: jsonb("open_loops").$type<Array<{ type: string; content: string; createdAt: number; resolved: boolean }>>().default([]),
   patterns: jsonb("patterns").$type<{
     topics: Record<string, number>;
     recurringChallenges: Array<{ text: string; count: number; firstSeen: string; lastSeen: string }>;

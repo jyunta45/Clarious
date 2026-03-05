@@ -15,7 +15,7 @@ import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 import { buildCapabilityLayer } from './capabilityLayer.js';
 import { buildAttentionLayer } from './hybridModel.js';
 import { resetDailyUsage, truncateInput, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
-import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave } from './continuityEngine.js';
+import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave, extractOpenLoop, resolveMatchingLoop } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
 import { buildContext } from './contextBuilder.js';
 import { seedMemoryFromOnboarding } from './onboardingIdentitySync.js';
@@ -289,7 +289,8 @@ app.get('/api/opening-message', async (req, res) => {
           lastActiveAt: uData.lastActiveAt || uData.lastActiveDate || null,
           guidanceDay: uData.guidanceDay || 1,
           lang: uData.lang || 'en',
-          userData: { lastOpeningMessage: uData.lastOpeningMessage }
+          userData: { lastOpeningMessage: uData.lastOpeningMessage },
+          openLoops: uData.openLoops || []
         };
       }
     }
@@ -649,10 +650,12 @@ app.post('/api/chat', async (req, res) => {
     const wantStream = req.body.stream === true;
 
     let userMemoryData = null;
+    let userOpenLoops = [];
     if (req.session.userId) {
       const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
-      if (uData && uData.memories) {
-        loadMemoryFromDB(userId, uData.memories);
+      if (uData) {
+        if (uData.memories) loadMemoryFromDB(userId, uData.memories);
+        if (uData.openLoops) userOpenLoops = uData.openLoops;
       }
     }
     const userMemory = initMemory(userId);
@@ -692,7 +695,8 @@ app.post('/api/chat', async (req, res) => {
       conversation,
       rollingSummary: sessionSummary,
       userMemory,
-      guidanceData
+      guidanceData,
+      openLoops: userOpenLoops
     });
     const systemContent = builtMessages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
     const chatMessages = builtMessages.filter(m => m.role !== 'system');
@@ -892,6 +896,23 @@ app.post('/api/chat', async (req, res) => {
         }
       }
 
+      if (req.session.userId) {
+        try {
+          let updatedLoops = resolveMatchingLoop(userMsg, userOpenLoops);
+          const newLoop = extractOpenLoop(userMsg, updatedLoops, req.session.openLoopCreatedThisSession);
+          if (newLoop) {
+            updatedLoops.push(newLoop);
+            req.session.openLoopCreatedThisSession = true;
+          }
+          if (JSON.stringify(updatedLoops) !== JSON.stringify(userOpenLoops)) {
+            await db.update(userData).set({
+              openLoops: updatedLoops,
+              updatedAt: new Date()
+            }).where(eq(userData.userId, req.session.userId));
+          }
+        } catch(e) {}
+      }
+
       res.write('data: [DONE]\n\n');
       res.end();
     } else {
@@ -992,6 +1013,23 @@ app.post('/api/chat', async (req, res) => {
             }
           } catch(e) {}
         }
+      }
+
+      if (req.session.userId) {
+        try {
+          let updatedLoops = resolveMatchingLoop(userMsg, userOpenLoops);
+          const newLoop = extractOpenLoop(userMsg, updatedLoops, req.session.openLoopCreatedThisSession);
+          if (newLoop) {
+            updatedLoops.push(newLoop);
+            req.session.openLoopCreatedThisSession = true;
+          }
+          if (JSON.stringify(updatedLoops) !== JSON.stringify(userOpenLoops)) {
+            await db.update(userData).set({
+              openLoops: updatedLoops,
+              updatedAt: new Date()
+            }).where(eq(userData.userId, req.session.userId));
+          }
+        } catch(e) {}
       }
 
       res.json(data);

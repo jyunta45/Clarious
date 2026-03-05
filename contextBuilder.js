@@ -167,6 +167,35 @@ function buildReflectionContext(userMessage, userMemory, patterns) {
 }
 
 // ======================================
+// OPEN LOOP CONTEXT
+// ======================================
+
+function buildOpenLoopContext(openLoops) {
+  if (!openLoops || openLoops.length === 0) return "";
+
+  const now = Date.now();
+  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+
+  const activeLoop = openLoops.find(loop =>
+    loop.resolved === false &&
+    (now - loop.createdAt) < thirtyDays
+  );
+
+  if (!activeLoop) return "";
+
+  return `
+OPEN LOOP CONTEXT:
+The user previously mentioned an unresolved situation:
+"${activeLoop.content}"
+
+If it feels natural and relevant to the current conversation, you may gently acknowledge it.
+Do not force it.
+Do not mention dates.
+Do not say you are recalling memory.
+Speak as someone who simply remembers.`;
+}
+
+// ======================================
 // CONTEXT BUILDER
 // ======================================
 
@@ -179,7 +208,8 @@ function buildContext({
   moodTrend,
   patterns,
   relationshipDepth,
-  guidanceData
+  guidanceData,
+  openLoops
 }) {
   const TURN_THRESHOLD = 6;
   const RECENT_LIMIT = 4;
@@ -205,7 +235,8 @@ function buildContext({
   const stateBlock = buildStateContext(userState);
   const guidanceBlock = buildGuidanceContext(guidanceData);
   const reflectionBlock = buildReflectionContext(userMessage, userMemory || {}, patterns || null);
-  const combinedBlocks = [stateBlock, guidanceBlock, decisionContext, reflectionBlock].filter(b => b).join("\n\n");
+  const openLoopBlock = buildOpenLoopContext(openLoops);
+  const combinedBlocks = [stateBlock, guidanceBlock, decisionContext, reflectionBlock, openLoopBlock].filter(b => b).join("\n\n");
   const finalSystem = combinedBlocks
     ? enhancedSystem + "\n\n" + combinedBlocks
     : enhancedSystem;

@@ -1,0 +1,283 @@
+:::writing{variant=“standard” id=“openloop03”}
+Please add a lightweight open loop memory feature.
+
+Read ALL files before making any changes.
+
+IMPORTANT — Before implementing anything,
+search the entire codebase for any existing
+open loop, continuity loop, or intention
+tracking system.
+
+If one already exists,
+extend it with the new fields listed below
+rather than creating a duplicate system.
+
+Do not build a second loop tracking system
+if one already exists.
+
+Do not change any existing system behavior.
+Do not touch authentication, streaming,
+habit system, onboarding, or other memory types.
+
+⸻
+
+GOAL
+
+Allow the system to remember unresolved user
+decisions so the AI can occasionally check
+back on them later — naturally and without
+announcing that memory exists.
+
+⸻
+
+STEP 1 — Memory Extraction
+
+Find the memory extraction logic where
+Haiku extracts structured memories from
+conversations (likely in continuityEngine.js
+or memoryEngine.js).
+
+Add a new optional memory type called openLoops.
+
+Each entry structure:
+
+{
+type: “open_loop”,
+content: “considering quitting current job”,
+createdAt: Date.now(),
+resolved: false
+}
+
+Only create this memory type when the user
+expresses an unresolved decision or situation.
+
+Trigger phrases to detect:
+	•	“should i”
+	•	“i can’t decide”
+	•	“i’m thinking about”
+	•	“i’m not sure whether”
+	•	“i’m torn between”
+	•	“i might”
+	•	“considering”
+	•	“not sure if i should”
+
+Rules:
+	•	Store maximum ONE new open loop per conversation
+	•	Store maximum THREE open loops per user total
+	•	Do not store trivial decisions
+(what to eat, minor daily choices)
+	•	Only store meaningful life decisions
+(career, relationships, major changes)
+	•	Before storing a new loop,
+check existing loops for keyword overlap
+to prevent duplicates.
+
+⸻
+
+STEP 2 — Resolution Detection
+
+After each user message, check if the message
+contains resolution language.
+
+Resolution phrases:
+	•	“i decided”
+	•	“i ended up”
+	•	“i went with”
+	•	“i chose”
+	•	“i quit”
+	•	“i accepted”
+	•	“i finally”
+	•	“i made the decision”
+
+If a resolution phrase is detected AND
+an unresolved open loop exists that matches
+the topic — mark it as:
+
+resolved: true
+
+Use the same meaningful word matching approach
+used elsewhere in the codebase to determine
+whether the resolution matches the loop topic.
+
+⸻
+
+STEP 3 — Retrieval Into Prompt Context
+
+In contextBuilder.js, find where the final
+prompt is assembled.
+
+Add this function:
+
+function buildOpenLoopContext(openLoops) {
+
+if (!openLoops || openLoops.length === 0)
+return “”;
+
+const now = Date.now();
+const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+
+const activeLoop = openLoops.find(loop =>
+loop.resolved === false &&
+(now - loop.createdAt) < thirtyDays
+);
+
+if (!activeLoop) return “”;
+
+return `
+OPEN LOOP CONTEXT:
+The user previously mentioned an unresolved situation:
+“${activeLoop.content}”
+
+If it feels natural and relevant to the current
+conversation, you may gently acknowledge it.
+
+Do not force it.
+Do not mention dates.
+Do not say you are recalling memory.
+Speak as someone who simply remembers.`;
+}
+
+Then inject into final prompt assembly:
+
+const openLoopContext = buildOpenLoopContext(
+userData.openLoops
+);
+
+const finalPrompt =
+SYSTEM_PROMPT +
+“\n\n” + memoryBlock +
+guidanceContext +
+patternContext +
+userStateContext +
+decisionContext +
+reflectionContext +
+openLoopContext;
+
+Make sure userData is already available
+in the context builder.
+
+⸻
+
+STEP 4 — Opening Message Engine
+
+In openingMessageEngine.js, find the
+morning greeting logic (PRIORITY 5 section).
+
+Add a 20% random chance to reference
+an active open loop.
+
+Example implementation:
+
+const shouldReferenceLoop = Math.random() < 0.20;
+
+const activeLoop = userData.openLoops?.find(loop => {
+
+const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+
+return (
+loop.resolved === false &&
+(Date.now() - loop.createdAt) < thirtyDays
+);
+
+});
+
+if (shouldReferenceLoop && activeLoop && isMorning) {
+
+return {
+text: `You were thinking about ${activeLoop.content} recently.
+
+Has anything shifted on that?`,
+type: “open_loop”,
+chips: [
+“Still unresolved”,
+“Something changed”,
+“I made a decision”,
+“Not ready to talk about it”
+]
+};
+
+}
+
+Place this check AFTER guidance and graduation
+checks but BEFORE the regular morning message.
+
+Priority order becomes:
+
+1 Returning user (2+ days)
+2 Guidance days 1-7
+3 Graduation day 8
+4 Open loop reference (20% chance)
+5 Missed habit
+6 Time-based default greeting
+
+⸻
+
+STEP 5 — Database Storage
+
+Check if openLoops field already exists
+in user_data table or JSONB column.
+
+If it does not exist, add it safely:
+
+Field name: openLoops
+Type: JSONB array or JSON
+Default: empty array []
+
+Use Drizzle ORM consistent with how
+other memory fields are stored.
+
+Do not drop or modify existing columns.
+
+⸻
+
+SAFETY RULES SUMMARY
+
+Maximum 1 new open loop per conversation
+Maximum 3 open loops stored per user
+Only unresolved loops within 30 days are used
+20% chance only for opening message reference
+Never interrupts ongoing conversation
+Never mentions dates, storage, or memory systems
+Never references trivial decisions
+Resolution detection marks loops closed cleanly
+Do not create duplicate loops —
+check keyword overlap before storing
+
+⸻
+
+CRITICAL RULES
+
+Read ALL files before making any changes
+
+Check for existing loop tracking first
+and extend it rather than duplicating it.
+
+Only touch:
+
+continuityEngine.js or memory extraction file
+contextBuilder.js
+openingMessageEngine.js
+database schema if openLoops field is missing
+
+Do not modify:
+
+authentication
+streaming system
+habit tracking
+onboarding system
+guidance system
+other memory types
+
+Keep all existing exports intact.
+
+⸻
+
+After implementing verify:
+
+Server starts successfully
+AI streaming still works
+Decision phrases trigger loop storage
+Resolution phrases mark loops resolved
+Opening message occasionally references loops
+Short messages do not create loops
+:::

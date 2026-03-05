@@ -210,7 +210,8 @@ function _buildOpeningMessage({
   lastActiveAt,
   guidanceDay,
   lang,
-  userData
+  userData,
+  openLoops
 }) {
   const L = lang || 'en';
   const now = new Date();
@@ -248,6 +249,29 @@ function _buildOpeningMessage({
       text: gLang[8].text,
       type: "transition",
       chips: gLang[8].chips
+    };
+  }
+
+  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+  const shouldReferenceLoop = Math.random() < 0.20;
+  const activeLoop = openLoops?.find(loop =>
+    loop.resolved === false &&
+    (Date.now() - loop.createdAt) < thirtyDays
+  );
+
+  if (shouldReferenceLoop && activeLoop && isMorning) {
+    const loopTexts = {
+      en: { prefix: "You were thinking about", suffix: "recently.\n\nHas anything shifted on that?", chips: ["Still unresolved", "Something changed", "I made a decision", "Not ready to talk about it"] },
+      ja: { prefix: "最近", suffix: "について考えていましたね。\n\n何か変わりましたか？", chips: ["まだ未解決", "何か変わった", "決断した", "まだ話したくない"] },
+      es: { prefix: "Estabas pensando en", suffix: "recientemente.\n\n¿Ha cambiado algo al respecto?", chips: ["Sigue sin resolver", "Algo cambió", "Tomé una decisión", "No quiero hablar de eso"] },
+      th: { prefix: "เมื่อเร็วๆ นี้คุณกำลังคิดเรื่อง", suffix: "\n\nมีอะไรเปลี่ยนไปบ้าง?", chips: ["ยังไม่ได้แก้", "มีอะไรเปลี่ยน", "ตัดสินใจแล้ว", "ยังไม่พร้อมพูดเรื่องนี้"] },
+      ko: { prefix: "최근에", suffix: "에 대해 생각하고 있었죠.\n\n뭔가 바뀐 게 있나요?", chips: ["아직 미해결", "뭔가 변했어요", "결정했어요", "아직 말하고 싶지 않아요"] }
+    };
+    const lt = loopTexts[L] || loopTexts.en;
+    return {
+      text: `${lt.prefix} ${activeLoop.content} ${lt.suffix}`,
+      type: "open_loop",
+      chips: lt.chips
     };
   }
 
