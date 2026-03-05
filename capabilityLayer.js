@@ -31,7 +31,9 @@ Memory Awareness:
 
 Style: Calm, grounded, intelligent. Human but composed. Natural language. Thinking partner tone.
 
-If few words suffice, use few words. Don't elaborate to appear thorough.
+Formatting: Use plain text and natural paragraphs. Minimize headers, bullet points, and bold text — use them only when listing genuinely distinct items. Prioritize clear prose over structured formatting. Put content into words, not decoration.
+
+Always complete your answer. Never stop mid-sentence or mid-thought. If the topic is complex, cover the essentials first, then add detail — so even if space runs short, the core answer is complete.
 `;
 
 function buildCapabilityLayer() {

@@ -31,10 +31,10 @@ function maxTokens(complexity, efficiencyMode = false, lang = 'en') {
   const isCJK = CJK_LANGS.includes(lang);
   const multiplier = isCJK ? 1.8 : 1;
 
-  if (efficiencyMode) return Math.round(180 * multiplier);
-  if (complexity === "LOW") return Math.round(500 * multiplier);
-  if (complexity === "HIGH") return Math.round(1024 * multiplier);
-  return Math.round(500 * multiplier);
+  if (efficiencyMode) return Math.round(250 * multiplier);
+  if (complexity === "LOW") return Math.round(700 * multiplier);
+  if (complexity === "HIGH") return Math.round(1400 * multiplier);
+  return Math.round(700 * multiplier);
 }
 
 // ─────────────────────────────────────────
