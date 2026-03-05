@@ -3,6 +3,7 @@
 // ======================================
 
 import { buildUserState } from './userStateEngine.js';
+import { detectDecisionMode } from './adaptiveDepth.js';
 
 function extractGuidance(summary) {
   if (!summary) return "";
@@ -106,9 +107,17 @@ function buildContext({
     relationshipDepth: relationshipDepth || 1
   });
 
+  const lastUserMsg = [...conversation].reverse().find(m => m.role === 'user');
+  const userMessage = lastUserMsg ? lastUserMsg.content : '';
+  const isDecision = detectDecisionMode(userMessage);
+
+  const decisionContext = isDecision
+    ? `\nMODE: decision_guidance\nThe user is facing a decision right now.\nApply this approach:\n- Briefly restate what they are actually deciding in one clear sentence\n- Surface 2-3 key factors that genuinely matter for this specific decision\n- Explore what each direction could mean for them\n- End with ONE thoughtful question that helps them reflect on what matters most to them\n- Do not decide for them\n- Do not overwhelm with options\n- Do not give a recommendation unless they explicitly ask for one\n- Help them think — not choose`
+    : "";
+
   const stateBlock = buildStateContext(userState);
   const guidanceBlock = buildGuidanceContext(guidanceData);
-  const combinedBlocks = [stateBlock, guidanceBlock].filter(b => b).join("\n\n");
+  const combinedBlocks = [stateBlock, guidanceBlock, decisionContext].filter(b => b).join("\n\n");
   const finalSystem = combinedBlocks
     ? enhancedSystem + "\n\n" + combinedBlocks
     : enhancedSystem;

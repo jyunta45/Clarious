@@ -1,0 +1,202 @@
+Please make two small but important additions to my
+AI prompt architecture. These are surgical additions only.
+Read ALL existing files first. Do not change anything else.
+
+---
+
+CONTEXT:
+My app has an existing 9-layer prompt system.
+The final prompt is assembled in contextBuilder.js
+or a similar file where SYSTEM_PROMPT is combined
+with memory, guidance context, and other layers.
+I want to add two things to complete the core definition
+of the AI as a thinking partner.
+
+---
+
+ADDITION 1 — Identity Sentence at Top of System Prompt
+
+Find capabilityLayer.js or wherever SYSTEM_PROMPT
+is defined.
+
+At the very top of the SYSTEM_PROMPT string —
+before any existing content — add this exactly:
+
+You are not just an assistant.
+You are a calm, intelligent thinking partner
+who helps the user navigate life decisions
+with clarity and reflection.
+
+This must be the FIRST thing the AI reads
+before any other instruction.
+Do not replace any existing prompt content.
+Just prepend this as the opening statement.
+
+---
+
+ADDITION 2 — Decision Guidance Mode Detection
+
+STEP 1:
+Find adaptiveDepth.js or wherever complexity
+detection lives.
+
+Add this function with safety guard included:
+
+function detectDecisionMode(message) {
+  if (!message || typeof message !== "string") return false;
+
+  const text = message.toLowerCase();
+  const decisionPhrases = [
+    "should i",
+    "what should i do",
+    "i can't decide",
+    "i'm unsure about",
+    "which option",
+    "what would you do",
+    "help me decide",
+    "i don't know whether",
+    "torn between",
+    "not sure if i should",
+    "is it worth",
+    "making the right choice",
+    "which is better",
+    "i keep going back and forth"
+  ];
+
+  return decisionPhrases.some(phrase =>
+    text.includes(phrase)
+  );
+}
+
+The safety guard at the top:
+if (!message || typeof message !== "string") return false;
+
+This prevents crashes when:
+- frontend sends an empty request
+- a retry happens during streaming
+- a system message is passed instead of user input
+
+Export this function alongside existing exports.
+
+If the file uses CommonJS:
+module.exports = { detectDecisionMode, ...existingExports };
+
+If the file uses ES modules:
+export { detectDecisionMode };
+
+---
+
+STEP 2:
+Find contextBuilder.js or wherever the final
+prompt is assembled.
+
+At the TOP of the file, add the import for
+detectDecisionMode.
+
+If the file uses CommonJS:
+const { detectDecisionMode } = require("./adaptiveDepth");
+
+If the file uses ES modules:
+import { detectDecisionMode } from "./adaptiveDepth.js";
+
+Check which module style the file already uses
+and match it exactly.
+Without this import the server will throw:
+ReferenceError: detectDecisionMode is not defined
+
+---
+
+STEP 3:
+In contextBuilder.js, after the import is added,
+add the decision context logic:
+
+const isDecision = detectDecisionMode(userMessage);
+
+const decisionContext = isDecision
+  ? `
+
+MODE: decision_guidance
+The user is facing a decision right now.
+Apply this approach:
+- Briefly restate what they are actually deciding
+  in one clear sentence
+- Surface 2-3 key factors that genuinely matter
+  for this specific decision
+- Explore what each direction could mean for them
+- End with ONE thoughtful question that helps them
+  reflect on what matters most to them
+- Do not decide for them
+- Do not overwhelm with options
+- Do not give a recommendation unless they
+  explicitly ask for one
+- Help them think — not choose`
+  : "";
+
+---
+
+STEP 4:
+Find the final prompt assembly line in contextBuilder.js.
+
+Update it to include all context blocks in this order:
+
+const finalPrompt =
+  SYSTEM_PROMPT +
+  "\n\n" +
+  memoryBlock +
+  guidanceContext +
+  patternContext +
+  userStateContext +
+  decisionContext;
+
+Important rules for this assembly:
+- Keep ALL existing context blocks that are already there
+- Do not remove patternContext, userStateContext,
+  or any other existing block
+- Just add decisionContext as the final item
+- If some of these blocks do not exist yet in your
+  assembly, keep whatever blocks do exist and only
+  add decisionContext at the end
+
+---
+
+WHAT THIS CREATES:
+
+When a user says anything like:
+"Should I quit my job?"
+"I can't decide between these two paths"
+"What would you do in my situation?"
+"I'm torn between staying and leaving"
+"I keep going back and forth on this"
+
+The AI automatically enters decision guidance mode.
+It does not give an answer.
+It helps the user think toward their own answer.
+This is the core behavior of a thinking partner.
+
+When the user is NOT in a decision moment,
+decisionContext is an empty string.
+Nothing changes — all existing behavior stays.
+Zero performance cost when not triggered.
+
+---
+
+CRITICAL RULES:
+- Read ALL files before making any changes
+- Check module style (CommonJS vs ES modules)
+  before writing any import statement
+- Do not modify any existing prompt layers
+- Do not remove any existing functionality
+- Do not touch authentication, memory system,
+  habits, onboarding, opening message engine,
+  guidance system, or any other feature
+- Only touch these three files:
+  capabilityLayer.js — identity sentence prepend
+  adaptiveDepth.js   — detectDecisionMode function
+  contextBuilder.js  — import + decisionContext assembly
+- Keep all existing exports intact
+- After changes verify:
+  → server starts successfully
+  → AI streaming still works
+  → a message containing "should i" triggers
+    decision mode correctly
+  → a normal message does not trigger decision mode

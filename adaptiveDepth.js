@@ -146,4 +146,30 @@ function selectModel(complexity) {
     : "claude-haiku-4-5-20251001";
 }
 
-export { buildAdaptivePrompt, detectComplexity, selectModel };
+function detectDecisionMode(message) {
+  if (!message || typeof message !== "string") return false;
+
+  const text = message.toLowerCase();
+  const decisionPhrases = [
+    "should i",
+    "what should i do",
+    "i can't decide",
+    "i'm unsure about",
+    "which option",
+    "what would you do",
+    "help me decide",
+    "i don't know whether",
+    "torn between",
+    "not sure if i should",
+    "is it worth",
+    "making the right choice",
+    "which is better",
+    "i keep going back and forth"
+  ];
+
+  return decisionPhrases.some(phrase =>
+    text.includes(phrase)
+  );
+}
+
+export { buildAdaptivePrompt, detectComplexity, selectModel, detectDecisionMode };
