@@ -39,6 +39,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .range-labels{display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-bottom:20px;}
 .btn-row{display:flex;gap:12px;margin-top:16px;}
 .btn-back{padding:16px 28px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);cursor:pointer;}
+.btn-skip{padding:16px 28px;font-family:'DM Sans',sans-serif;font-size:1rem;background:transparent;border:1px dashed var(--border);border-radius:var(--radius);color:var(--muted);cursor:pointer;transition:opacity 0.2s;}.btn-skip:hover{opacity:0.7;}
 .reset-link{text-align:center;margin-top:20px;font-size:0.85rem;color:var(--muted);cursor:pointer;}
 .reset-link:hover{color:var(--accent2);}
 .mirror-box{white-space:pre-wrap;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2);border-radius:var(--radius);padding:28px;margin:24px 0;font-size:0.95rem;line-height:1.8;color:var(--muted);}
@@ -216,7 +217,7 @@ const LANGS = {
 const UI = {
   en: {
     tagline: 'The companion who knows your full story',
-    meta1: '37 questions across 8 sections',
+    meta1: '28 questions across 8 sections',
     meta2: 'Who you are | Dreams & pain | Identity & confidence',
     meta3: 'Goals | Bottlenecks | Resources | System | Psychology',
     meta4: '25-30 minutes. Saves automatically. AI chat at the end.',
@@ -306,19 +307,19 @@ const UI = {
     msgLimit: 'messages today',
     limitReached: 'Message limit reached. Create an account or upgrade for more!',
     sections: {
-      'Basic Context': 'Basic Context',
-      'Dreams & Pain': 'Dreams & Pain',
-      'Identity & Confidence': 'Identity & Confidence',
-      'Direction & Strategy': 'Direction & Strategy',
-      'Bottlenecks': 'Bottlenecks',
+      'Who You Are': 'Who You Are',
+      'What Drives You': 'What Drives You',
+      'Insecurities': 'Insecurities',
+      'Goals and Strategy': 'Goals and Strategy',
+      'Obstacles': 'Obstacles',
       'Resources': 'Resources',
-      'Operating System': 'Operating System',
-      'Psychology': 'Psychology'
+      'Lifestyle': 'Lifestyle',
+      'Decision-Making': 'Decision-Making'
     }
   },
   ja: {
     tagline: 'あなたの全てを知るパートナー',
-    meta1: '8セクション、37の質問',
+    meta1: '8セクション、28の質問',
     meta2: 'あなた自身 | 夢と悩み | アイデンティティと自信',
     meta3: '目標 | ボトルネック | リソース | システム | 心理',
     meta4: '25〜30分。自動保存。最後にAIチャット。',
@@ -408,19 +409,19 @@ const UI = {
     msgLimit: '今日のメッセージ',
     limitReached: 'メッセージ制限に達しました。アカウントを作成するかアップグレードしてください！',
     sections: {
-      'Basic Context': '基本情報',
-      'Dreams & Pain': '夢と悩み',
-      'Identity & Confidence': 'アイデンティティと自信',
-      'Direction & Strategy': '方向性と戦略',
-      'Bottlenecks': 'ボトルネック',
+      'Who You Are': 'あなたについて',
+      'What Drives You': '原動力',
+      'Insecurities': '不安',
+      'Goals and Strategy': '目標と戦略',
+      'Obstacles': '障害',
       'Resources': 'リソース',
-      'Operating System': '生活システム',
-      'Psychology': '心理'
+      'Lifestyle': 'ライフスタイル',
+      'Decision-Making': '意思決定'
     }
   },
   es: {
     tagline: 'El compañero que conoce tu historia completa',
-    meta1: '37 preguntas en 8 secciones',
+    meta1: '28 preguntas en 8 secciones',
     meta2: 'Quién eres | Sueños y dolor | Identidad y confianza',
     meta3: 'Metas | Obstáculos | Recursos | Sistema | Psicología',
     meta4: '25-30 minutos. Se guarda automáticamente. Chat con IA al final.',
@@ -510,19 +511,19 @@ const UI = {
     msgLimit: 'mensajes hoy',
     limitReached: 'Limite de mensajes alcanzado. Crea una cuenta o mejora tu plan!',
     sections: {
-      'Basic Context': 'Contexto Básico',
-      'Dreams & Pain': 'Sueños y Dolor',
-      'Identity & Confidence': 'Identidad y Confianza',
-      'Direction & Strategy': 'Dirección y Estrategia',
-      'Bottlenecks': 'Obstáculos',
+      'Who You Are': 'Quién Eres',
+      'What Drives You': 'Lo Que Te Mueve',
+      'Insecurities': 'Inseguridades',
+      'Goals and Strategy': 'Metas y Estrategia',
+      'Obstacles': 'Obstáculos',
       'Resources': 'Recursos',
-      'Operating System': 'Sistema Operativo',
-      'Psychology': 'Psicología'
+      'Lifestyle': 'Estilo de Vida',
+      'Decision-Making': 'Toma de Decisiones'
     }
   },
   th: {
     tagline: 'ผู้ช่วยที่รู้จักเรื่องราวทั้งหมดของคุณ',
-    meta1: '37 คำถามใน 8 หมวด',
+    meta1: '28 คำถามใน 8 หมวด',
     meta2: 'ตัวตน | ความฝันและความเจ็บปวด | อัตลักษณ์และความมั่นใจ',
     meta3: 'เป้าหมาย | อุปสรรค | ทรัพยากร | ระบบ | จิตวิทยา',
     meta4: '25-30 นาที บันทึกอัตโนมัติ แชท AI ตอนท้าย',
@@ -612,19 +613,19 @@ const UI = {
     msgLimit: 'ข้อความวันนี้',
     limitReached: 'ถึงขีดจำกัดข้อความแล้ว สร้างบัญชีหรืออัปเกรดเพื่อใช้งานต่อ!',
     sections: {
-      'Basic Context': 'ข้อมูลพื้นฐาน',
-      'Dreams & Pain': 'ความฝันและความเจ็บปวด',
-      'Identity & Confidence': 'อัตลักษณ์และความมั่นใจ',
-      'Direction & Strategy': 'ทิศทางและกลยุทธ์',
-      'Bottlenecks': 'อุปสรรค',
+      'Who You Are': 'ตัวคุณ',
+      'What Drives You': 'แรงขับเคลื่อน',
+      'Insecurities': 'ความไม่มั่นใจ',
+      'Goals and Strategy': 'เป้าหมายและกลยุทธ์',
+      'Obstacles': 'อุปสรรค',
       'Resources': 'ทรัพยากร',
-      'Operating System': 'ระบบการใช้ชีวิต',
-      'Psychology': 'จิตวิทยา'
+      'Lifestyle': 'ไลฟ์สไตล์',
+      'Decision-Making': 'การตัดสินใจ'
     }
   },
   ko: {
     tagline: '당신의 모든 이야기를 아는 동반자',
-    meta1: '8개 섹션, 37개 질문',
+    meta1: '8개 섹션, 28개 질문',
     meta2: '당신은 누구인가 | 꿈과 고통 | 정체성과 자신감',
     meta3: '목표 | 병목 | 자원 | 시스템 | 심리',
     meta4: '25-30분. 자동 저장. 마지막에 AI 채팅.',
@@ -714,254 +715,200 @@ const UI = {
     msgLimit: '오늘 메시지',
     limitReached: '메시지 한도에 도달했습니다. 계정을 만들거나 업그레이드하세요!',
     sections: {
-      'Basic Context': '기본 정보',
-      'Dreams & Pain': '꿈과 고통',
-      'Identity & Confidence': '정체성과 자신감',
-      'Direction & Strategy': '방향과 전략',
-      'Bottlenecks': '병목',
+      'Who You Are': '나에 대해',
+      'What Drives You': '동기 부여',
+      'Insecurities': '불안감',
+      'Goals and Strategy': '목표와 전략',
+      'Obstacles': '장애물',
       'Resources': '자원',
-      'Operating System': '생활 시스템',
-      'Psychology': '심리'
+      'Lifestyle': '라이프스타일',
+      'Decision-Making': '의사결정'
     }
   }
 };
 
 const QT = {
   en: {
-    name:{q:'What is your name and age?',p:'e.g. Juyunta, 25',h:'Personalizes every response'},
-    location:{q:'Where do you live?',p:'City, Country',h:'Location shapes opportunities'},
-    job:{q:'What do you do?',o:['Student','Employee at a company','Business owner','Farmer / Agricultural','Freelancer','Between jobs','Homemaker','Retired','Other']},
-    industry:{q:'What industry or field?',p:'tech, agriculture, finance',h:'Work context matters'},
-    work_day:{q:'Describe your actual work in 1-2 sentences.',p:'What do you DO each day?',h:'Reality beyond job titles'},
-    proud:{q:'If life was working perfectly, what would you feel most proud of?',p:'Think deeply...',h:'What success means to YOU'},
-    tired:{q:'What are you most tired of struggling with?',p:'Be honest...',h:'What drains you'},
-    feeling:{q:'When you imagine success, what feeling are you actually chasing?',p:'Freedom? Security? Peace?',h:'Emotion behind the goal'},
-    insec:{q:'What do you feel insecure or self-conscious about?',o:['Body / weight','Skin (acne, aging)','Hair','Teeth / smile','Height','Clothing / style','Social skills','Public speaking','Intelligence','Being boring','Voice or accent','Career vs peers','Income level','Living situation','Relationship status','Feeling behind in life','Past mistakes','Not being taken seriously','Other']},
-    blockers:{q:'Which insecurities actually hold you back?',p:'Which ones stop you?',h:'Major vs minor'},
-    compare:{q:'When you look at others, what makes you feel behind?',p:'Be specific...',h:'Who do you compare to?'},
-    secret:{q:'Something you are embarrassed about or hide? (optional)',p:'Only if you want...',h:'Private. Helps us go deeper.'},
-    conf_num:{q:'How much do insecurities affect your work confidence?',sl:['1 - Not much','10 - A lot']},
-    if_conf:{q:'What would change if you felt completely confident?',p:'What would you finally do?',h:'What confidence is blocking'},
-    tried_fix:{q:'Have you tried to fix these insecurities? What happened?',p:'Past attempts...',h:'Learn from history'},
-    goal10:{q:'Your 5 to 10 year goal in one sentence?',p:'Be specific',h:'Your north star'},
-    mastering:{q:'What are you trying to master right now?',p:'Trading? Business? A skill?',h:'Focus allocation'},
-    horizon:{q:'Building for short-term or long-term?',o:['Short-term income (need money now)','Long-term leverage (building for future)','Both equally','Not sure yet']},
-    time_waste:{q:'What currently wastes most of your time?',p:'Social media? Overthinking?',h:'Primary leak'},
-    bad_habit:{q:'One habit you know is hurting your growth?',p:'Be honest',h:'Self-awareness'},
-    avoiding:{q:'What are you avoiding because it scares you?',p:'Should do but do not?',h:'Fear-based resistance'},
-    failed:{q:'What have you tried that failed? Why?',p:'Learn from the past...',h:'Pattern recognition'},
-    domino:{q:'What problem affects multiple areas of your life?',p:'The keystone issue...',h:'Fix one, improve all'},
-    fin_level:{q:'Financial pressure level?',o:['Comfortable - no money stress','Managing - bills covered','Stressed - month to month','Crisis - struggling to pay bills']},
-    capital:{q:'Capital or savings access?',o:['None or very little','Under 5k USD','5k to 20k USD','20k to 50k USD','Over 50k USD','Prefer not to say']},
-    unique_sk:{q:'Skills most people do not have?',p:'Languages, technical, creative...',h:'Your leverage'},
-    constraint:{q:'Your single biggest constraint?',o:['Time','Money','Energy','Knowledge','Network or connections','Physical location','Health','Other']},
-    focus_hrs:{q:'Focused hours you can produce per day?',sl:['1 hr','12 hrs']},
-    sleep:{q:'When do you sleep and wake up?',p:'sleep 12am, wake 8am',h:'Cognitive baseline'},
-    screens:{q:'Hours on screens daily?',sl:['0 hrs','16 hrs']},
-    style:{q:'Strict routines or flexible systems?',o:['Strict routines - exact schedule','Flexible systems - principles','Mix of both','No preference']},
-    decisions:{q:'When making decisions you are mostly:',o:['Analytical - logic and data','Emotional - gut feel','Intuitive - pattern recognition','Ask others for input']},
-    execute:{q:'You execute best when:',o:['Working alone','With an accountability partner','In competition with others','In a team or collaboration']},
-    identity:{q:'What part of your identity matters most?',o:['Career success','Appearance','Intelligence','Relationships','Freedom','Impact on others','Wealth','Health']},
-    self_talk:{q:'When you fail, what do you tell yourself?',p:'Your inner dialogue...',h:'Self-talk reveals everything'},
-    tone:{q:'What advice tone do you want?',o:['Blunt - tell me straight','Supportive - gentle','Balanced mix']},
-    pressure:{q:'You want the assistant to:',o:['Challenge me - push harder','Protect my energy - sustainable pace','Adapt based on situation']}
+    name:{q:'What should I call you?\nAnd how old are you?',p:'e.g. Alex, 25'},
+    work_day:{q:'What do you do for work or to keep yourself occupied — and what does a typical day actually look like for you?',p:'Describe your day...'},
+    proud:{q:'If your life looked exactly the way you wanted it to — what would you feel most proud of?',p:'Think deeply...'},
+    tired:{q:'What\'s the one thing you\'re most tired of dealing with?',p:'Be honest...'},
+    feeling:{q:'When you imagine success, what feeling are you actually working toward?',p:'Freedom? Security? Peace?'},
+    insec:{q:'What areas of your life make you feel most self-conscious or not enough?',o:['Physical appearance','Social confidence','Intelligence or ability','Career progress','Financial situation','Relationships','Discipline and habits','How others see me','My past choices','Something else']},
+    blockers:{q:'Which of these actually affects how you show up day to day?'},
+    compare:{q:'When you compare yourself to others — even when you know you shouldn\'t — where do you feel most behind?',p:'Be specific...'},
+    if_conf:{q:'What would change if you felt completely confident?',p:'What would you finally do?'},
+    tried_fix:{q:'Have you tried working on any of your insecurities? What happened when you did?',p:'Past attempts...'},
+    goal10:{q:'Where do you want to be in the next 5 to 10 years?\nEven a rough direction is enough.',p:'Your north star...'},
+    mastering:{q:'What\'s the one thing you\'re most focused on building or improving right now?',p:'What has your attention?'},
+    time_waste:{q:'Where does most of your time go that you wish it didn\'t?',p:'Social media? Overthinking?'},
+    bad_habit:{q:'What\'s one habit you keep doing even though you know it\'s holding you back?',p:'Be honest...'},
+    avoiding:{q:'What\'s something important you keep finding reasons not to do — even though part of you knows you need to face it?',p:'What are you putting off?'},
+    failed:{q:'What have you already tried that didn\'t work out?\nWhat do you think got in the way?',p:'Learn from the past...'},
+    fin_level:{q:'How would you describe your financial situation right now?',o:['Comfortable — not something I worry about','Managing — keeping an eye on it','Under pressure — it affects my decisions','In crisis — it\'s urgent right now']},
+    unique_sk:{q:'What are you genuinely good at — especially things others seem to find harder than you do?',p:'Your natural strengths...'},
+    constraint:{q:'Right now, what feels like the biggest thing standing between you and where you want to be?',o:['Not enough time','Not enough money','Low energy or health issues','Missing knowledge or skills','No access to the right people','Where I live limits my options','Something else']},
+    focus_hrs:{q:'On a normal day, how many hours can you genuinely focus and get things done?',sl:['1 hr','12 hrs']},
+    sleep:{q:'What does your sleep schedule usually look like?',p:'e.g. sleep 12am, wake 8am',skipLabel:'Skip this question'},
+    style:{q:'When it comes to your day — how do you actually work best?',o:['I need structure — routines keep me on track','I need flexibility — rigid schedules shut me down','Somewhere in between — depends on the day']},
+    decisions:{q:'When you face a big decision — how do you usually make it?',o:['I think it through logically','I go with what feels right','I trust my gut instinct','I talk it through with someone else']},
+    execute:{q:'When do you actually get your best work done?',o:['Alone with no distractions','When someone is counting on me','When I have something to compete with','When I\'m working alongside others']},
+    identity:{q:'What matters most to how you see yourself?',o:['What I do for work','How I look and present myself','How smart or capable I am','The people in my life','My freedom and independence','The difference I make','What I\'ve built financially','My health and energy']},
+    self_talk:{q:'When something doesn\'t go the way you planned — what\'s the first thing that goes through your mind?',p:'Your inner dialogue...'},
+    tone:{q:'When I give you honest input — how direct do you want me to be?',o:['Very direct — get to the point, no softening needed','Honest but thoughtful — truth delivered with care','Gentle — how you say it matters as much as what you say']},
+    pressure:{q:'What do you want from this space most?',o:['Push me — even when I\'m comfortable','Support me — without adding pressure','Read the situation — and adjust accordingly']}
   },
   ja: {
-    name:{q:'お名前と年齢は？',p:'例：太郎、25歳',h:'すべての回答をパーソナライズ'},
-    location:{q:'どこに住んでいますか？',p:'市、国',h:'場所がチャンスを形作る'},
-    job:{q:'何をしていますか？',o:['学生','会社員','経営者','農業','フリーランス','求職中','主婦・主夫','退職者','その他']},
-    industry:{q:'どの業界・分野ですか？',p:'IT、農業、金融',h:'仕事の背景が重要'},
-    work_day:{q:'実際の仕事を1-2文で説明してください。',p:'毎日何をしていますか？',h:'肩書きの先にある現実'},
-    proud:{q:'人生が完璧にうまくいっていたら、何を最も誇りに思いますか？',p:'深く考えて...',h:'あなたにとっての成功'},
-    tired:{q:'何に苦しむことに最も疲れていますか？',p:'正直に...',h:'あなたを消耗させるもの'},
-    feeling:{q:'成功を想像するとき、実際に追い求めている感情は？',p:'自由？安心？平和？',h:'目標の裏にある感情'},
-    insec:{q:'何に不安や自意識を感じますか？',o:['体重・体型','肌（ニキビ、老化）','髪','歯・笑顔','身長','服装・スタイル','社交スキル','人前で話すこと','知性','つまらない人間','声やアクセント','同期との比較','収入レベル','住環境','交際状況','人生で遅れている感覚','過去の失敗','真剣に受け止められない','その他']},
-    blockers:{q:'どの不安が実際にあなたを止めていますか？',p:'どれがあなたを止める？',h:'大きいvs小さい'},
-    compare:{q:'他の人を見て、何で遅れていると感じますか？',p:'具体的に...',h:'誰と比較する？'},
-    secret:{q:'恥ずかしいことや隠していること？（任意）',p:'話したい場合だけ...',h:'プライベート。より深く理解するため'},
-    conf_num:{q:'不安はあなたの仕事の自信にどれくらい影響しますか？',sl:['1 - あまりない','10 - とても']},
-    if_conf:{q:'完全に自信があったら何が変わりますか？',p:'何をしますか？',h:'自信が阻んでいること'},
-    tried_fix:{q:'これらの不安を直そうとしたことは？結果は？',p:'過去の試み...',h:'歴史から学ぶ'},
-    goal10:{q:'5年から10年後の目標を一文で？',p:'具体的に',h:'あなたの北極星'},
-    mastering:{q:'今何をマスターしようとしていますか？',p:'トレード？ビジネス？スキル？',h:'集中の配分'},
-    horizon:{q:'短期的？長期的？',o:['短期的な収入（今お金が必要）','長期的なレバレッジ（未来のため）','両方均等','まだわからない']},
-    time_waste:{q:'今、何が最も時間を無駄にしていますか？',p:'SNS？考えすぎ？',h:'主な漏れ'},
-    bad_habit:{q:'成長を妨げていると知っている習慣は？',p:'正直に',h:'自己認識'},
-    avoiding:{q:'怖いから避けていることは？',p:'やるべきだけどしてない？',h:'恐怖に基づく抵抗'},
-    failed:{q:'試して失敗したことは？なぜ？',p:'過去から学ぶ...',h:'パターン認識'},
-    domino:{q:'人生の複数の分野に影響する問題は？',p:'根本的な問題...',h:'一つ直せば全部改善'},
-    fin_level:{q:'経済的プレッシャーのレベルは？',o:['快適 - お金のストレスなし','管理中 - 請求書は払える','ストレス - 月々ギリギリ','危機 - 支払いに苦労']},
-    capital:{q:'資本や貯蓄へのアクセスは？',o:['なしまたはごくわずか','5千ドル未満','5千〜2万ドル','2万〜5万ドル','5万ドル以上','言いたくない']},
-    unique_sk:{q:'ほとんどの人が持っていないスキルは？',p:'語学、技術、クリエイティブ...',h:'あなたのレバレッジ'},
-    constraint:{q:'最大の制約は？',o:['時間','お金','エネルギー','知識','人脈','物理的な場所','健康','その他']},
-    focus_hrs:{q:'1日に集中できる時間は？',sl:['1時間','12時間']},
-    sleep:{q:'いつ寝ていつ起きますか？',p:'0時就寝、8時起床',h:'認知のベースライン'},
-    screens:{q:'1日のスクリーン時間は？',sl:['0時間','16時間']},
-    style:{q:'厳格なルーティン？柔軟なシステム？',o:['厳格なルーティン - 正確なスケジュール','柔軟なシステム - 原則ベース','両方のミックス','特になし']},
-    decisions:{q:'決断するとき主に：',o:['分析的 - ロジックとデータ','感情的 - 直感','直感的 - パターン認識','他の人に意見を求める']},
-    execute:{q:'最も実行力が出るのは：',o:['一人で作業','アカウンタビリティパートナーと','他人との競争の中','チームやコラボレーション']},
-    identity:{q:'アイデンティティで最も重要な部分は？',o:['キャリアの成功','外見','知性','人間関係','自由','他者への影響','富','健康']},
-    self_talk:{q:'失敗したとき、自分に何と言いますか？',p:'内なる対話...',h:'セルフトークがすべてを明かす'},
-    tone:{q:'どんなアドバイスのトーンがいいですか？',o:['率直 - ストレートに言って','サポート的 - 優しく','バランスミックス']},
-    pressure:{q:'アシスタントに求めること：',o:['チャレンジ - もっと押して','エネルギーを守る - 持続可能なペース','状況に応じて適応']}
+    name:{q:'何と呼べばいいですか？\n年齢は？',p:'例：太郎、25歳'},
+    work_day:{q:'仕事は何をしていますか？\n普段の一日はどんな感じですか？',p:'あなたの一日を教えてください...'},
+    proud:{q:'人生が思い通りになっていたら\n何を最も誇りに思いますか？',p:'深く考えて...'},
+    tired:{q:'一番疲れていることは何ですか？',p:'正直に...'},
+    feeling:{q:'成功を想像するとき\n実際に目指している感情は？',p:'自由？安心？平和？'},
+    insec:{q:'自分が不十分だと感じる分野は？',o:['外見','社交的な自信','知性や能力','キャリアの進歩','経済状況','人間関係','規律と習慣','周りからの見られ方','過去の選択','その他']},
+    blockers:{q:'そのうち、日常の行動に\n実際に影響しているのは？'},
+    compare:{q:'他人と比べてしまうとき\nどこで一番遅れていると感じますか？',p:'具体的に...'},
+    if_conf:{q:'完全に自信があったら\n何が変わりますか？',p:'何をしますか？'},
+    tried_fix:{q:'不安に取り組んだことはありますか？\nその時どうなりましたか？',p:'過去の試み...'},
+    goal10:{q:'5〜10年後、どこにいたいですか？\nざっくりした方向でも大丈夫です。',p:'あなたの北極星...'},
+    mastering:{q:'今一番力を入れて\n取り組んでいることは？',p:'何に集中していますか？'},
+    time_waste:{q:'時間がもったいないと思うのに\nそこに時間が流れていくのは？',p:'SNS？考えすぎ？'},
+    bad_habit:{q:'やめた方がいいと分かっているのに\n続けてしまう習慣は？',p:'正直に...'},
+    avoiding:{q:'大事だと分かっているのに\nやらない理由を見つけてしまうことは？',p:'先延ばしにしていることは？'},
+    failed:{q:'これまで試してうまくいかなかったことは？\n何が邪魔をしたと思いますか？',p:'過去から学ぶ...'},
+    fin_level:{q:'今の経済状況をどう表しますか？',o:['快適 — 心配していない','管理中 — 注意を払っている','プレッシャー — 判断に影響する','危機的 — 今すぐ対処が必要']},
+    unique_sk:{q:'あなたが本当に得意なことは？\n特に他の人が苦労することで。',p:'あなたの強み...'},
+    constraint:{q:'今、あなたと目標の間にある\n一番大きな障壁は？',o:['時間が足りない','お金が足りない','エネルギーや健康の問題','知識やスキル不足','適切な人脈がない','住んでいる場所の制限','その他']},
+    focus_hrs:{q:'普通の日、何時間くらい\n集中して作業できますか？',sl:['1時間','12時間']},
+    sleep:{q:'普段の睡眠スケジュールは\nどんな感じですか？',p:'例：0時就寝、8時起床',skipLabel:'この質問をスキップ'},
+    style:{q:'一日の過ごし方として\nどれが一番合っていますか？',o:['構造が必要 — ルーティンで軌道に乗る','柔軟さが必要 — 厳格な予定は合わない','その間 — 日による']},
+    decisions:{q:'大きな決断をするとき\nどうやって決めますか？',o:['論理的に考える','感覚で決める','直感を信じる','誰かに相談する']},
+    execute:{q:'いつ一番いい仕事が\nできますか？',o:['一人で集中しているとき','誰かが頼りにしているとき','競争相手がいるとき','誰かと一緒に作業しているとき']},
+    identity:{q:'自分をどう見るかで\n一番大切なことは？',o:['仕事で何をしているか','見た目や印象','頭の良さや能力','周りの人々','自由と独立','与える影響','築いた資産','健康とエネルギー']},
+    self_talk:{q:'計画通りにいかなかったとき\n最初に頭に浮かぶことは？',p:'内なる対話...'},
+    tone:{q:'正直なフィードバックをするとき\nどれくらい直接的がいいですか？',o:['とても直接的 — 遠回しにしなくていい','正直だけど思いやりを持って — 配慮ある真実','優しく — 伝え方も内容と同じくらい大切']},
+    pressure:{q:'この場所に一番求めることは？',o:['プッシュして — 快適でも','サポートして — プレッシャーなしで','状況を読んで — それに合わせて']}
   },
   es: {
-    name:{q:'¿Cuál es tu nombre y edad?',p:'ej. Juan, 25',h:'Personaliza cada respuesta'},
-    location:{q:'¿Dónde vives?',p:'Ciudad, País',h:'La ubicación forma oportunidades'},
-    job:{q:'¿A qué te dedicas?',o:['Estudiante','Empleado en una empresa','Dueño de negocio','Agricultor','Freelancer','Entre trabajos','Ama de casa','Jubilado','Otro']},
-    industry:{q:'¿En qué industria o campo?',p:'tecnología, agricultura, finanzas',h:'El contexto laboral importa'},
-    work_day:{q:'Describe tu trabajo real en 1-2 oraciones.',p:'¿Qué haces cada día?',h:'La realidad más allá del título'},
-    proud:{q:'Si la vida funcionara perfectamente, ¿de qué estarías más orgulloso?',p:'Piensa profundamente...',h:'Lo que el éxito significa para TI'},
-    tired:{q:'¿De qué estás más cansado de luchar?',p:'Sé honesto...',h:'Lo que te agota'},
-    feeling:{q:'Cuando imaginas el éxito, ¿qué sentimiento persigues?',p:'¿Libertad? ¿Seguridad? ¿Paz?',h:'La emoción detrás de la meta'},
-    insec:{q:'¿En qué te sientes inseguro o cohibido?',o:['Cuerpo / peso','Piel (acné, envejecimiento)','Cabello','Dientes / sonrisa','Altura','Ropa / estilo','Habilidades sociales','Hablar en público','Inteligencia','Ser aburrido','Voz o acento','Carrera vs compañeros','Nivel de ingresos','Situación de vivienda','Estado sentimental','Sentirse atrasado en la vida','Errores del pasado','No ser tomado en serio','Otro']},
-    blockers:{q:'¿Qué inseguridades realmente te detienen?',p:'¿Cuáles te frenan?',h:'Mayor vs menor'},
-    compare:{q:'Cuando miras a otros, ¿qué te hace sentir atrasado?',p:'Sé específico...',h:'¿Con quién te comparas?'},
-    secret:{q:'¿Algo que te avergüenza o escondes? (opcional)',p:'Solo si quieres...',h:'Privado. Nos ayuda a profundizar.'},
-    conf_num:{q:'¿Cuánto afectan las inseguridades tu confianza laboral?',sl:['1 - No mucho','10 - Mucho']},
-    if_conf:{q:'¿Qué cambiaría si te sintieras completamente seguro?',p:'¿Qué harías finalmente?',h:'Lo que la confianza está bloqueando'},
-    tried_fix:{q:'¿Has intentado arreglar estas inseguridades? ¿Qué pasó?',p:'Intentos pasados...',h:'Aprender de la historia'},
-    goal10:{q:'¿Tu meta de 5 a 10 años en una oración?',p:'Sé específico',h:'Tu estrella del norte'},
-    mastering:{q:'¿Qué estás tratando de dominar ahora?',p:'¿Trading? ¿Negocios? ¿Una habilidad?',h:'Asignación de enfoque'},
-    horizon:{q:'¿Construyendo a corto o largo plazo?',o:['Ingreso a corto plazo (necesito dinero ahora)','Apalancamiento a largo plazo (construyendo para el futuro)','Ambos por igual','No estoy seguro aún']},
-    time_waste:{q:'¿Qué desperdicia más tu tiempo actualmente?',p:'¿Redes sociales? ¿Pensar demasiado?',h:'Fuga principal'},
-    bad_habit:{q:'¿Un hábito que sabes que perjudica tu crecimiento?',p:'Sé honesto',h:'Autoconciencia'},
-    avoiding:{q:'¿Qué evitas porque te asusta?',p:'¿Deberías hacerlo pero no lo haces?',h:'Resistencia basada en el miedo'},
-    failed:{q:'¿Qué has intentado que falló? ¿Por qué?',p:'Aprende del pasado...',h:'Reconocimiento de patrones'},
-    domino:{q:'¿Qué problema afecta múltiples áreas de tu vida?',p:'El problema clave...',h:'Arregla uno, mejora todo'},
-    fin_level:{q:'¿Nivel de presión financiera?',o:['Cómodo - sin estrés por dinero','Manejando - cuentas cubiertas','Estresado - mes a mes','Crisis - luchando por pagar']},
-    capital:{q:'¿Acceso a capital o ahorros?',o:['Nada o muy poco','Menos de 5k USD','5k a 20k USD','20k a 50k USD','Más de 50k USD','Prefiero no decir']},
-    unique_sk:{q:'¿Habilidades que la mayoría no tiene?',p:'Idiomas, técnicas, creativas...',h:'Tu apalancamiento'},
-    constraint:{q:'¿Tu mayor limitación?',o:['Tiempo','Dinero','Energía','Conocimiento','Red de contactos','Ubicación física','Salud','Otro']},
-    focus_hrs:{q:'¿Horas de enfoque que puedes producir al día?',sl:['1 hr','12 hrs']},
-    sleep:{q:'¿Cuándo duermes y despiertas?',p:'duermo 12am, despierto 8am',h:'Línea base cognitiva'},
-    screens:{q:'¿Horas en pantallas diarias?',sl:['0 hrs','16 hrs']},
-    style:{q:'¿Rutinas estrictas o sistemas flexibles?',o:['Rutinas estrictas - horario exacto','Sistemas flexibles - principios','Mezcla de ambos','Sin preferencia']},
-    decisions:{q:'Al tomar decisiones eres mayormente:',o:['Analítico - lógica y datos','Emocional - instinto','Intuitivo - reconocimiento de patrones','Pido opinión a otros']},
-    execute:{q:'Ejecutas mejor cuando:',o:['Trabajando solo','Con un compañero de responsabilidad','En competencia con otros','En equipo o colaboración']},
-    identity:{q:'¿Qué parte de tu identidad importa más?',o:['Éxito profesional','Apariencia','Inteligencia','Relaciones','Libertad','Impacto en otros','Riqueza','Salud']},
-    self_talk:{q:'Cuando fallas, ¿qué te dices a ti mismo?',p:'Tu diálogo interno...',h:'El auto-diálogo lo revela todo'},
-    tone:{q:'¿Qué tono de consejo quieres?',o:['Directo - dime las cosas claras','De apoyo - gentil','Mezcla equilibrada']},
-    pressure:{q:'Quieres que el asistente:',o:['Me desafíe - empuja más fuerte','Proteja mi energía - ritmo sostenible','Se adapte según la situación']}
+    name:{q:'¿Cómo te llamo?\n¿Y cuántos años tienes?',p:'ej. Juan, 25'},
+    work_day:{q:'¿A qué te dedicas o en qué ocupas tu tiempo — y cómo es realmente un día típico para ti?',p:'Describe tu día...'},
+    proud:{q:'Si tu vida se viera exactamente como quieres — ¿de qué te sentirías más orgulloso?',p:'Piensa profundamente...'},
+    tired:{q:'¿Cuál es la cosa que más te cansa enfrentar?',p:'Sé honesto...'},
+    feeling:{q:'Cuando imaginas el éxito, ¿qué sentimiento estás buscando realmente?',p:'¿Libertad? ¿Seguridad? ¿Paz?'},
+    insec:{q:'¿En qué áreas de tu vida te sientes más inseguro o insuficiente?',o:['Apariencia física','Confianza social','Inteligencia o capacidad','Progreso profesional','Situación financiera','Relaciones','Disciplina y hábitos','Cómo me ven los demás','Mis decisiones pasadas','Algo más']},
+    blockers:{q:'¿Cuáles de estos realmente afectan cómo te presentas día a día?'},
+    compare:{q:'Cuando te comparas con otros — aunque sabes que no deberías — ¿dónde te sientes más atrás?',p:'Sé específico...'},
+    if_conf:{q:'¿Qué cambiaría si te sintieras completamente seguro?',p:'¿Qué harías finalmente?'},
+    tried_fix:{q:'¿Has intentado trabajar en alguna de tus inseguridades? ¿Qué pasó?',p:'Intentos pasados...'},
+    goal10:{q:'¿Dónde quieres estar en los próximos 5 a 10 años?\nIncluso una dirección general es suficiente.',p:'Tu estrella del norte...'},
+    mastering:{q:'¿Cuál es la cosa en la que más te estás enfocando en construir o mejorar ahora mismo?',p:'¿Qué tiene tu atención?'},
+    time_waste:{q:'¿En qué se va la mayor parte de tu tiempo que desearías que no?',p:'¿Redes sociales? ¿Pensar demasiado?'},
+    bad_habit:{q:'¿Cuál es un hábito que sigues haciendo aunque sabes que te frena?',p:'Sé honesto...'},
+    avoiding:{q:'¿Qué es algo importante para lo que sigues encontrando razones para no hacer — aunque parte de ti sabe que necesitas enfrentarlo?',p:'¿Qué estás posponiendo?'},
+    failed:{q:'¿Qué has intentado que no funcionó?\n¿Qué crees que se interpuso?',p:'Aprende del pasado...'},
+    fin_level:{q:'¿Cómo describirías tu situación financiera ahora?',o:['Cómodo — no es algo que me preocupe','Manejándolo — pendiente de ello','Bajo presión — afecta mis decisiones','En crisis — es urgente ahora']},
+    unique_sk:{q:'¿En qué eres genuinamente bueno — especialmente cosas que a otros les cuestan más?',p:'Tus fortalezas naturales...'},
+    constraint:{q:'Ahora mismo, ¿qué sientes que es lo más grande que está entre tú y donde quieres estar?',o:['No tengo suficiente tiempo','No tengo suficiente dinero','Poca energía o problemas de salud','Me faltan conocimientos o habilidades','No tengo acceso a las personas adecuadas','Donde vivo limita mis opciones','Algo más']},
+    focus_hrs:{q:'En un día normal, ¿cuántas horas puedes realmente concentrarte y hacer cosas?',sl:['1 hr','12 hrs']},
+    sleep:{q:'¿Cómo es tu horario de sueño normalmente?',p:'ej. duermo 12am, despierto 8am',skipLabel:'Saltar esta pregunta'},
+    style:{q:'En cuanto a tu día — ¿cómo trabajas mejor realmente?',o:['Necesito estructura — las rutinas me mantienen en camino','Necesito flexibilidad — los horarios rígidos me bloquean','Algo intermedio — depende del día']},
+    decisions:{q:'Cuando enfrentas una decisión importante — ¿cómo la tomas usualmente?',o:['Lo pienso lógicamente','Me guío por lo que siento','Confío en mi instinto','Lo hablo con alguien más']},
+    execute:{q:'¿Cuándo haces realmente tu mejor trabajo?',o:['Solo sin distracciones','Cuando alguien cuenta conmigo','Cuando tengo algo con qué competir','Cuando trabajo junto a otros']},
+    identity:{q:'¿Qué es lo que más importa en cómo te ves a ti mismo?',o:['Lo que hago de trabajo','Cómo me veo y me presento','Qué tan inteligente o capaz soy','Las personas en mi vida','Mi libertad e independencia','La diferencia que hago','Lo que he construido financieramente','Mi salud y energía']},
+    self_talk:{q:'Cuando algo no sale como planeaste — ¿qué es lo primero que pasa por tu mente?',p:'Tu diálogo interno...'},
+    tone:{q:'Cuando te dé opiniones honestas — ¿qué tan directo quieres que sea?',o:['Muy directo — ve al punto, sin suavizar','Honesto pero considerado — verdad con cuidado','Gentil — cómo lo dices importa tanto como qué dices']},
+    pressure:{q:'¿Qué quieres más de este espacio?',o:['Empújame — incluso cuando estoy cómodo','Apóyame — sin añadir presión','Lee la situación — y ajusta según corresponda']}
   },
   th: {
-    name:{q:'ชื่อและอายุของคุณ?',p:'เช่น สมชาย, 25',h:'ปรับแต่งทุกคำตอบ'},
-    location:{q:'คุณอาศัยอยู่ที่ไหน?',p:'เมือง, ประเทศ',h:'ที่ตั้งกำหนดโอกาส'},
-    job:{q:'คุณทำอะไร?',o:['นักเรียน/นักศึกษา','พนักงานบริษัท','เจ้าของธุรกิจ','เกษตรกร','ฟรีแลนซ์','ระหว่างหางาน','แม่บ้าน/พ่อบ้าน','เกษียณ','อื่นๆ']},
-    industry:{q:'อุตสาหกรรมหรือสาขาอะไร?',p:'ไอที, เกษตร, การเงิน',h:'บริบทงานสำคัญ'},
-    work_day:{q:'อธิบายงานจริงๆ ของคุณใน 1-2 ประโยค',p:'คุณทำอะไรทุกวัน?',h:'ความจริงเบื้องหลังตำแหน่ง'},
-    proud:{q:'ถ้าชีวิตสมบูรณ์แบบ คุณจะภูมิใจอะไรมากที่สุด?',p:'คิดลึกๆ...',h:'ความสำเร็จหมายถึงอะไรสำหรับคุณ'},
-    tired:{q:'คุณเบื่อที่จะต่อสู้กับอะไรมากที่สุด?',p:'ซื่อสัตย์...',h:'อะไรที่ทำให้คุณหมดแรง'},
-    feeling:{q:'เมื่อจินตนาการถึงความสำเร็จ คุณไล่ตามความรู้สึกอะไร?',p:'อิสรภาพ? ความมั่นคง? สงบ?',h:'อารมณ์เบื้องหลังเป้าหมาย'},
-    insec:{q:'คุณรู้สึกไม่มั่นใจหรือเขินอายเรื่องอะไร?',o:['น้ำหนัก/รูปร่าง','ผิว (สิว, ริ้วรอย)','ผม','ฟัน/รอยยิ้ม','ส่วนสูง','เสื้อผ้า/สไตล์','ทักษะสังคม','พูดต่อหน้าคน','สติปัญญา','น่าเบื่อ','เสียงหรือสำเนียง','อาชีพเทียบกับคนอื่น','ระดับรายได้','สภาพที่อยู่','สถานะความสัมพันธ์','รู้สึกตามหลังในชีวิต','ความผิดพลาดในอดีต','ไม่ถูกจริงจัง','อื่นๆ']},
-    blockers:{q:'ความไม่มั่นใจใดที่หยุดคุณจริงๆ?',p:'อะไรที่หยุดคุณ?',h:'ใหญ่ vs เล็ก'},
-    compare:{q:'เมื่อมองคนอื่น อะไรทำให้คุณรู้สึกตามหลัง?',p:'เฉพาะเจาะจง...',h:'เปรียบเทียบกับใคร?'},
-    secret:{q:'สิ่งที่อายหรือซ่อน? (ไม่บังคับ)',p:'ถ้าอยากบอก...',h:'ส่วนตัว ช่วยให้เข้าใจลึกขึ้น'},
-    conf_num:{q:'ความไม่มั่นใจส่งผลต่อความมั่นใจในการทำงานแค่ไหน?',sl:['1 - ไม่มาก','10 - มาก']},
-    if_conf:{q:'ถ้ามั่นใจเต็มที่ อะไรจะเปลี่ยน?',p:'คุณจะทำอะไร?',h:'สิ่งที่ความมั่นใจกั้นอยู่'},
-    tried_fix:{q:'เคยพยายามแก้ความไม่มั่นใจเหล่านี้ไหม? ผลเป็นยังไง?',p:'ความพยายามในอดีต...',h:'เรียนรู้จากประวัติ'},
-    goal10:{q:'เป้าหมาย 5-10 ปีในหนึ่งประโยค?',p:'เฉพาะเจาะจง',h:'ดาวเหนือของคุณ'},
-    mastering:{q:'ตอนนี้พยายามเชี่ยวชาญอะไร?',p:'เทรด? ธุรกิจ? ทักษะ?',h:'การจัดสรรความสนใจ'},
-    horizon:{q:'สร้างเพื่อระยะสั้นหรือระยะยาว?',o:['รายได้ระยะสั้น (ต้องการเงินตอนนี้)','ลงทุนระยะยาว (สร้างเพื่ออนาคต)','ทั้งสองเท่าๆ กัน','ยังไม่แน่ใจ']},
-    time_waste:{q:'ตอนนี้อะไรเสียเวลามากที่สุด?',p:'โซเชียล? คิดมากเกินไป?',h:'รอยรั่วหลัก'},
-    bad_habit:{q:'นิสัยที่รู้ว่าขัดขวางการเติบโต?',p:'ซื่อสัตย์',h:'การรู้จักตัวเอง'},
-    avoiding:{q:'อะไรที่หลีกเลี่ยงเพราะกลัว?',p:'ควรทำแต่ไม่ทำ?',h:'การต่อต้านจากความกลัว'},
-    failed:{q:'เคยลองอะไรที่ล้มเหลว? ทำไม?',p:'เรียนรู้จากอดีต...',h:'การจดจำรูปแบบ'},
-    domino:{q:'ปัญหาอะไรส่งผลหลายด้านในชีวิต?',p:'ปัญหาหลัก...',h:'แก้หนึ่ง ดีขึ้นทั้งหมด'},
-    fin_level:{q:'ระดับแรงกดดันทางการเงิน?',o:['สบาย - ไม่เครียดเรื่องเงิน','จัดการได้ - จ่ายบิลครบ','เครียด - เดือนต่อเดือน','วิกฤต - ดิ้นรนจ่ายบิล']},
-    capital:{q:'เข้าถึงเงินทุนหรือเงินออม?',o:['ไม่มีหรือน้อยมาก','ต่ำกว่า 5 พัน USD','5 พัน - 2 หมื่น USD','2 หมื่น - 5 หมื่น USD','มากกว่า 5 หมื่น USD','ไม่อยากบอก']},
-    unique_sk:{q:'ทักษะที่คนส่วนใหญ่ไม่มี?',p:'ภาษา, เทคนิค, สร้างสรรค์...',h:'จุดแข็งของคุณ'},
-    constraint:{q:'ข้อจำกัดที่ใหญ่ที่สุดคืออะไร?',o:['เวลา','เงิน','พลังงาน','ความรู้','เครือข่าย','สถานที่','สุขภาพ','อื่นๆ']},
-    focus_hrs:{q:'ชั่วโมงที่โฟกัสได้ต่อวัน?',sl:['1 ชม.','12 ชม.']},
-    sleep:{q:'นอนและตื่นเมื่อไร?',p:'นอน 0:00, ตื่น 8:00',h:'พื้นฐานสมอง'},
-    screens:{q:'ชั่วโมงหน้าจอต่อวัน?',sl:['0 ชม.','16 ชม.']},
-    style:{q:'กิจวัตรเข้มงวดหรือระบบยืดหยุ่น?',o:['กิจวัตรเข้มงวด - ตารางแน่นอน','ระบบยืดหยุ่น - หลักการ','ผสมทั้งสอง','ไม่มีความชอบ']},
-    decisions:{q:'ตัดสินใจส่วนใหญ่แบบ:',o:['วิเคราะห์ - ตรรกะและข้อมูล','อารมณ์ - สัญชาตญาณ','หยั่งรู้ - จดจำรูปแบบ','ถามคนอื่น']},
-    execute:{q:'ทำงานได้ดีที่สุดเมื่อ:',o:['ทำงานคนเดียว','มีคู่หูรับผิดชอบ','แข่งขันกับคนอื่น','ทำงานเป็นทีม']},
-    identity:{q:'ส่วนไหนของตัวตนสำคัญที่สุด?',o:['ความสำเร็จในอาชีพ','รูปลักษณ์','สติปัญญา','ความสัมพันธ์','อิสรภาพ','ผลกระทบต่อผู้อื่น','ความมั่งคั่ง','สุขภาพ']},
-    self_talk:{q:'เมื่อล้มเหลว คุณบอกตัวเองว่าอะไร?',p:'บทสนทนาภายใน...',h:'การพูดกับตัวเองเผยทุกอย่าง'},
-    tone:{q:'ต้องการโทนคำแนะนำแบบไหน?',o:['ตรงไปตรงมา - พูดตรงๆ','สนับสนุน - อ่อนโยน','ผสมสมดุล']},
-    pressure:{q:'ต้องการให้ผู้ช่วย:',o:['ท้าทาย - กดดันมากขึ้น','รักษาพลังงาน - จังหวะยั่งยืน','ปรับตามสถานการณ์']}
+    name:{q:'จะเรียกคุณว่าอะไรดี?\nอายุเท่าไหร่?',p:'เช่น สมชาย, 25'},
+    work_day:{q:'คุณทำงานอะไร หรืออะไรที่ทำให้ตัวเองยุ่ง — แล้ววันปกติของคุณเป็นยังไง?',p:'เล่าวันของคุณให้ฟัง...'},
+    proud:{q:'ถ้าชีวิตเป็นไปตามที่คุณต้องการ — คุณจะภูมิใจอะไรมากที่สุด?',p:'คิดลึกๆ...'},
+    tired:{q:'สิ่งที่คุณเหนื่อยที่สุดในการรับมือคืออะไร?',p:'พูดตรงๆ...'},
+    feeling:{q:'เมื่อจินตนาการถึงความสำเร็จ ความรู้สึกที่คุณกำลังมุ่งหาจริงๆ คืออะไร?',p:'อิสรภาพ? ความมั่นคง? สงบ?'},
+    insec:{q:'ส่วนไหนของชีวิตที่ทำให้คุณรู้สึกไม่มั่นใจหรือไม่เพียงพอ?',o:['รูปลักษณ์ภายนอก','ความมั่นใจทางสังคม','สติปัญญาหรือความสามารถ','ความก้าวหน้าในอาชีพ','สถานะทางการเงิน','ความสัมพันธ์','วินัยและนิสัย','สายตาของคนอื่น','ทางเลือกในอดีต','อื่นๆ']},
+    blockers:{q:'อันไหนส่งผลต่อการใช้ชีวิตประจำวันจริงๆ?'},
+    compare:{q:'เมื่อเปรียบเทียบตัวเองกับคนอื่น — แม้รู้ว่าไม่ควร — คุณรู้สึกตามหลังตรงไหนมากที่สุด?',p:'เจาะจง...'},
+    if_conf:{q:'ถ้ามั่นใจเต็มที่ อะไรจะเปลี่ยนไป?',p:'คุณจะทำอะไร?'},
+    tried_fix:{q:'เคยลองทำงานกับความไม่มั่นใจไหม? ผลเป็นยังไง?',p:'ความพยายามในอดีต...'},
+    goal10:{q:'อีก 5 ถึง 10 ปี คุณอยากอยู่ตรงไหน?\nแม้แค่ทิศทางคร่าวๆ ก็พอ',p:'ดาวเหนือของคุณ...'},
+    mastering:{q:'สิ่งที่คุณโฟกัสสร้างหรือพัฒนามากที่สุดตอนนี้คืออะไร?',p:'อะไรที่ดึงความสนใจคุณ?'},
+    time_waste:{q:'เวลาส่วนใหญ่หายไปกับอะไรที่คุณไม่อยากให้เป็น?',p:'โซเชียล? คิดมากเกินไป?'},
+    bad_habit:{q:'นิสัยอะไรที่ยังทำอยู่ทั้งที่รู้ว่ามันฉุดคุณไว้?',p:'พูดตรงๆ...'},
+    avoiding:{q:'สิ่งสำคัญอะไรที่คุณหาเหตุผลไม่ทำ — ทั้งที่ส่วนหนึ่งรู้ว่าต้องเผชิญ?',p:'อะไรที่ผัดวันประกันพรุ่ง?'},
+    failed:{q:'เคยลองอะไรที่ไม่สำเร็จ?\nคิดว่าอะไรเป็นอุปสรรค?',p:'เรียนรู้จากอดีต...'},
+    fin_level:{q:'สถานะทางการเงินตอนนี้เป็นยังไง?',o:['สบาย — ไม่ต้องกังวล','จัดการได้ — คอยดูอยู่','กดดัน — มีผลต่อการตัดสินใจ','วิกฤต — เร่งด่วนตอนนี้']},
+    unique_sk:{q:'คุณเก่งอะไรจริงๆ — โดยเฉพาะสิ่งที่คนอื่นดูจะทำยากกว่าคุณ?',p:'จุดแข็งตามธรรมชาติ...'},
+    constraint:{q:'ตอนนี้ สิ่งที่ขวางระหว่างคุณกับเป้าหมายมากที่สุดคืออะไร?',o:['เวลาไม่พอ','เงินไม่พอ','พลังงานน้อยหรือปัญหาสุขภาพ','ขาดความรู้หรือทักษะ','เข้าไม่ถึงคนที่ใช่','ที่อยู่จำกัดทางเลือก','อื่นๆ']},
+    focus_hrs:{q:'วันปกติ คุณโฟกัสทำงานได้จริงกี่ชั่วโมง?',sl:['1 ชม.','12 ชม.']},
+    sleep:{q:'ตารางนอนปกติของคุณเป็นยังไง?',p:'เช่น นอน 0:00, ตื่น 8:00',skipLabel:'ข้ามคำถามนี้'},
+    style:{q:'ในแต่ละวัน — คุณทำงานได้ดีที่สุดแบบไหน?',o:['ต้องมีโครงสร้าง — กิจวัตรช่วยให้อยู่ในทาง','ต้องยืดหยุ่น — ตารางเข้มงวดทำให้หยุดชะงัก','อยู่ตรงกลาง — แล้วแต่วัน']},
+    decisions:{q:'เมื่อเจอการตัดสินใจใหญ่ — คุณตัดสินใจยังไง?',o:['คิดอย่างมีเหตุผล','ไปตามความรู้สึก','เชื่อสัญชาตญาณ','คุยกับคนอื่นก่อน']},
+    execute:{q:'คุณทำงานได้ดีที่สุดตอนไหน?',o:['อยู่คนเดียวไม่มีสิ่งรบกวน','มีคนพึ่งพาอยู่','มีคู่แข่ง','ทำงานเคียงข้างคนอื่น']},
+    identity:{q:'อะไรสำคัญที่สุดต่อการมองตัวเอง?',o:['งานที่ทำ','รูปลักษณ์และการนำเสนอตัว','ความฉลาดหรือความสามารถ','คนในชีวิต','อิสรภาพและความเป็นตัวเอง','ความแตกต่างที่สร้าง','สิ่งที่สร้างทางการเงิน','สุขภาพและพลังงาน']},
+    self_talk:{q:'เมื่ออะไรไม่เป็นไปตามแผน — สิ่งแรกที่ผ่านหัวคืออะไร?',p:'บทสนทนาภายใน...'},
+    tone:{q:'เมื่อให้ความเห็นตรงๆ — อยากให้ตรงแค่ไหน?',o:['ตรงมาก — พูดเลย ไม่ต้องอ้อม','ซื่อสัตย์แต่ใส่ใจ — ความจริงที่มาพร้อมความห่วงใย','อ่อนโยน — วิธีพูดสำคัญเท่ากับสิ่งที่พูด']},
+    pressure:{q:'สิ่งที่ต้องการจากพื้นที่นี้มากที่สุดคืออะไร?',o:['ผลักดัน — แม้ตอนสบาย','สนับสนุน — โดยไม่เพิ่มแรงกดดัน','อ่านสถานการณ์ — แล้วปรับตาม']}
   },
   ko: {
-    name:{q:'이름과 나이는?',p:'예: 민수, 25',h:'모든 응답을 개인화'},
-    location:{q:'어디에 살고 있나요?',p:'도시, 국가',h:'위치가 기회를 형성'},
-    job:{q:'무엇을 하고 있나요?',o:['학생','회사원','사업주','농업','프리랜서','구직 중','전업주부','은퇴자','기타']},
-    industry:{q:'어떤 산업이나 분야?',p:'IT, 농업, 금융',h:'업무 맥락이 중요'},
-    work_day:{q:'실제 업무를 1-2문장으로 설명해주세요.',p:'매일 무엇을 하나요?',h:'직함 너머의 현실'},
-    proud:{q:'인생이 완벽하게 돌아간다면, 가장 자랑스러워할 것은?',p:'깊이 생각해보세요...',h:'당신에게 성공이란'},
-    tired:{q:'가장 지쳐있는 고민은?',p:'솔직하게...',h:'당신을 소진시키는 것'},
-    feeling:{q:'성공을 상상할 때, 실제로 쫓는 감정은?',p:'자유? 안정? 평화?',h:'목표 뒤의 감정'},
-    insec:{q:'무엇에 불안하거나 자의식을 느끼나요?',o:['체중/체형','피부 (여드름, 노화)','머리카락','치아/미소','키','옷/스타일','사교 능력','발표','지능','지루한 사람','목소리나 억양','동료 대비 경력','소득 수준','주거 환경','연애 상태','인생에서 뒤처진 느낌','과거의 실수','진지하게 받아들여지지 않음','기타']},
-    blockers:{q:'어떤 불안감이 실제로 당신을 막나요?',p:'무엇이 당신을 멈추게 하나요?',h:'큰 것 vs 작은 것'},
-    compare:{q:'다른 사람을 볼 때, 무엇이 뒤처진 느낌을 주나요?',p:'구체적으로...',h:'누구와 비교하나요?'},
-    secret:{q:'부끄럽거나 숨기는 것? (선택사항)',p:'원할 때만...',h:'비공개. 더 깊이 이해하기 위해.'},
-    conf_num:{q:'불안감이 업무 자신감에 얼마나 영향을 미치나요?',sl:['1 - 별로','10 - 매우']},
-    if_conf:{q:'완전히 자신감이 있다면 무엇이 변할까요?',p:'무엇을 할 건가요?',h:'자신감이 막고 있는 것'},
-    tried_fix:{q:'이런 불안감을 고치려고 시도해본 적이 있나요? 결과는?',p:'과거의 시도...',h:'역사에서 배우기'},
-    goal10:{q:'5-10년 목표를 한 문장으로?',p:'구체적으로',h:'당신의 북극성'},
-    mastering:{q:'지금 무엇을 마스터하려고 하나요?',p:'트레이딩? 사업? 기술?',h:'집중 배분'},
-    horizon:{q:'단기적? 장기적?',o:['단기 수입 (지금 돈이 필요)','장기 레버리지 (미래를 위해 구축)','둘 다 동등하게','아직 모르겠음']},
-    time_waste:{q:'현재 가장 시간을 낭비하는 것은?',p:'SNS? 과도한 생각?',h:'주요 누수'},
-    bad_habit:{q:'성장을 방해하는 습관 하나?',p:'솔직하게',h:'자기 인식'},
-    avoiding:{q:'두려워서 피하고 있는 것은?',p:'해야 하지만 안 하는?',h:'두려움 기반 저항'},
-    failed:{q:'시도했다가 실패한 것은? 왜?',p:'과거에서 배우기...',h:'패턴 인식'},
-    domino:{q:'인생의 여러 영역에 영향을 미치는 문제는?',p:'핵심 문제...',h:'하나를 고치면 모두 개선'},
-    fin_level:{q:'재정적 압박 수준은?',o:['편안함 - 돈 걱정 없음','관리 중 - 청구서 처리 가능','스트레스 - 매달 빠듯','위기 - 지불에 어려움']},
-    capital:{q:'자본이나 저축 접근성은?',o:['없거나 매우 적음','5천 달러 미만','5천~2만 달러','2만~5만 달러','5만 달러 이상','말하고 싶지 않음']},
-    unique_sk:{q:'대부분의 사람이 없는 기술은?',p:'언어, 기술, 창의적...',h:'당신의 레버리지'},
-    constraint:{q:'가장 큰 제약은?',o:['시간','돈','에너지','지식','네트워크','물리적 위치','건강','기타']},
-    focus_hrs:{q:'하루에 집중할 수 있는 시간은?',sl:['1시간','12시간']},
-    sleep:{q:'언제 자고 일어나나요?',p:'자정 취침, 8시 기상',h:'인지 기준선'},
-    screens:{q:'하루 스크린 시간은?',sl:['0시간','16시간']},
-    style:{q:'엄격한 루틴? 유연한 시스템?',o:['엄격한 루틴 - 정확한 일정','유연한 시스템 - 원칙','둘의 혼합','선호 없음']},
-    decisions:{q:'결정할 때 주로:',o:['분석적 - 논리와 데이터','감정적 - 직감','직관적 - 패턴 인식','다른 사람에게 의견 구함']},
-    execute:{q:'가장 잘 실행하는 때:',o:['혼자 작업할 때','책임 파트너와 함께','다른 사람과 경쟁할 때','팀이나 협업에서']},
-    identity:{q:'정체성에서 가장 중요한 부분은?',o:['경력 성공','외모','지능','관계','자유','타인에 대한 영향','부','건강']},
-    self_talk:{q:'실패했을 때 자신에게 뭐라고 하나요?',p:'내면의 대화...',h:'자기 대화가 모든 것을 드러냄'},
-    tone:{q:'어떤 조언 톤을 원하나요?',o:['직설적 - 솔직하게 말해줘','지지적 - 부드럽게','균형 잡힌 혼합']},
-    pressure:{q:'어시스턴트에게 원하는 것:',o:['도전 - 더 밀어붙여','에너지 보호 - 지속 가능한 속도','상황에 따라 적응']}
+    name:{q:'뭐라고 부르면 될까요?\n나이는 어떻게 되나요?',p:'예: 민수, 25'},
+    work_day:{q:'무슨 일을 하거나 어떻게 시간을 보내나요 — 그리고 실제로 하루가 어떻게 되나요?',p:'하루를 설명해주세요...'},
+    proud:{q:'인생이 원하는 대로 된다면 — 가장 자랑스러워할 것은?',p:'깊이 생각해보세요...'},
+    tired:{q:'가장 지쳐있는 것은 무엇인가요?',p:'솔직하게...'},
+    feeling:{q:'성공을 상상할 때 실제로 향하고 있는 감정은?',p:'자유? 안정? 평화?'},
+    insec:{q:'삶에서 가장 자의식을 느끼거나 부족하다고 느끼는 영역은?',o:['외모','사회적 자신감','지능이나 능력','커리어 발전','재정 상황','관계','규율과 습관','다른 사람들의 시선','과거의 선택','기타']},
+    blockers:{q:'이 중에서 실제로 일상에 영향을 미치는 것은?'},
+    compare:{q:'남과 비교할 때 — 그러지 말아야 한다는 걸 알면서도 — 어디서 가장 뒤처진다고 느끼나요?',p:'구체적으로...'},
+    if_conf:{q:'완전히 자신감이 있다면 무엇이 변할까요?',p:'무엇을 할 건가요?'},
+    tried_fix:{q:'불안감을 해결하려고 시도해본 적이 있나요? 어떻게 되었나요?',p:'과거의 시도...'},
+    goal10:{q:'앞으로 5~10년 후 어디에 있고 싶나요?\n대략적인 방향만으로도 충분합니다.',p:'당신의 북극성...'},
+    mastering:{q:'지금 가장 집중해서 만들거나 개선하고 있는 것은?',p:'무엇에 주목하고 있나요?'},
+    time_waste:{q:'시간이 가장 많이 가는데 그러지 않았으면 하는 곳은?',p:'SNS? 과도한 생각?'},
+    bad_habit:{q:'자신을 붙잡고 있다는 걸 알면서도 계속하는 습관은?',p:'솔직하게...'},
+    avoiding:{q:'해야 한다는 걸 알면서도 안 할 이유를 계속 찾는 중요한 일은?',p:'미루고 있는 것은?'},
+    failed:{q:'이미 시도해서 잘 안 된 것은?\n무엇이 방해했다고 생각하나요?',p:'과거에서 배우기...'},
+    fin_level:{q:'지금 재정 상황을 어떻게 설명하시겠어요?',o:['편안함 — 걱정하지 않는 부분','관리 중 — 주시하고 있음','압박감 — 결정에 영향을 줌','위기 — 지금 급한 상황']},
+    unique_sk:{q:'진짜로 잘하는 것은? — 특히 다른 사람들이 더 어려워하는 것?',p:'당신의 자연적 강점...'},
+    constraint:{q:'지금 당신과 목표 사이에 가장 큰 것은?',o:['시간이 부족','돈이 부족','에너지 부족이나 건강 문제','지식이나 기술 부족','적절한 인맥 부재','사는 곳의 제한','기타']},
+    focus_hrs:{q:'보통 하루에 실제로 집중할 수 있는 시간은?',sl:['1시간','12시간']},
+    sleep:{q:'평소 수면 스케줄은 어떤가요?',p:'예: 자정 취침, 8시 기상',skipLabel:'이 질문 건너뛰기'},
+    style:{q:'하루에 있어서 — 어떻게 일하는 게 가장 잘 맞나요?',o:['구조가 필요 — 루틴이 궤도를 유지','유연함이 필요 — 엄격한 일정은 안 맞음','중간 — 날에 따라 다름']},
+    decisions:{q:'큰 결정을 내릴 때 — 보통 어떻게 하나요?',o:['논리적으로 생각함','느낌대로 감','직감을 믿음','누군가와 상의함']},
+    execute:{q:'실제로 최고의 작업을 하는 때는?',o:['혼자 방해 없이','누군가가 기대하고 있을 때','경쟁 상대가 있을 때','다른 사람과 함께 일할 때']},
+    identity:{q:'자신을 어떻게 보는지에서 가장 중요한 것은?',o:['하는 일','외모와 표현','얼마나 똑똑하고 능력 있는지','내 주변 사람들','자유와 독립','만드는 차이','재정적으로 쌓은 것','건강과 에너지']},
+    self_talk:{q:'계획대로 안 됐을 때 — 처음 떠오르는 생각은?',p:'내면의 대화...'},
+    tone:{q:'솔직한 피드백을 줄 때 — 얼마나 직접적이길 원하나요?',o:['매우 직접적 — 핵심만, 부드럽게 안 해도 됨','솔직하지만 사려 깊게 — 배려 있는 진실','부드럽게 — 어떻게 말하는지도 중요']},
+    pressure:{q:'이 공간에서 가장 원하는 것은?',o:['밀어붙여줘 — 편할 때도','지지해줘 — 압박 없이','상황을 읽어 — 맞춰줘']}
   }
 };
 
 const Q = [
-  {id:'name',s:'Basic Context',t:'text'},
-  {id:'location',s:'Basic Context',t:'text'},
-  {id:'job',s:'Basic Context',t:'select'},
-  {id:'industry',s:'Basic Context',t:'text'},
-  {id:'work_day',s:'Basic Context',t:'textarea'},
-  {id:'proud',s:'Dreams & Pain',t:'textarea'},
-  {id:'tired',s:'Dreams & Pain',t:'textarea'},
-  {id:'feeling',s:'Dreams & Pain',t:'textarea'},
-  {id:'insec',s:'Identity & Confidence',t:'multi'},
-  {id:'blockers',s:'Identity & Confidence',t:'textarea'},
-  {id:'compare',s:'Identity & Confidence',t:'textarea'},
-  {id:'secret',s:'Identity & Confidence',t:'textarea'},
-  {id:'conf_num',s:'Identity & Confidence',t:'slider',min:1,max:10},
-  {id:'if_conf',s:'Identity & Confidence',t:'textarea'},
-  {id:'tried_fix',s:'Identity & Confidence',t:'textarea'},
-  {id:'goal10',s:'Direction & Strategy',t:'text'},
-  {id:'mastering',s:'Direction & Strategy',t:'text'},
-  {id:'horizon',s:'Direction & Strategy',t:'select'},
-  {id:'time_waste',s:'Bottlenecks',t:'text'},
-  {id:'bad_habit',s:'Bottlenecks',t:'text'},
-  {id:'avoiding',s:'Bottlenecks',t:'textarea'},
-  {id:'failed',s:'Bottlenecks',t:'textarea'},
-  {id:'domino',s:'Bottlenecks',t:'textarea'},
+  {id:'name',s:'Who You Are',t:'text'},
+  {id:'work_day',s:'Who You Are',t:'textarea'},
+  {id:'proud',s:'What Drives You',t:'textarea'},
+  {id:'tired',s:'What Drives You',t:'textarea'},
+  {id:'feeling',s:'What Drives You',t:'textarea'},
+  {id:'insec',s:'Insecurities',t:'multi'},
+  {id:'blockers',s:'Insecurities',t:'dynamic_multi'},
+  {id:'compare',s:'Insecurities',t:'textarea'},
+  {id:'if_conf',s:'Insecurities',t:'textarea'},
+  {id:'tried_fix',s:'Insecurities',t:'textarea'},
+  {id:'goal10',s:'Goals and Strategy',t:'textarea'},
+  {id:'mastering',s:'Goals and Strategy',t:'textarea'},
+  {id:'time_waste',s:'Goals and Strategy',t:'textarea'},
+  {id:'bad_habit',s:'Obstacles',t:'textarea'},
+  {id:'avoiding',s:'Obstacles',t:'textarea'},
+  {id:'failed',s:'Obstacles',t:'textarea'},
   {id:'fin_level',s:'Resources',t:'select'},
-  {id:'capital',s:'Resources',t:'select'},
   {id:'unique_sk',s:'Resources',t:'textarea'},
   {id:'constraint',s:'Resources',t:'select'},
   {id:'focus_hrs',s:'Resources',t:'slider',min:1,max:12},
-  {id:'sleep',s:'Operating System',t:'text'},
-  {id:'screens',s:'Operating System',t:'slider',min:0,max:16},
-  {id:'style',s:'Operating System',t:'select'},
-  {id:'decisions',s:'Operating System',t:'select'},
-  {id:'execute',s:'Operating System',t:'select'},
-  {id:'identity',s:'Psychology',t:'select'},
-  {id:'self_talk',s:'Psychology',t:'textarea'},
-  {id:'tone',s:'Psychology',t:'select'},
-  {id:'pressure',s:'Psychology',t:'select'}
+  {id:'sleep',s:'Lifestyle',t:'textarea',optional:true},
+  {id:'style',s:'Lifestyle',t:'select'},
+  {id:'decisions',s:'Decision-Making',t:'select'},
+  {id:'execute',s:'Decision-Making',t:'select'},
+  {id:'identity',s:'Decision-Making',t:'select'},
+  {id:'self_talk',s:'Decision-Making',t:'textarea'},
+  {id:'tone',s:'Decision-Making',t:'select'},
+  {id:'pressure',s:'Decision-Making',t:'select'}
 ];
 
 function getQ(qDef) {
@@ -1451,29 +1398,33 @@ function insecStr() {
 
 function buildIdentityProfile() {
   var p = {
-    core: { name: g('name', ''), location: g('location', ''), job: g('job', ''), industry: g('industry', '') },
+    core: { name: g('name', ''), workDay: g('work_day', '') },
     personality: { style: g('style', ''), decisions: g('decisions', ''), execute: g('execute', ''), selfTalk: g('self_talk', ''), identity: g('identity', '') },
-    goals: { tenYear: g('goal10', ''), mastering: g('mastering', ''), strategy: g('horizon', ''), ifConfident: g('if_conf', '') },
-    strengths: { proudOf: g('proud', ''), uniqueSkills: g('unique_sk', ''), confidence: g('conf_num', '') },
-    challenges: { tiredOf: g('tired', ''), insecurities: insecStr(), blockers: g('blockers', ''), timeWaste: g('time_waste', ''), badHabit: g('bad_habit', ''), avoiding: g('avoiding', ''), keystone: g('domino', '') },
-    resources: { financial: g('fin_level', ''), capital: g('capital', ''), constraint: g('constraint', '') },
-    system: { focusHours: g('focus_hrs', ''), sleep: g('sleep', ''), screenTime: g('screens', '') },
+    goals: { tenYear: g('goal10', ''), mastering: g('mastering', ''), ifConfident: g('if_conf', '') },
+    strengths: { proudOf: g('proud', ''), uniqueSkills: g('unique_sk', '') },
+    challenges: { tiredOf: g('tired', ''), insecurities: insecStr(), blockers: blockersStr(), timeWaste: g('time_waste', ''), badHabit: g('bad_habit', ''), avoiding: g('avoiding', '') },
+    resources: { financial: g('fin_level', ''), constraint: g('constraint', ''), focusHours: g('focus_hrs', '') },
+    system: { sleep: g('sleep', '') },
     preferences: { tone: g('tone', ''), coachingMode: g('pressure', ''), chasing: g('feeling', '') }
   };
   ST.identityProfile = p;
   return p;
 }
 
+function blockersStr() {
+  return Array.isArray(ST.ans.blockers) && ST.ans.blockers.length > 0 ? ST.ans.blockers.join(', ') : g('blockers', 'not specified');
+}
+
 function identityPromptBlock() {
   var p = ST.identityProfile && ST.identityProfile.core && ST.identityProfile.core.name ? ST.identityProfile : buildIdentityProfile();
   var lines = [];
   lines.push('USER IDENTITY:');
-  lines.push('Name: ' + p.core.name + ' | Location: ' + p.core.location + ' | Work: ' + p.core.job + ' in ' + p.core.industry);
+  lines.push('Name: ' + p.core.name + ' | Daily life: ' + p.core.workDay);
   lines.push('Personality: ' + p.personality.style + ' style, decides ' + p.personality.decisions + ', executes best ' + p.personality.execute);
-  lines.push('Goals: 10yr=' + p.goals.tenYear + ', mastering=' + p.goals.mastering + ', strategy=' + p.goals.strategy);
-  lines.push('Strengths: proud of ' + p.strengths.proudOf + ', skills=' + p.strengths.uniqueSkills + ', confidence=' + p.strengths.confidence + '/10');
-  lines.push('Challenges: tired of ' + p.challenges.tiredOf + ', blockers=' + p.challenges.blockers + ', keystone=' + p.challenges.keystone);
-  lines.push('System: focus=' + p.system.focusHours + 'hrs, sleep=' + p.system.sleep + ', screens=' + p.system.screenTime + 'hrs');
+  lines.push('Goals: 10yr=' + p.goals.tenYear + ', mastering=' + p.goals.mastering);
+  lines.push('Strengths: proud of ' + p.strengths.proudOf + ', skills=' + p.strengths.uniqueSkills);
+  lines.push('Challenges: tired of ' + p.challenges.tiredOf + ', blockers=' + p.challenges.blockers);
+  lines.push('Resources: financial=' + p.resources.financial + ', constraint=' + p.resources.constraint + ', focus=' + p.resources.focusHours + 'hrs');
   lines.push('Preferences: tone=' + p.preferences.tone + ', mode=' + p.preferences.coachingMode);
   return lines.join('\n');
 }
@@ -2188,7 +2139,7 @@ function renderPatternsPanel() {
 }
 
 function buildMirror() {
-  return g('name', 'friend') + ', here is what I see about you.\n\nWHO YOU ARE\nLocation: ' + g('location') + '\nWork: ' + g('job') + ' in ' + g('industry') + '\nDaily: ' + g('work_day') + '\n\nDREAMS & PAIN\nProud of: ' + g('proud') + '\nTired of: ' + g('tired') + '\nChasing: ' + g('feeling') + '\n\nIDENTITY & CONFIDENCE\nInsecurities: ' + insecStr() + '\nBlockers: ' + g('blockers') + '\nIf confident: ' + g('if_conf') + '\n\nDIRECTION\nGoal: ' + g('goal10') + '\nMastering: ' + g('mastering') + '\nStrategy: ' + g('horizon') + '\n\nBOTTLENECKS\nWastes: ' + g('time_waste') + '\nHabit: ' + g('bad_habit') + '\nAvoiding: ' + g('avoiding') + '\n\nRESOURCES\nFinancial: ' + g('fin_level') + '\nSkills: ' + g('unique_sk') + '\nConstraint: ' + g('constraint') + '\n\nSYSTEM\nSleep: ' + g('sleep') + '\nScreens: ' + g('screens') + ' hrs\nStyle: ' + g('style') + '\n\nPSYCHOLOGY\nPriority: ' + g('identity') + '\nTone: ' + g('tone') + '\nMode: ' + g('pressure') + '\n\n---\nI know your full story.\nEvery answer built around YOU.\nYou are not alone. Let us work.';
+  return g('name', 'friend') + ', here is what I see about you.\n\nWHO YOU ARE\nDaily life: ' + g('work_day') + '\n\nWHAT DRIVES YOU\nProud of: ' + g('proud') + '\nTired of: ' + g('tired') + '\nChasing: ' + g('feeling') + '\n\nINSECURITIES\nAreas: ' + insecStr() + '\nBlockers: ' + blockersStr() + '\nIf confident: ' + g('if_conf') + '\n\nGOALS\nDirection: ' + g('goal10') + '\nFocused on: ' + g('mastering') + '\n\nOBSTACLES\nHabit: ' + g('bad_habit') + '\nAvoiding: ' + g('avoiding') + '\nTime waste: ' + g('time_waste') + '\n\nRESOURCES\nFinancial: ' + g('fin_level') + '\nStrengths: ' + g('unique_sk') + '\nConstraint: ' + g('constraint') + '\nFocus hours: ' + g('focus_hrs') + '\n\nLIFESTYLE\nSleep: ' + g('sleep', 'not shared') + '\nWork style: ' + g('style') + '\n\nDECISION-MAKING\nDecisions: ' + g('decisions') + '\nBest work: ' + g('execute') + '\nIdentity: ' + g('identity') + '\nTone: ' + g('tone') + '\nMode: ' + g('pressure') + '\n\n---\nI know your full story.\nEvery answer built around YOU.\nYou are not alone. Let us work.';
 }
 
 function langName() {
@@ -2217,10 +2168,9 @@ function buildAssistantPrompt(profile, userInput) {
 function systemPrompt(userText) {
   var userName = ST.ans.name || 'friend';
   var tone = ST.ans.tone || '';
-  var toneRule = tone.includes('Blunt') || tone.includes('直') || tone.includes('Direct') || tone.includes('ตรง') ? 'Be direct but still respectful.' : tone.includes('Support') || tone.includes('サポート') || tone.includes('apoyo') || tone.includes('สนับสนุน') || tone.includes('지지') ? 'Be warm and encouraging.' : 'Be balanced - supportive but honest.';
-  var tonePreference = tone.includes('Blunt') || tone.includes('直') || tone.includes('Direct') || tone.includes('ตรง') ? 'blunt' : tone.includes('Support') || tone.includes('サポート') || tone.includes('apoyo') || tone.includes('สนับสนุน') || tone.includes('지지') ? 'supportive' : 'balanced';
+  var tonePreference = tone.includes('Very direct') || tone.includes('とても直接的') || tone.includes('Muy directo') || tone.includes('ตรงมาก') || tone.includes('매우 직접적') ? 'direct' : tone.includes('Gentle') || tone.includes('優しく') || tone.includes('Gentil') || tone.includes('อ่อนโยน') || tone.includes('부드럽게') ? 'gentle' : 'thoughtful';
   var pressure = ST.ans.pressure || '';
-  var coachingMode = pressure.includes('Challenge') || pressure.includes('挑戦') || pressure.includes('Desafía') || pressure.includes('ท้าทาย') || pressure.includes('도전') ? 'challenge' : pressure.includes('Protect') || pressure.includes('守') || pressure.includes('Protege') || pressure.includes('ปกป้อง') || pressure.includes('보호') ? 'protect' : 'adapt';
+  var coachingMode = pressure.includes('Push') || pressure.includes('プッシュ') || pressure.includes('Empújame') || pressure.includes('ผลักดัน') || pressure.includes('밀어붙여') ? 'push' : pressure.includes('Support') || pressure.includes('サポート') || pressure.includes('Apóyame') || pressure.includes('สนับสนุน') || pressure.includes('지지') ? 'support' : 'adapt';
   var langRule = ST.lang && ST.lang !== 'en' ? '\n- IMPORTANT: You MUST respond entirely in ' + langName() + '. Every word of your response must be in ' + langName() + '.' : '';
   var memoryBlock = userText ? retrieveRelevantMemories(userText) : '';
   var triggerBlock = triggersPromptBlock();
@@ -2228,16 +2178,17 @@ function systemPrompt(userText) {
   var habitBlock = habitsPromptBlock();
   var summaryBlock = getThreadSummary() ? '\n\nPREVIOUS CONVERSATION SUMMARY:\n' + getThreadSummary() : '';
 
-  var toneAdaptation = tonePreference === 'blunt'
-    ? '- User prefers blunt communication: be direct, no filter, call things out clearly'
-    : tonePreference === 'supportive'
-    ? '- User prefers supportive communication: be gentler, encouraging, validate feelings while guiding'
-    : '- User prefers balanced communication: be honest but kind, direct but respectful';
+  var toneAdaptation = tonePreference === 'direct'
+    ? '- User wants very direct communication: less hedging, clearer language, faster to the point. Never commanding or harsh.'
+    : tonePreference === 'gentle'
+    ? '- User wants gentle communication: more acknowledgment before insight, softer framing. Still delivers honest truth.'
+    : '- User wants honest but thoughtful communication: truth delivered with care, direct but respectful.';
+  toneAdaptation += '\nRegardless of tone preference, always maintain calm, grounded, and respectful communication. The tone adjusts. The respect never changes.';
 
-  var coachingRule = coachingMode === 'challenge'
-    ? '- User wants to be challenged: push harder on execution, raise the bar, question excuses'
-    : coachingMode === 'protect'
-    ? '- User wants energy protection: prioritize sustainable pace, avoid burnout, build gradually'
+  var coachingRule = coachingMode === 'push'
+    ? '- User wants to be pushed: challenge even when comfortable, raise the bar, question excuses'
+    : coachingMode === 'support'
+    ? '- User wants support without pressure: prioritize sustainable pace, avoid burnout, build gradually'
     : '- User wants adaptive coaching: read the situation and adjust intensity accordingly';
 
   return 'User: ' + userName + '\n' + buildProfile() + summaryBlock + memoryBlock + triggerBlock + patternBlock + habitBlock + '\n\nRESPONSE LENGTH: Match question energy. Short=1-2 sentences. Medium=2-3 paragraphs. Deep=up to 4-5. No filler.\n' + toneAdaptation + '\n' + coachingRule + '\n\nUse profile silently to personalize — never quote it back. Reference memories naturally like a friend who remembers. Answer what was asked. If casual, chat casually.' + langRule;
@@ -2561,6 +2512,7 @@ function renderQuestion(root) {
   var pct = Math.round(((ST.step + 1) / Q.length) * 100);
   var sv = ST.ans[q.id];
   var inp = '';
+  var dynamicOpts = [];
   if (q.t === 'text') {
     inp = '<input class="field-text" id="qa" type="text" placeholder="' + esc(q.p || '') + '" value="' + esc(sv || '') + '" data-testid="input-answer">';
   } else if (q.t === 'textarea') {
@@ -2576,17 +2528,31 @@ function renderQuestion(root) {
       var c = sel.includes(o);
       return '<div class="check-row' + (c ? ' checked' : '') + '" data-i="' + i + '" data-testid="check-' + i + '"><div class="check-box">' + (c ? '&#10003;' : '') + '</div><span>' + o + '</span></div>';
     }).join('') + '</div>';
+  } else if (q.t === 'dynamic_multi') {
+    dynamicOpts = Array.isArray(ST.ans.insec) && ST.ans.insec.length > 0 ? ST.ans.insec : [];
+    var sel = Array.isArray(sv) ? sv : [];
+    if (dynamicOpts.length > 0) {
+      inp = '<div>' + dynamicOpts.map(function(o, i) {
+        var c = sel.includes(o);
+        return '<div class="check-row' + (c ? ' checked' : '') + '" data-i="' + i + '" data-testid="check-' + i + '"><div class="check-box">' + (c ? '&#10003;' : '') + '</div><span>' + o + '</span></div>';
+      }).join('') + '</div>';
+    } else {
+      inp = '<textarea class="field-area" id="qa" placeholder="' + esc(q.p || '') + '" data-testid="input-answer">' + esc((Array.isArray(sv) ? sv.join(', ') : sv) || '') + '</textarea>';
+    }
   }
   var showNext = q.t !== 'select';
+  var skipBtn = qDef.optional ? '<button class="btn-skip" id="sb" data-testid="button-skip">' + (q.skipLabel || 'Skip') + '</button>' : '';
+  var questionHtml = q.q.replace(/\n/g, '<br>');
   root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
     '<div class="sec-badge">' + sectionName(q.s) + '</div>' +
     '<div class="prog-row"><span>' + (ST.step + 1) + ' ' + ui('of') + ' ' + Q.length + '</span><span>' + pct + '%</span></div>' +
     '<div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div>' +
-    '<div class="question-text">' + q.q + '</div>' +
+    '<div class="question-text">' + questionHtml + '</div>' +
     (q.h ? '<div class="hint-text">' + q.h + '</div>' : '') +
     inp +
     '<div class="btn-row">' +
     (ST.step > 0 ? '<button class="btn-back" id="bb" data-testid="button-back">' + ui('back') + '</button>' : '') +
+    skipBtn +
     (showNext ? '<button class="btn-primary" id="nb" data-testid="button-next">' + ui('next') + '</button>' : '') +
     '</div>' +
     '<div class="reset-link" id="rb" data-testid="link-reset">' + ui('resetAll') + '</div>' +
@@ -2604,10 +2570,11 @@ function renderQuestion(root) {
       };
     });
   }
-  if (q.t === 'multi') {
+  if (q.t === 'multi' || (q.t === 'dynamic_multi' && dynamicOpts.length > 0)) {
     document.querySelectorAll('.check-row').forEach(function(row) {
       row.onclick = function() {
-        var val = (q.o || [])[parseInt(row.dataset.i)];
+        var opts = q.t === 'dynamic_multi' ? dynamicOpts : (q.o || []);
+        var val = opts[parseInt(row.dataset.i)];
         var sel2 = Array.isArray(ST.ans[q.id]) ? ST.ans[q.id].slice() : [];
         if (sel2.includes(val)) { sel2 = sel2.filter(function(x) { return x !== val; }); }
         else { sel2.push(val); }
@@ -2620,6 +2587,8 @@ function renderQuestion(root) {
   }
   var nb = document.getElementById('nb');
   if (nb) { nb.onclick = function() { var el = document.getElementById('qa'); if (el) ST.ans[q.id] = el.value; advance(); }; }
+  var sb = document.getElementById('sb');
+  if (sb) { sb.onclick = function() { ST.ans[q.id] = ''; advance(); }; }
   var bb = document.getElementById('bb');
   if (bb) { bb.onclick = function() { ST.step--; save(); render(); }; }
   document.getElementById('rb').onclick = reset;

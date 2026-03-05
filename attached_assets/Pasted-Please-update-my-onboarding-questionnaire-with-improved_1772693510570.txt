@@ -1,0 +1,333 @@
+Please update my onboarding questionnaire with improved 
+questions. Read ALL existing files first before making 
+any changes. Do not break any existing functionality.
+
+---
+
+CONTEXT:
+I have a 37-question onboarding system across 8 sections.
+I want to reduce it to 28 questions with improved wording
+and add proper input types for each question.
+Find wherever the onboarding questions are defined
+(likely in index.html or a separate onboarding file)
+and replace the questions exactly as listed below.
+
+---
+
+THE COMPLETE NEW QUESTION SET:
+
+SECTION 1 — WHO YOU ARE
+
+Q1 — Free text
+"What should I call you?
+And how old are you?"
+
+Q2 — Free text
+"What do you do for work or to keep
+yourself occupied — and what does a
+typical day actually look like for you?"
+
+---
+
+SECTION 2 — WHAT DRIVES YOU
+
+Q3 — Free text
+"If your life looked exactly the way
+you wanted it to — what would you
+feel most proud of?"
+
+Q4 — Free text
+"What's the one thing you're most
+tired of dealing with?"
+
+Q5 — Free text
+"When you imagine success, what feeling
+are you actually working toward?"
+
+---
+
+SECTION 3 — INSECURITIES
+
+Q6 — Multiple choice (select all that apply)
+"What areas of your life make you feel
+most self-conscious or not enough?"
+
+Options:
+- Physical appearance
+- Social confidence
+- Intelligence or ability
+- Career progress
+- Financial situation
+- Relationships
+- Discipline and habits
+- How others see me
+- My past choices
+- Something else
+
+Q7 — Multiple choice (select all that apply)
+(options pulled from what user selected in Q6)
+"Which of these actually affects
+how you show up day to day?"
+
+Q8 — Free text
+"When you compare yourself to others —
+even when you know you shouldn't —
+where do you feel most behind?"
+
+Q9 — Free text (kept original wording)
+"What would change if you felt
+completely confident?"
+
+Q10 — Free text
+"Have you tried working on any of your
+insecurities? What happened when you did?"
+
+---
+
+SECTION 4 — GOALS AND STRATEGY
+
+Q11 — Free text
+"Where do you want to be in the next
+5 to 10 years?
+Even a rough direction is enough."
+
+Q12 — Free text
+"What's the one thing you're most
+focused on building or improving
+right now?"
+
+Q13 — Free text
+"Where does most of your time go
+that you wish it didn't?"
+
+---
+
+SECTION 5 — OBSTACLES
+
+Q14 — Free text
+"What's one habit you keep doing
+even though you know it's
+holding you back?"
+
+Q15 — Free text
+"What's something important you keep
+finding reasons not to do —
+even though part of you knows
+you need to face it?"
+
+Q16 — Free text
+"What have you already tried that
+didn't work out?
+What do you think got in the way?"
+
+---
+
+SECTION 6 — RESOURCES
+
+Q17 — Single choice
+"How would you describe your financial
+situation right now?"
+
+Options:
+- Comfortable — not something I worry about
+- Managing — keeping an eye on it
+- Under pressure — it affects my decisions
+- In crisis — it's urgent right now
+
+Q18 — Free text
+"What are you genuinely good at —
+especially things others seem to
+find harder than you do?"
+
+Q19 — Single choice
+"Right now, what feels like the biggest
+thing standing between you and where
+you want to be?"
+
+Options:
+- Not enough time
+- Not enough money
+- Low energy or health issues
+- Missing knowledge or skills
+- No access to the right people
+- Where I live limits my options
+- Something else
+
+Q20 — Slider (range 1 to 12)
+"On a normal day, how many hours can
+you genuinely focus and get things done?"
+
+---
+
+SECTION 7 — LIFESTYLE
+
+Q21 — Free text (optional — clearly marked as skippable)
+"What does your sleep schedule
+usually look like?"
+
+Q22 — Single choice
+"When it comes to your day —
+how do you actually work best?"
+
+Options:
+- I need structure — routines keep me on track
+- I need flexibility — rigid schedules shut me down
+- Somewhere in between — depends on the day
+
+---
+
+SECTION 8 — DECISION-MAKING AND IDENTITY
+
+Q23 — Single choice
+"When you face a big decision —
+how do you usually make it?"
+
+Options:
+- I think it through logically
+- I go with what feels right
+- I trust my gut instinct
+- I talk it through with someone else
+
+Q24 — Single choice
+"When do you actually get
+your best work done?"
+
+Options:
+- Alone with no distractions
+- When someone is counting on me
+- When I have something to compete with
+- When I'm working alongside others
+
+Q25 — Single choice
+"What matters most to how
+you see yourself?"
+
+Options:
+- What I do for work
+- How I look and present myself
+- How smart or capable I am
+- The people in my life
+- My freedom and independence
+- The difference I make
+- What I've built financially
+- My health and energy
+
+Q26 — Free text
+"When something doesn't go the way
+you planned — what's the first thing
+that goes through your mind?"
+
+Q27 — Single choice
+"When I give you honest input —
+how direct do you want me to be?"
+
+Options:
+- Very direct — get to the point,
+  no softening needed
+- Honest but thoughtful —
+  truth delivered with care
+- Gentle — how you say it matters
+  as much as what you say
+
+Q28 — Single choice
+"What do you want from this space most?"
+
+Options:
+- Push me — even when I'm comfortable
+- Support me — without adding pressure
+- Read the situation — and adjust accordingly
+
+---
+
+IMPORTANT — Q27 BEHAVIOR INSTRUCTION:
+When saving Q27 answer to user profile,
+add this note alongside it for the AI:
+
+"Regardless of tone preference selected,
+the assistant always maintains calm,
+grounded, and respectful communication.
+
+Very direct = less hedging, clearer language,
+faster to the point. Never commanding or harsh.
+
+Gentle = more acknowledgment before insight,
+softer framing. Still delivers honest truth.
+
+The tone adjusts. The respect never changes."
+
+---
+
+INPUT TYPE SUMMARY FOR IMPLEMENTATION:
+
+Free text (open answer):
+Q1, Q2, Q3, Q4, Q5, Q8, Q9, Q10,
+Q11, Q12, Q13, Q14, Q15, Q16,
+Q18, Q26
+
+Single choice (tap one):
+Q17, Q19, Q22, Q23, Q24, Q25, Q27, Q28
+
+Multiple choice (tap all that apply):
+Q6, Q7
+
+Slider (1-12):
+Q20
+
+Optional free text:
+Q21
+
+---
+
+SECTION LABELS:
+Section 1 — Who You Are          (Q1-Q2)
+Section 2 — What Drives You      (Q3-Q5)
+Section 3 — Insecurities         (Q6-Q10)
+Section 4 — Goals and Strategy   (Q11-Q13)
+Section 5 — Obstacles            (Q14-Q16)
+Section 6 — Resources            (Q17-Q20)
+Section 7 — Lifestyle            (Q21-Q22)
+Section 8 — Decision-Making      (Q23-Q28)
+
+---
+
+WHAT TO PRESERVE:
+- Progress bar across sections
+- Mirror summary generation after completion
+- Memory extraction after onboarding
+  (Haiku extracts structured profile
+   from answers and seeds memory)
+- All existing onboarding completion logic
+- The first AI message that fires
+  automatically after onboarding ends
+
+WHAT TO UPDATE:
+- Total question count: 37 → 28
+- Question wording: replace exactly as above
+- Input types: match each question to its
+  correct input type as listed above
+- Q7 options: dynamically show only what
+  user selected in Q6
+- Q21: clearly marked as optional
+  with visible skip option
+
+---
+
+CRITICAL RULES:
+- Read ALL existing onboarding files first
+- Do not change the visual design or
+  progress bar style
+- Do not change the Mirror summary logic —
+  only the questions feeding into it change
+- Do not touch authentication, chat,
+  memory system, or any other feature
+- Keep all existing section navigation intact
+- After changes verify:
+  → Onboarding loads correctly
+  → Progress bar works across 8 sections
+  → Multiple choice questions allow
+     multi-select correctly
+  → Slider works on Q20
+  → Q21 is skippable
+  → Mirror summary still generates
+     after final question
+  → First AI message fires after completion

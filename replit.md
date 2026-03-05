@@ -3,7 +3,7 @@
 ## Overview
 
 This is a "Life Assistant" web application — a Jarvis-style personal AI chatbot that uses Claude (Anthropic's API) to provide AI-powered coaching. The app features:
-- A 37-question onboarding questionnaire across 8 sections
+- A 28-question onboarding questionnaire across 8 sections (with multi-select, dynamic options, slider, and optional skip)
 - A personalized "mirror" profile summary
 - A persistent chat interface with streaming AI responses
 - User accounts with database persistence
@@ -66,6 +66,7 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 ## Recent Changes
 
+- **2026-03-05**: Onboarding questionnaire overhaul: 37→28 questions with improved wording. New input types: dynamic multi-select (Q7 pulls from Q6 selections), slider (1-12 focus hours). Q21 (sleep) marked optional with visible skip button. Section names updated (Who You Are, What Drives You, Insecurities, Goals and Strategy, Obstacles, Resources, Lifestyle, Decision-Making). Q27 tone preference embeds respect instruction into AI prompt. Token limits increased: LOW=700, HIGH=1400, efficiency=250 (with 1.8x CJK multiplier). AI formatting instruction added: prioritize prose over heavy markdown, always complete answers.
 - **2026-03-05**: Decision Guidance Mode: (1) Identity sentence prepended to SYSTEM_PROMPT in capabilityLayer.js — defines AI as "calm, intelligent thinking partner." (2) detectDecisionMode() in adaptiveDepth.js detects 14 decision phrases (e.g. "should i", "torn between", "help me decide") with safety guard for empty/non-string inputs. (3) contextBuilder.js imports detectDecisionMode, extracts last user message from conversation, injects decision_guidance mode instructions when triggered. Zero cost when not triggered (empty string). AI helps user think through decisions without choosing for them.
 - **2026-03-03**: Server stability fixes: (1) Database pool error handlers on both app and session pools prevent crashes from dropped connections. (2) Global uncaughtException and unhandledRejection handlers. (3) Streaming error handler checks res.headersSent before responding. (4) Session middleware only runs on /api/* routes — root and static files bypass it. (5) Frontend auto-retry on failed chat requests. (6) Second retry for 529 API overload. (7) start.js lightweight startup script for fast port binding.
 - **2026-03-01**: 7-day guided onboarding system: (1) New DB columns: guidance_mode, guidance_day, last_guidance_date, last_active_at, guidance_day_open_count. (2) updateGuidanceDay() advances day only when user engaged (sent message) and new calendar day; pauses on 2+ day absence; graduates at day 8 with leadershipStyle="collaborative_autonomous". (3) buildGuidanceContext() in contextBuilder.js injects 3-phase tone (early=supportive, mid=reflective, late=peer-level) into AI prompt. (4) Stall nudge detection: if user opens app 2+ times without chatting, appends encouragement. (5) guidanceDayOpenCount resets on message send and daily reset. (6) Frontend shows nudge text appended to opening message.
