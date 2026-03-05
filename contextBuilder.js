@@ -80,6 +80,93 @@ Challenge them more directly when appropriate.`;
 }
 
 // ======================================
+// REFLECTION CONTEXT
+// ======================================
+
+function buildReflectionContext(userMessage, userMemory, patterns) {
+  if (!userMessage || typeof userMessage !== "string") return "";
+  if (!userMemory) return "";
+
+  const text = userMessage.toLowerCase().trim();
+
+  if (text.length < 20) return "";
+
+  const reflections = [];
+
+  function includesMeaningfulWord(text, phrase) {
+    if (!phrase) return false;
+    const words = phrase.toLowerCase().split(" ");
+    return words.some(word =>
+      word.length > 4 && text.includes(word)
+    );
+  }
+
+  const matchedStruggle = userMemory.recurringStruggles?.find(
+    struggle => includesMeaningfulWord(text, struggle)
+  );
+
+  if (matchedStruggle) {
+    reflections.push(
+      `You've mentioned struggling with ${matchedStruggle} before. ` +
+      `If relevant, connect this to the current moment naturally — ` +
+      `not as a label, but as continuity.`
+    );
+  }
+
+  const matchedGoal = userMemory.goals?.find(
+    goal => includesMeaningfulWord(text, goal)
+  );
+
+  if (matchedGoal) {
+    reflections.push(
+      `This connects to something the user has been working toward: ` +
+      `${matchedGoal}. Reference it naturally if it adds clarity.`
+    );
+  }
+
+  const isDecisionMessage =
+    text.includes("should i") ||
+    text.includes("what do i do") ||
+    text.includes("can't decide") ||
+    text.includes("cannot decide") ||
+    text.includes("torn between") ||
+    text.includes("not sure what to do");
+
+  if (isDecisionMessage && userMemory.decisionPatterns?.length > 0) {
+    const pattern =
+      userMemory.decisionPatterns[
+        userMemory.decisionPatterns.length - 1
+      ];
+    reflections.push(
+      `This user tends to ${pattern} when facing decisions. ` +
+      `Be aware of this pattern without naming it directly ` +
+      `unless it genuinely helps.`
+    );
+  }
+
+  const hasRepeatedTopic = patterns?.topTopics?.some(
+    topic => includesMeaningfulWord(text, topic)
+  );
+
+  if (hasRepeatedTopic) {
+    reflections.push(
+      `This is a topic the user returns to often. ` +
+      `You can acknowledge the pattern gently ` +
+      `if it serves the conversation.`
+    );
+  }
+
+  if (reflections.length === 0) return "";
+
+  const trimmed = reflections.slice(0, 2);
+
+  return (
+    `\nREFLECTION CONTEXT:\n` +
+    trimmed.join("\n")
+  );
+}
+
+// ======================================
 // CONTEXT BUILDER
 // ======================================
 
@@ -117,7 +204,8 @@ function buildContext({
 
   const stateBlock = buildStateContext(userState);
   const guidanceBlock = buildGuidanceContext(guidanceData);
-  const combinedBlocks = [stateBlock, guidanceBlock, decisionContext].filter(b => b).join("\n\n");
+  const reflectionBlock = buildReflectionContext(userMessage, userMemory || {}, patterns || null);
+  const combinedBlocks = [stateBlock, guidanceBlock, decisionContext, reflectionBlock].filter(b => b).join("\n\n");
   const finalSystem = combinedBlocks
     ? enhancedSystem + "\n\n" + combinedBlocks
     : enhancedSystem;

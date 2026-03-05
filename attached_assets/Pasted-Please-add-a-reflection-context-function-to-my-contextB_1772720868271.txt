@@ -1,0 +1,232 @@
+Please add a reflection context function to my 
+contextBuilder.js file.
+Read ALL existing files first before making any changes.
+Do not change anything not listed here.
+
+---
+
+CONTEXT:
+I have an existing contextBuilder.js file that assembles
+the final AI prompt from multiple context blocks.
+The final prompt assembly currently looks something like:
+
+const finalPrompt =
+  SYSTEM_PROMPT +
+  "\n\n" + memoryBlock +
+  guidanceContext +
+  patternContext +
+  userStateContext +
+  decisionContext;
+
+I want to add one new function and one new context block
+to this assembly.
+
+---
+
+STEP 1 — Add this function to contextBuilder.js:
+
+function buildReflectionContext(userMessage, userMemory, patterns) {
+
+  // Safety guards
+  if (!userMessage || typeof userMessage !== "string") return "";
+  if (!userMemory) return "";
+
+  const text = userMessage.toLowerCase().trim();
+
+  // Prevent reflections on short messages
+  // Single words, quick replies, and short responses
+  // do not need reflection context
+  if (text.length < 20) return "";
+
+  const reflections = [];
+
+  // Utility — detect meaningful word overlap
+  // Only matches words longer than 4 characters
+  // to avoid false matches on common short words
+  function includesMeaningfulWord(text, phrase) {
+    if (!phrase) return false;
+    const words = phrase.toLowerCase().split(" ");
+    return words.some(word =>
+      word.length > 4 && text.includes(word)
+    );
+  }
+
+  // ── RULE 1 — Recurring Struggle Match ──────────
+  // Fires when current message topic overlaps
+  // with a struggle stored in long-term memory
+  const matchedStruggle = userMemory.recurringStruggles?.find(
+    struggle => includesMeaningfulWord(text, struggle)
+  );
+
+  if (matchedStruggle) {
+    reflections.push(
+      `You've mentioned struggling with ${matchedStruggle} before. ` +
+      `If relevant, connect this to the current moment naturally — ` +
+      `not as a label, but as continuity.`
+    );
+  }
+
+  // ── RULE 2 — Goal Connection ────────────────────
+  // Fires when current message topic overlaps
+  // with a goal stored in long-term memory
+  const matchedGoal = userMemory.goals?.find(
+    goal => includesMeaningfulWord(text, goal)
+  );
+
+  if (matchedGoal) {
+    reflections.push(
+      `This connects to something the user has been working toward: ` +
+      `${matchedGoal}. Reference it naturally if it adds clarity.`
+    );
+  }
+
+  // ── RULE 3 — Decision Pattern Match ────────────
+  // Fires when user is expressing a decision moment
+  // AND decision patterns exist in memory
+  const isDecisionMessage =
+    text.includes("should i") ||
+    text.includes("what do i do") ||
+    text.includes("can't decide") ||
+    text.includes("cannot decide") ||
+    text.includes("torn between") ||
+    text.includes("not sure what to do");
+
+  if (isDecisionMessage && userMemory.decisionPatterns?.length > 0) {
+    const pattern =
+      userMemory.decisionPatterns[
+        userMemory.decisionPatterns.length - 1
+      ];
+    reflections.push(
+      `This user tends to ${pattern} when facing decisions. ` +
+      `Be aware of this pattern without naming it directly ` +
+      `unless it genuinely helps.`
+    );
+  }
+
+  // ── RULE 4 — Repeated Topic Pattern ────────────
+  // Fires when current message topic is something
+  // the user returns to frequently
+  const hasRepeatedTopic = patterns?.topTopics?.some(
+    topic => includesMeaningfulWord(text, topic)
+  );
+
+  if (hasRepeatedTopic) {
+    reflections.push(
+      `This is a topic the user returns to often. ` +
+      `You can acknowledge the pattern gently ` +
+      `if it serves the conversation.`
+    );
+  }
+
+  // If nothing relevant matched — inject nothing
+  // Silence is better than a forced connection
+  if (reflections.length === 0) return "";
+
+  // Cap at 2 reflections maximum
+  // If all 4 rules fire simultaneously,
+  // injecting all 4 creates overload.
+  // The first 2 matched are the most relevant.
+  const trimmed = reflections.slice(0, 2);
+
+  return (
+    `\nREFLECTION CONTEXT:\n` +
+    trimmed.join("\n")
+  );
+}
+
+---
+
+STEP 2 — Find the final prompt assembly in contextBuilder.js.
+
+Add the reflectionContext call and inject it
+as the last item in the assembly:
+
+const reflectionContext = buildReflectionContext(
+  userMessage,
+  userMemory,
+  patterns
+);
+
+const finalPrompt =
+  SYSTEM_PROMPT +
+  "\n\n" + memoryBlock +
+  guidanceContext +
+  patternContext +
+  userStateContext +
+  decisionContext +
+  reflectionContext;
+
+Important:
+- Keep ALL existing context blocks that are already there
+- Do not remove patternContext, userStateContext,
+  decisionContext or any other existing block
+- Only add reflectionContext as the final item
+- If the assembly in your file looks slightly different,
+  preserve all existing blocks and only add
+  reflectionContext at the end
+
+---
+
+STEP 3 — Make sure userMemory and patterns are passed in.
+
+Check that userMemory and patterns are already
+available at the point where the final prompt
+is assembled. They should already exist in your
+contextBuilder — just confirm they are passed
+into the new buildReflectionContext function.
+
+If userMemory or patterns are named differently
+in your existing code, use whatever names
+already exist — do not rename them.
+
+---
+
+WHAT THIS DOES:
+
+When a user sends a message the function checks:
+1. Does this message relate to a stored struggle?
+2. Does this message connect to a stored goal?
+3. Is the user facing a decision + have decision patterns?
+4. Is this a topic the user returns to often?
+
+If yes to any — a one or two sentence reflection
+is quietly injected into the AI prompt.
+
+The AI uses this to make responses feel like
+genuine continuity — not a fresh conversation.
+
+If nothing matches — nothing is injected.
+Silence is always better than a forced connection.
+
+Maximum 2 reflections injected at once
+to prevent overload when multiple rules fire.
+
+---
+
+BEHAVIOR RULES EMBEDDED IN THE FUNCTION:
+- "If relevant" — not forced into every response
+- "Naturally" — never robotic or labeled
+- "Without naming it directly" — awareness not diagnosis
+- "If it adds clarity" — only when it genuinely serves
+- Short messages under 20 characters are skipped entirely
+- Only words longer than 4 characters trigger matches
+  to avoid false positives on common short words
+
+---
+
+CRITICAL RULES:
+- Read ALL files before making any changes
+- Only touch contextBuilder.js
+- Do not modify any other file
+- Do not remove any existing context blocks
+- Do not change authentication, memory system,
+  habits, onboarding, guidance system,
+  or any other feature
+- Keep all existing exports intact
+- After changes verify:
+  → Server starts successfully
+  → AI streaming still works
+  → A message mentioning a stored goal or struggle
+    triggers a reflection correctly
+  → A short message like "ok" or "yes"
+    does not trigger any reflection
