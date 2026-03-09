@@ -1,0 +1,737 @@
+Please add a two-tab conversation mode system to my app.  
+Read ALL files before making changes.  
+Do not break any existing functionality.
+
+---
+
+CONTEXT:
+
+My app currently has a single chat interface.
+
+I want to add two conversation tabs that separate:
+
+daily personal conversation  
+from  
+deep thinking and life decision conversations
+
+The distinction is not casual vs serious.
+
+It is:
+
+daily personal life  
+vs  
+life decisions and direction
+
+Daily tab examples:
+
+skin concerns, food questions, exercise habits,  
+mood today, small daily decisions, health questions,  
+how I feel, daily routines
+
+Deep Thinking tab examples:
+
+career decisions, relationship choices,  
+identity questions, financial direction,  
+long-term goals, life crossroads,  
+anything that shapes the direction of life
+
+---
+
+PART 1 — Frontend (index.html)
+
+Add two tabs above the chat input area:
+
+Tab 1: "Daily"  
+Tab 2: "Deep Thinking"
+
+Design rules:
+
+- Match existing dark theme and color style
+- Active tab visually distinct using existing purple/pink accent color
+- Inactive tab subtle and understated
+- Tabs feel like a natural part of the chat interface, not a separate feature
+
+Default tab on app open: Daily
+
+Tab selection persists within the session, but resets to Daily when a new session begins.
+
+---
+
+FRONTEND STATE
+
+Add a global state variable:
+
+let currentMode = "daily";
+
+Also add a suppression counter:
+
+let modeShiftSuppressCount = 0;
+
+Whenever the user sends a message, include:
+
+mode: currentMode
+
+Example request:
+
+{
+  message: "text",
+  mode: "daily"
+}
+
+---
+
+TAB LABEL CLARITY
+
+Under each tab label, include small helper text:
+
+Daily  
+Small life questions
+
+Deep Thinking  
+Life direction & big decisions
+
+This helps users understand the difference.
+
+---
+
+TAB SWITCHING BEHAVIOR
+
+When the user switches tabs:
+
+Do NOT delete messages.
+
+Instead:
+
+1. Save the current conversation thread state
+2. Load the thread belonging to the selected mode
+3. Render only the messages belonging to that mode
+
+Each tab maintains its own conversation thread and history.
+
+Daily conversations must never appear inside the Deep Thinking tab.
+
+Deep Thinking conversations must never appear inside the Daily tab.
+
+Switching tabs clears the visible chat window but does not delete stored conversations.
+
+---
+
+PART 2 — Backend (server.js)
+
+When a message is sent, include the current tab mode in the request:
+
+mode: "daily" OR mode: "deep"
+
+If mode is missing or undefined:
+
+default to:
+
+mode = "deep"
+
+This preserves compatibility with existing conversations.
+
+Pass the mode value through to wherever the AI prompt is assembled in:
+
+contextBuilder.js
+
+---
+
+PART 3 — contextBuilder.js
+
+Add mode-based behavior control.
+
+---
+
+IF mode === "daily":
+
+SYSTEMS TO TURN OFF:
+
+Memory extraction  
+→ Do not call updateMemory()
+
+Pattern updates  
+→ Do not update topTopics or pattern tracking
+
+Decision guidance mode  
+→ decisionContext returns ""
+
+Open loop detection  
+→ Do not create or update open loops
+
+Deep reflection context  
+→ buildReflectionContext() returns ""
+
+Strategic life framing  
+→ Do not reference long-term goals
+
+---
+
+SYSTEMS TO KEEP ON:
+
+Mood tracking  
+→ The user's emotional state today matters. Capture mood signals passively as normal.
+
+Basic memory awareness  
+→ The AI should still know who this person is from existing stored memory.
+
+However:
+
+Do NOT extract new memory  
+Do NOT update patterns from this conversation.
+
+Habit signals  
+→ If user mentions exercise, sleep, or food habits, note them passively but do not run full memory extraction.
+
+---
+
+ADD THIS INSTRUCTION TO PROMPT:
+
+CONVERSATION MODE: daily
+
+The user is in daily life mode.
+
+This is personal but not a life decision.
+
+Topics include:
+
+skin, food, exercise, mood, health questions,  
+small daily choices, how they feel today,  
+daily routines.
+
+Respond warmly and practically.
+
+Answer what was actually asked.
+
+Acknowledge feelings briefly and naturally.
+
+Do NOT enter deep life analysis.  
+Do NOT reference long-term patterns out loud.  
+Do NOT activate decision guidance.  
+Do NOT turn daily moments into therapy.
+
+Keep responses shorter and lighter than deep mode.
+
+You still know who this person is — their background,
+goals, and struggles remain in memory and shape
+your awareness.
+
+But this conversation is not the place to bring
+those things forward.
+
+Just be present, warm, and genuinely helpful
+for what they are actually dealing with today.
+
+---
+
+MODE SHIFT AWARENESS:
+
+While responding in Daily mode, quietly assess whether
+the user may actually be touching on a life direction
+question or meaningful personal decision.
+
+This does NOT depend on specific keywords.
+
+Use judgment based on meaning.
+
+Examples of signals that may indicate a deeper topic:
+
+- questioning career direction
+- uncertainty about relationships
+- feeling stuck in life
+- identity questions
+- long-term financial or life decisions
+- uncertainty about the future
+- situations where the user expresses being
+  unsure what to do
+
+If the user's message suggests something that may
+shape the direction of their life, gently offer
+the option to move into Deep Thinking mode.
+
+Do NOT switch modes automatically.
+
+Instead briefly acknowledge what they said
+and add a soft optional invitation such as:
+
+"This sounds like something meaningful to think through.  
+Would you like to explore it in Deep Thinking mode?"
+
+Keep the suggestion natural and optional.
+
+If the topic is clearly just a daily life matter,
+do NOT suggest switching modes.
+
+---
+
+IF mode === "deep":
+
+All existing systems run exactly as normal.
+
+No changes to existing behavior.
+
+---
+
+ADD THIS INSTRUCTION TO PROMPT:
+
+CONVERSATION MODE: deep
+
+The user has chosen to think something through.
+
+Full thinking partner behavior applies.
+
+All systems active:
+
+memory extraction  
+pattern tracking  
+reflection context  
+decision guidance  
+open loop tracking
+
+This is a meaningful conversation.
+
+Give it the full depth it deserves.
+
+---
+
+PART 4 — Intelligent Mode Shift
+
+Add a lightweight detection system as a backend
+safety net to catch obvious life-direction topics
+in Daily mode before the AI responds.
+
+This works alongside the AI's own judgment
+from the MODE SHIFT AWARENESS instruction.
+
+This feature should never automatically switch modes.
+
+It only provides an additional signal layer.
+
+---
+
+DETECTION FUNCTION
+
+Add in contextBuilder.js:
+
+function detectDeepTopic(message) {
+
+  const deepKeywords = [
+    "career",
+    "relationship",
+    "marriage",
+    "breakup",
+    "purpose",
+    "life direction",
+    "future",
+    "identity",
+    "who I am",
+    "what should I do with my life",
+    "financial future",
+    "moving away",
+    "major decision",
+    "long term"
+  ];
+
+  const text = message.toLowerCase();
+
+  return deepKeywords.some(keyword => text.includes(keyword));
+}
+
+---
+
+EXPORT AND IMPORT
+
+Export detectDeepTopic from contextBuilder.js
+alongside all existing exports.
+
+If the file uses CommonJS:
+module.exports = { detectDeepTopic, ...existingExports };
+
+If the file uses ES modules:
+export { detectDeepTopic };
+
+Then import it in server.js before using it.
+
+If CommonJS:
+const { detectDeepTopic } = require("./contextBuilder");
+
+If ES modules:
+import { detectDeepTopic } from "./contextBuilder.js";
+
+Check which module style the file already uses
+and match it exactly.
+
+---
+
+DETECTION USAGE
+
+When receiving a message in server.js:
+
+if (mode === "daily") {
+  const deepSignal = detectDeepTopic(userMessage);
+}
+
+If deepSignal is true:
+
+Append this instruction to the prompt:
+
+Possible mode shift detected by backend.
+
+The user's message contains a life direction signal.
+
+Apply MODE SHIFT AWARENESS judgment.
+
+If the topic genuinely touches on life direction,
+offer the switch naturally and optionally.
+
+---
+
+STREAMING SAFETY
+
+Do NOT modify the existing streaming pipeline.
+
+Do NOT insert metadata inside the streaming
+token output.
+
+The AI response streaming must remain exactly
+as it currently works.
+
+After the AI finishes streaming its response,
+send a small additional payload as a separate
+event or final response — not inside the token stream:
+
+{
+  type: "meta",
+  suggestModeShift: true
+}
+
+Check how the current streaming system sends
+completion signals and attach the flag there
+in a way consistent with the existing implementation.
+
+Streaming behavior must remain completely unchanged.
+
+---
+
+BACKEND RESPONSE FLAG
+
+When deepSignal is true, include the flag
+in the final response metadata after streaming:
+
+suggestModeShift: true
+
+When deepSignal is false or not triggered,
+do not include suggestModeShift
+or set it to false.
+
+Note:
+The AI may also suggest a mode shift through
+its own judgment even when the backend flag
+is not triggered. Both paths are valid.
+The backend flag is a safety net —
+not the only trigger.
+
+---
+
+FRONTEND SUGGESTION UI
+
+In index.html, when the API response contains:
+
+suggestModeShift === true
+
+AND modeShiftSuppressCount === 0
+
+Display two suggestion chips below the AI response:
+
+[Switch to Deep Thinking]  [Continue Here]
+
+If suggestModeShift is false or missing,
+show no chips.
+
+---
+
+SUGGESTION SUPPRESSION RULE
+
+If the user selects Continue Here:
+
+Set modeShiftSuppressCount = 3
+
+Dismiss the chips.
+Stay in Daily tab.
+Continue conversation normally.
+
+Each time the user sends a message
+in Daily mode after selecting Continue Here:
+
+modeShiftSuppressCount -= 1
+
+When modeShiftSuppressCount reaches 0:
+
+Mode shift suggestions may appear again
+if the conversation still indicates
+a life-direction discussion.
+
+This prevents repeated suggestions
+from becoming intrusive.
+
+If the user switches tabs at any point:
+
+Reset modeShiftSuppressCount = 0
+
+---
+
+If the user selects Switch to Deep Thinking:
+
+currentMode = "deep"
+modeShiftSuppressCount = 0
+
+Load the Deep Thinking conversation thread.
+
+Mode shift suggestion chips must never
+appear inside the Deep Thinking tab.
+
+---
+
+PART 5 — Opening Message Engine (openingMessageEngine.js)
+
+When the app opens in Daily tab:
+
+Use time-based opening messages only:
+
+morning  
+afternoon  
+evening
+
+Skip:
+
+guidance day messages  
+habit miss detection
+
+Keep suggestion chips appropriate to daily tone.
+
+If user is in guidance mode (days 1-7)
+and opens the Daily tab:
+Show standard time-based opening only.
+Guidance day messages fire only in
+the Deep Thinking tab.
+This is correct — guidance is about
+life direction, not daily life.
+
+---
+
+When the app opens in Deep Thinking tab:
+
+Use the full existing personalized opening system.
+
+All existing priority logic remains unchanged:
+
+guidance days  
+returning user  
+habit miss detection  
+graduation logic
+
+---
+
+PART 6 — Conversation Storage
+
+Do NOT create separate conversation arrays.
+Do NOT overwrite the existing conversation history.
+
+Store all messages in the same conversation store
+that already exists.
+
+Add a mode property to each message —
+both user messages and AI responses.
+
+Example stored message structure:
+
+{
+  role: "user" or "assistant",
+  content: "...",
+  timestamp: Date.now(),
+  mode: "daily" or "deep"
+}
+
+Example conversation array:
+
+conversation = [
+  { role: "user", content: "...", mode: "daily" },
+  { role: "assistant", content: "...", mode: "daily" },
+  { role: "user", content: "...", mode: "deep" },
+  { role: "assistant", content: "...", mode: "deep" }
+]
+
+Messages must NOT be separated into different arrays.
+
+All messages remain in the same conversation storage.
+
+Tab separation happens only during rendering
+by filtering messages based on the mode property.
+
+---
+
+THREAD LOADING
+
+When displaying messages:
+
+Daily tab:
+
+render only messages where  
+mode === "daily"
+
+Deep Thinking tab:
+
+render only messages where  
+mode === "deep"
+
+---
+
+BACKWARD COMPATIBILITY
+
+If stored messages do not contain a mode property:
+
+default them to:
+
+mode = "deep"
+
+This ensures existing conversations remain visible
+in the Deep Thinking tab.
+
+---
+
+PART 7 — Cost Optimization
+
+Daily mode intentionally runs lighter systems:
+
+Disable:
+
+memory extraction API calls  
+pattern update database writes  
+reflection context generation  
+decision context generation  
+open loop tracking
+
+---
+
+MODEL SELECTION SAFETY
+
+Do NOT modify the global model configuration.
+Do NOT change any existing API setup,
+authentication, or default model settings.
+
+Instead select the model per request only,
+based on the conversation mode:
+
+if (mode === "daily") {
+  model = "claude-3-haiku"
+} else {
+  model = "claude-3-sonnet"
+}
+
+This selection happens only at the moment
+of the request to the AI model.
+Nothing else in the configuration changes.
+
+Exception:
+
+If complexity detection scores HIGH within
+a daily conversation, temporarily upgrade
+that single request to Sonnet.
+
+Estimated cost reduction:
+
+approximately 30–40% per daily message.
+
+---
+
+CRITICAL RULES
+
+- Read ALL files before making changes
+- Do not remove any existing functionality
+- Do not modify authentication
+- Do not modify onboarding
+- Do not modify habit systems
+- Do not modify the guidance system
+- Do not modify the core memory system
+- Do not create separate conversation arrays
+- Do not modify global model configuration
+- Do not insert metadata inside the token stream
+
+Memory and pattern systems must remain intact.
+
+Daily mode only skips calling them.
+
+Basic memory awareness must remain active in daily mode.
+
+Keep all existing exports intact.
+
+---
+
+FINAL VERIFICATION
+
+After implementation verify:
+
+Both tabs appear correctly styled
+
+Daily tab loads by default
+
+Switching tabs filters messages by mode property —
+not separate arrays
+
+Daily conversations never appear inside Deep Thinking tab
+
+Deep Thinking conversations never appear inside Daily tab
+
+All messages stored in same conversation store
+with mode property on both user and assistant messages
+
+Existing messages without mode property
+default to deep correctly
+
+Daily mode skips memory extraction
+
+Daily mode skips pattern updates
+
+Deep mode behavior remains unchanged
+
+Opening messages correct per tab
+
+Guidance day messages only fire in Deep Thinking tab
+
+Model selected per request only —
+global config unchanged
+
+Haiku used for daily conversations
+
+Sonnet used for deep conversations
+
+suggestModeShift flag sent as separate payload
+after stream completes —
+streaming pipeline unchanged
+
+A message containing a deep keyword such as
+"career" or "future" in Daily tab triggers
+the backend mode shift flag correctly
+
+AI uses its own judgment to suggest mode shift
+even when backend flag is not triggered
+
+Switch to Deep Thinking chip loads
+Deep Thinking thread correctly
+
+Continue Here chip sets suppression
+counter to 3 correctly
+
+Mode shift suggestions do not appear
+for 3 messages after Continue Here is selected
+
+Mode shift suggestions resume after
+suppression counter reaches zero
+
+Mode shift suggestion never appears
+inside Deep Thinking tab
+
+Server starts successfully
+
+AI streaming still works
+
+Existing conversations remain accessible

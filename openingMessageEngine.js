@@ -211,7 +211,8 @@ function _buildOpeningMessage({
   guidanceDay,
   lang,
   userData,
-  openLoops
+  openLoops,
+  mode
 }) {
   const L = lang || 'en';
   const now = new Date();
@@ -220,6 +221,24 @@ function _buildOpeningMessage({
     ? (Date.now() - new Date(lastActiveAt)) / 86400000
     : 0;
   const isMorning = hour >= 5 && hour <= 11;
+  const isDaily = mode === "daily";
+
+  if (isDaily) {
+    if (hour >= 0 && hour < 5) {
+      const ln = T.latenight[L] || T.latenight.en;
+      return { ...ln, type: "latenight" };
+    }
+    if (isMorning) {
+      const m = T.morning[L] || T.morning.en;
+      return { ...m.generic, type: "morning" };
+    }
+    if (hour >= 12 && hour <= 17) {
+      const a = T.afternoon[L] || T.afternoon.en;
+      return { ...a, type: "afternoon" };
+    }
+    const e = T.evening[L] || T.evening.en;
+    return { ...e, type: "evening" };
+  }
 
   if (daysAway >= 2) {
     const days = Math.floor(daysAway);

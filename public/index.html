@@ -85,16 +85,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .quick-actions{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 12px;justify-content:center;}
 .quick-btn{padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:0.82rem;background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.25);border-radius:100px;color:var(--accent);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
 .quick-btn:hover{background:rgba(155,109,255,0.2);border-color:var(--accent);transform:translateY(-1px);}
-.thread-tabs{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;background:rgba(13,13,20,0.6);border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;}
-.thread-tabs::-webkit-scrollbar{display:none;}
-.thread-tab{padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:0.8rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:100px;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px;}
-.thread-tab .thread-close{display:none;font-size:0.7rem;color:var(--muted);margin-left:2px;padding:0 2px;line-height:1;opacity:0.6;transition:opacity 0.15s;}
-.thread-tab:hover .thread-close{display:inline;}
-.thread-tab .thread-close:hover{opacity:1;color:#ff6b6b;}
-.thread-tab:hover{color:var(--text);border-color:rgba(155,109,255,0.3);}
-.thread-tab.active{background:rgba(155,109,255,0.2);border-color:var(--accent);color:#fff;}
-.thread-new{padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.85rem;background:none;border:1px dashed rgba(155,109,255,0.3);border-radius:100px;color:var(--accent);cursor:pointer;flex-shrink:0;}
-.thread-new:hover{background:rgba(155,109,255,0.1);}
+.mode-tabs{display:flex;gap:0;background:rgba(13,13,20,0.6);border-bottom:1px solid var(--border);padding:0;}
+.mode-tab{flex:1;padding:12px 16px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.mode-tab:hover{color:var(--text);background:rgba(155,109,255,0.05);}
+.mode-tab.active{color:#fff;border-bottom-color:var(--accent);background:rgba(155,109,255,0.08);}
+.mode-tab .mode-label{font-size:0.9rem;font-weight:600;}
+.mode-tab .mode-sub{font-size:0.65rem;font-weight:400;opacity:0.6;}
+.mode-tab.active .mode-sub{opacity:0.8;}
+.mode-shift-chips{display:flex;gap:8px;padding:8px 20px;justify-content:center;}
+.mode-shift-chip{padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:0.82rem;border-radius:100px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.mode-shift-chip.switch{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;}
+.mode-shift-chip.switch:hover{opacity:0.9;transform:translateY(-1px);}
+.mode-shift-chip.stay{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);}
+.mode-shift-chip.stay:hover{color:var(--text);border-color:rgba(155,109,255,0.3);}
 .checkin-banner{padding:16px 20px;background:linear-gradient(135deg,rgba(155,109,255,0.15),rgba(255,109,181,0.1));border-bottom:1px solid rgba(155,109,255,0.2);text-align:center;font-size:0.9rem;color:var(--text);cursor:pointer;transition:opacity 0.2s;}
 .checkin-banner:hover{opacity:0.85;}
 .checkin-dismiss{background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;margin-left:8px;font-family:'DM Sans',sans-serif;}
@@ -257,6 +260,12 @@ const UI = {
     quickActions: ['What should I focus on today?', 'Help me make a plan', 'I need motivation', 'Review my goals', 'Give me a challenge'],
     newThread: '+ New',
     mainThread: 'Main',
+    modeDaily: 'Daily',
+    modeDailySub: 'skin, food, exercise, mood',
+    modeDeep: 'Deep Thinking',
+    modeDeepSub: 'career, identity, decisions',
+    switchToDeep: 'Continue in Deep Thinking',
+    stayHere: 'Continue Here',
     checkinMsg: 'Good to see you! How are you feeling today?',
     checkinDismiss: 'dismiss',
     triggerInactivity: 'Quick check-in -- still moving toward your goal?',
@@ -359,6 +368,12 @@ const UI = {
     quickActions: ['今日は何に集中すべき？', '計画を立てて', 'やる気が欲しい', '目標を見直して', 'チャレンジをちょうだい'],
     newThread: '+ 新規',
     mainThread: 'メイン',
+    modeDaily: '日常',
+    modeDailySub: 'スキンケア、食事、運動、気分',
+    modeDeep: '深く考える',
+    modeDeepSub: 'キャリア、アイデンティティ、決断',
+    switchToDeep: '深く考えるに移動',
+    stayHere: 'ここで続ける',
     checkinMsg: '会えて嬉しいです！今日の調子はどうですか？',
     checkinDismiss: '閉じる',
     triggerInactivity: 'お久しぶりです -- まだ目標に向かって進んでいますか？',
@@ -461,6 +476,12 @@ const UI = {
     quickActions: ['¿En qué debo enfocarme hoy?', 'Ayúdame a hacer un plan', 'Necesito motivación', 'Revisa mis metas', 'Dame un reto'],
     newThread: '+ Nuevo',
     mainThread: 'Principal',
+    modeDaily: 'Diario',
+    modeDailySub: 'piel, comida, ejercicio, ánimo',
+    modeDeep: 'Reflexión Profunda',
+    modeDeepSub: 'carrera, identidad, decisiones',
+    switchToDeep: 'Continuar en Reflexión Profunda',
+    stayHere: 'Continuar Aquí',
     checkinMsg: '¡Me alegra verte! ¿Cómo te sientes hoy?',
     checkinDismiss: 'cerrar',
     triggerInactivity: 'Te echamos de menos -- ¿sigues avanzando hacia tu meta?',
@@ -563,6 +584,12 @@ const UI = {
     quickActions: ['วันนี้ควรโฟกัสอะไร?', 'ช่วยวางแผนให้หน่อย', 'ต้องการแรงจูงใจ', 'ทบทวนเป้าหมาย', 'ให้ความท้าทายหน่อย'],
     newThread: '+ ใหม่',
     mainThread: 'หลัก',
+    modeDaily: 'ประจำวัน',
+    modeDailySub: 'ผิวพรรณ อาหาร ออกกำลังกาย อารมณ์',
+    modeDeep: 'คิดลึก',
+    modeDeepSub: 'อาชีพ ตัวตน การตัดสินใจ',
+    switchToDeep: 'ไปที่คิดลึก',
+    stayHere: 'อยู่ที่นี่',
     checkinMsg: 'ดีใจที่ได้เจอ! วันนี้เป็นอย่างไรบ้าง?',
     checkinDismiss: 'ปิด',
     triggerInactivity: 'แค่เช็คอิน -- ยังมุ่งหน้าสู่เป้าหมายอยู่ไหม?',
@@ -665,6 +692,12 @@ const UI = {
     quickActions: ['오늘 뭐에 집중해야 할까?', '계획 세우는 걸 도와줘', '동기부여가 필요해', '목표 점검해줘', '도전 과제를 줘'],
     newThread: '+ 새로',
     mainThread: '메인',
+    modeDaily: '일상',
+    modeDailySub: '피부, 음식, 운동, 기분',
+    modeDeep: '깊은 생각',
+    modeDeepSub: '커리어, 정체성, 결정',
+    switchToDeep: '깊은 생각으로 이동',
+    stayHere: '여기서 계속',
     checkinMsg: '만나서 반가워요! 오늘 기분이 어때요?',
     checkinDismiss: '닫기',
     triggerInactivity: '잠깐 체크인 -- 아직 목표를 향해 나아가고 있나요?',
@@ -931,6 +964,9 @@ var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '',
 var AUTH = { loggedIn: false, email: '', checked: false, guest: false, tier: 'guest' };
 var savePending = null;
 var checkinDismissed = false;
+var currentMode = 'daily';
+var modeShiftSuppressCount = 0;
+var pendingModeShift = false;
 var voiceRecognition = null;
 var voiceIsRecording = false;
 var currentSpeech = null;
@@ -1224,10 +1260,18 @@ function getThreads() {
   return ST.threads;
 }
 
-function getActiveMsgs() {
+function getAllMsgs() {
   var threads = getThreads();
   if (threads.length === 0) return ST.msgs || [];
   return threads[ST.activeThread] ? threads[ST.activeThread].msgs : [];
+}
+
+function getActiveMsgs() {
+  var all = getAllMsgs();
+  return all.filter(function(m) {
+    var msgMode = m.mode || 'deep';
+    return msgMode === currentMode;
+  });
 }
 
 function setActiveMsgs(msgs) {
@@ -1250,7 +1294,7 @@ function switchThread(idx) {
 function newThread() {
   var threads = getThreads();
   var name = (threads.length + 1).toString();
-  threads.push({ name: name, msgs: [{ role: 'assistant', content: chatGreeting() }] });
+  threads.push({ name: name, msgs: [{ role: 'assistant', content: chatGreeting(), mode: 'deep' }] });
   ST.activeThread = threads.length - 1;
   ST.msgs = threads[ST.activeThread].msgs;
   save();
@@ -1321,27 +1365,35 @@ var openingMessageLoaded = false;
 var openingChips = null;
 var openingNudge = null;
 
+var openingLoadedFor = {};
 async function loadOpeningMessage() {
   var activeMsgs = getActiveMsgs();
   if (activeMsgs.length > 1) return;
-  if (openingMessageLoaded) return;
+  if (openingLoadedFor[currentMode]) return;
   if (ST.loading || ST.streaming) return;
-  openingMessageLoaded = true;
+  openingLoadedFor[currentMode] = true;
   try {
-    var res = await fetch('/api/opening-message', {
+    var res = await fetch('/api/opening-message?mode=' + currentMode, {
       method: 'GET',
       credentials: 'include'
     });
     var data = await res.json();
     if (data && data.text) {
-      openingChips = data.chips || null;
-      openingNudge = data.nudge || null;
-      if (activeMsgs.length === 1 && activeMsgs[0].role === 'assistant') {
-        activeMsgs[0].content = data.text;
-      } else if (activeMsgs.length === 0) {
-        activeMsgs.push({ role: 'assistant', content: data.text });
+      if (currentMode === 'deep') {
+        openingChips = data.chips || null;
+        openingNudge = data.nudge || null;
+      } else {
+        openingChips = null;
+        openingNudge = null;
       }
-      setActiveMsgs(activeMsgs);
+      var allMsgs = getAllMsgs();
+      var modeMsg = allMsgs.find(function(m) { return (m.mode || 'deep') === currentMode && m.role === 'assistant'; });
+      if (modeMsg) {
+        modeMsg.content = data.text;
+      } else {
+        allMsgs.push({ role: 'assistant', content: data.text, mode: currentMode });
+      }
+      setActiveMsgs(allMsgs);
       render();
     }
   } catch (e) {}
@@ -2207,12 +2259,15 @@ function chatGreeting() {
 async function sendMsg(userText) {
   trackMood(userText);
   trackPatterns(userText);
-  var activeMsgs = getActiveMsgs();
-  activeMsgs.push({ role: 'user', content: userText });
-  activeMsgs.push({ role: 'assistant', content: '' });
-  setActiveMsgs(activeMsgs);
+  pendingModeShift = false;
+  if (currentMode === 'daily' && modeShiftSuppressCount > 0) modeShiftSuppressCount--;
+  var allMsgs = getAllMsgs();
+  allMsgs.push({ role: 'user', content: userText, mode: currentMode });
+  allMsgs.push({ role: 'assistant', content: '', mode: currentMode });
+  setActiveMsgs(allMsgs);
   ST.streaming = true;
   var threads = getThreads();
+  var activeMsgs = getActiveMsgs();
   if (threads[ST.activeThread]) {
     var autoName = autoThreadName(activeMsgs);
     if (autoName && (threads[ST.activeThread].name === ui('mainThread') || /^\d+$/.test(threads[ST.activeThread].name))) {
@@ -2227,7 +2282,7 @@ async function sendMsg(userText) {
     var res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stream: true, system: buildAssistantPrompt(buildProfile(), userText), messages: msgsForApi }),
+      body: JSON.stringify({ stream: true, system: buildAssistantPrompt(buildProfile(), userText), messages: msgsForApi, mode: currentMode }),
       signal: controller.signal
     });
     clearTimeout(fetchTimeout);
@@ -2266,8 +2321,12 @@ async function sendMsg(userText) {
               errMsgs[errMsgs.length - 1].content = ui('chatError');
               setActiveMsgs(errMsgs);
             }
+          } else if (evt.type === 'meta' && evt.suggestModeShift) {
+            if (modeShiftSuppressCount <= 0) {
+              pendingModeShift = true;
+            }
           } else if (evt.text) {
-            var curMsgs = getActiveMsgs();
+            var curMsgs = getAllMsgs();
             curMsgs[curMsgs.length - 1].content += evt.text;
             updateStreamBubble();
           }
@@ -2283,7 +2342,7 @@ async function sendMsg(userText) {
         var retryRes = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stream: true, system: buildAssistantPrompt(buildProfile(), userText), messages: msgsForApi })
+          body: JSON.stringify({ stream: true, system: buildAssistantPrompt(buildProfile(), userText), messages: msgsForApi, mode: currentMode })
         });
         if (retryRes.ok) {
           var retryReader = retryRes.body.getReader();
@@ -2302,8 +2361,10 @@ async function sendMsg(userText) {
               if (rData === '[DONE]') continue;
               try {
                 var rEvt = JSON.parse(rData);
-                if (rEvt.text) {
-                  var rMsgs = getActiveMsgs();
+                if (rEvt.type === 'meta' && rEvt.suggestModeShift) {
+                  if (modeShiftSuppressCount <= 0) pendingModeShift = true;
+                } else if (rEvt.text) {
+                  var rMsgs = getAllMsgs();
                   rMsgs[rMsgs.length - 1].content += rEvt.text;
                   updateStreamBubble();
                 }
@@ -2346,7 +2407,9 @@ function updateStreamBubble() {
   var lastBubble = document.getElementById('stream-bubble');
   if (lastBubble) {
     var aMsgs = getActiveMsgs();
-    lastBubble.innerHTML = esc(aMsgs[aMsgs.length - 1].content);
+    if (aMsgs.length > 0) {
+      lastBubble.innerHTML = esc(aMsgs[aMsgs.length - 1].content);
+    }
     var cm = document.getElementById('cm');
     if (cm) cm.scrollTop = cm.scrollHeight;
   }
@@ -2610,10 +2673,11 @@ function renderMirror(root) {
     '</div></div>';
   document.getElementById('cn').onclick = function() {
     ST.stage = 'chat';
-    var greeting = [{ role: 'assistant', content: chatGreeting() }];
+    var greeting = [{ role: 'assistant', content: chatGreeting(), mode: 'deep' }];
     ST.msgs = greeting;
     ST.threads = [{ name: ui('mainThread'), msgs: greeting }];
     ST.activeThread = 0;
+    currentMode = 'daily';
     save();
     render();
   };
@@ -2625,7 +2689,7 @@ function renderChat(root) {
   var isBusy = ST.loading || ST.streaming;
   var activeMsgs = getActiveMsgs();
   var threads = getThreads();
-  var showCheckin = shouldCheckin();
+  var showCheckin = currentMode === 'deep' && shouldCheckin();
   var showQuickActions = !isBusy && activeMsgs.length <= 2;
 
   var msgsHtml = activeMsgs.map(function(m, idx) {
@@ -2640,18 +2704,10 @@ function renderChat(root) {
     return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '"' + bubbleId + '>' + content + ttsBtn + '</div></div>';
   }).join('');
 
-  var threadHtml = '';
-  if (threads.length > 0) {
-    threadHtml = '<div class="thread-tabs" data-testid="thread-tabs">';
-    for (var t = 0; t < threads.length; t++) {
-      var tActive = t === ST.activeThread ? ' active' : '';
-      var tName = threads[t].name || (t + 1);
-      var closeBtn = threads.length > 1 ? '<span class="thread-close" data-del="' + t + '" data-testid="thread-delete-' + t + '">&times;</span>' : '';
-      threadHtml += '<button class="thread-tab' + tActive + '" data-tidx="' + t + '" data-testid="thread-tab-' + t + '">' + esc(tName) + closeBtn + '</button>';
-    }
-    threadHtml += '<button class="thread-new" id="new-thread" data-testid="button-new-thread">' + ui('newThread') + '</button>';
-    threadHtml += '</div>';
-  }
+  var modeTabHtml = '<div class="mode-tabs" data-testid="mode-tabs">' +
+    '<button class="mode-tab' + (currentMode === 'daily' ? ' active' : '') + '" data-mode="daily" data-testid="mode-tab-daily"><span class="mode-label">' + ui('modeDaily') + '</span><span class="mode-sub">' + ui('modeDailySub') + '</span></button>' +
+    '<button class="mode-tab' + (currentMode === 'deep' ? ' active' : '') + '" data-mode="deep" data-testid="mode-tab-deep"><span class="mode-label">' + ui('modeDeep') + '</span><span class="mode-sub">' + ui('modeDeepSub') + '</span></button>' +
+    '</div>';
 
   var checkinHtml = '';
   if (showCheckin) {
@@ -2688,6 +2744,14 @@ function renderChat(root) {
     }
   }
 
+  var modeShiftHtml = '';
+  if (pendingModeShift && !isBusy) {
+    modeShiftHtml = '<div class="mode-shift-chips" data-testid="mode-shift-chips">' +
+      '<button class="mode-shift-chip switch" id="mode-shift-switch" data-testid="button-mode-shift-switch">' + ui('switchToDeep') + '</button>' +
+      '<button class="mode-shift-chip stay" id="mode-shift-stay" data-testid="button-mode-shift-stay">' + ui('stayHere') + '</button>' +
+      '</div>';
+  }
+
   root.innerHTML = '<div class="chat-wrap">' +
     '<div class="chat-header">' +
     '<div>' +
@@ -2706,11 +2770,11 @@ function renderChat(root) {
     '<div class="reset-link" style="margin:0" id="rb" data-testid="link-reset">' + ui('reset') + '</div>' +
     '</div>' +
     '</div>' +
-    threadHtml +
+    modeTabHtml +
     checkinHtml +
     '<div class="chat-messages" id="cm">' + msgsHtml +
     '<div id="chat-end"></div></div>' +
-    nudgeHtml + openingChipsHtml + quickHtml +
+    modeShiftHtml + nudgeHtml + openingChipsHtml + quickHtml +
     '<div class="chat-input-bar">' +
     '<div class="chat-input-inner">' +
     (hasVoiceInput() ? '<button class="voice-mic' + (voiceIsRecording ? ' recording' : '') + '" id="voice-mic" data-testid="button-voice-mic">' + (voiceIsRecording ? '...' : 'MIC') + '</button>' : '') +
@@ -2743,21 +2807,34 @@ function renderChat(root) {
     };
   });
 
-  document.querySelectorAll('.thread-tab').forEach(function(btn) {
-    btn.onclick = function(e) {
-      if (e.target.classList.contains('thread-close')) return;
-      switchThread(parseInt(btn.dataset.tidx));
+  document.querySelectorAll('.mode-tab').forEach(function(btn) {
+    btn.onclick = function() {
+      var newMode = btn.dataset.mode;
+      if (newMode === currentMode) return;
+      currentMode = newMode;
+      pendingModeShift = false;
+      modeShiftSuppressCount = 0;
+      openingChips = null;
+      openingNudge = null;
+      render();
+      loadOpeningMessage();
     };
   });
-  document.querySelectorAll('.thread-close').forEach(function(btn) {
-    btn.onclick = function(e) {
-      e.stopPropagation();
-      var idx = parseInt(btn.dataset.del);
-      deleteThread(idx);
-    };
-  });
-  var ntBtn = document.getElementById('new-thread');
-  if (ntBtn) ntBtn.onclick = newThread;
+
+  var modeShiftSwitch = document.getElementById('mode-shift-switch');
+  if (modeShiftSwitch) modeShiftSwitch.onclick = function() {
+    pendingModeShift = false;
+    modeShiftSuppressCount = 0;
+    currentMode = 'deep';
+    render();
+    loadOpeningMessage();
+  };
+  var modeShiftStay = document.getElementById('mode-shift-stay');
+  if (modeShiftStay) modeShiftStay.onclick = function() {
+    pendingModeShift = false;
+    modeShiftSuppressCount = 3;
+    render();
+  };
 
   document.querySelectorAll('.quick-btn').forEach(function(btn) {
     btn.onclick = function() {

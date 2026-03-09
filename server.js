@@ -17,7 +17,7 @@ import { buildAttentionLayer } from './hybridModel.js';
 import { resetDailyUsage, truncateInput, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
 import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave, extractOpenLoop, resolveMatchingLoop } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
-import { buildContext } from './contextBuilder.js';
+import { buildContext, detectDeepTopic } from './contextBuilder.js';
 import { seedMemoryFromOnboarding } from './onboardingIdentitySync.js';
 import { detectIdentityShift } from './identityShiftDetector.js';
 import { cooldownPassed } from './identityCooldown.js';
@@ -275,7 +275,8 @@ app.post('/api/data', async (req, res) => {
 
 app.get('/api/opening-message', async (req, res) => {
   try {
-    let params = { userData: {} };
+    const openingMode = req.query.mode || 'deep';
+    let params = { userData: {}, mode: openingMode };
     let uData = null;
     if (req.session.userId) {
       const [row] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
@@ -290,7 +291,8 @@ app.get('/api/opening-message', async (req, res) => {
           guidanceDay: uData.guidanceDay || 1,
           lang: uData.lang || 'en',
           userData: { lastOpeningMessage: uData.lastOpeningMessage },
-          openLoops: uData.openLoops || []
+          openLoops: uData.openLoops || [],
+          mode: openingMode
         };
       }
     }
@@ -630,11 +632,18 @@ app.post('/api/chat', async (req, res) => {
       } catch(e) {}
     }
 
+    const chatMode = req.body.mode || 'deep';
     const complexity = detectComplexity(userMsg);
 
     const budgetState = checkBudget(runtimeUser, complexity, selectModel);
-    const modelName = budgetState.model;
+    let modelName = budgetState.model;
     const efficiencyMode = budgetState.efficiencyMode || false;
+
+    if (chatMode === 'daily' && complexity !== 'HIGH') {
+      modelName = 'claude-haiku-4-5-20251001';
+    }
+
+    const deepSignal = chatMode === 'daily' ? detectDeepTopic(userMsg) : false;
 
     let userLang = 'en';
     if (req.session.userId) {
@@ -696,7 +705,9 @@ app.post('/api/chat', async (req, res) => {
       rollingSummary: sessionSummary,
       userMemory,
       guidanceData,
-      openLoops: userOpenLoops
+      openLoops: userOpenLoops,
+      mode: chatMode,
+      deepSignal
     });
     const systemContent = builtMessages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
     const chatMessages = builtMessages.filter(m => m.role !== 'system');
@@ -835,7 +846,7 @@ app.post('/api/chat', async (req, res) => {
         console.error('[POST-STREAM ERROR]', postErr.message || postErr);
       }
 
-      if (shouldUpdateMemory(userId, complexity, req.session)) {
+      if (chatMode !== 'daily' && shouldUpdateMemory(userId, complexity, req.session)) {
         try {
           const extractPrompt = buildMemoryExtractionPrompt(userMsg);
           const memRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -896,7 +907,7 @@ app.post('/api/chat', async (req, res) => {
         }
       }
 
-      if (req.session.userId) {
+      if (chatMode !== 'daily' && req.session.userId) {
         try {
           let updatedLoops = resolveMatchingLoop(userMsg, userOpenLoops);
           const newLoop = extractOpenLoop(userMsg, updatedLoops, req.session.openLoopCreatedThisSession);
@@ -913,6 +924,9 @@ app.post('/api/chat', async (req, res) => {
         } catch(e) {}
       }
 
+      if (deepSignal) {
+        res.write('data: ' + JSON.stringify({ type: 'meta', suggestModeShift: true }) + '\n\n');
+      }
       res.write('data: [DONE]\n\n');
       res.end();
     } else {
@@ -954,7 +968,7 @@ app.post('/api/chat', async (req, res) => {
       }
       req.session.lastActive = Date.now();
 
-      if (shouldUpdateMemory(userId, complexity, req.session)) {
+      if (chatMode !== 'daily' && shouldUpdateMemory(userId, complexity, req.session)) {
         try {
           const extractPrompt = buildMemoryExtractionPrompt(userMsg);
           const memRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1015,7 +1029,7 @@ app.post('/api/chat', async (req, res) => {
         }
       }
 
-      if (req.session.userId) {
+      if (chatMode !== 'daily' && req.session.userId) {
         try {
           let updatedLoops = resolveMatchingLoop(userMsg, userOpenLoops);
           const newLoop = extractOpenLoop(userMsg, updatedLoops, req.session.openLoopCreatedThisSession);
@@ -1030,6 +1044,10 @@ app.post('/api/chat', async (req, res) => {
             }).where(eq(userData.userId, req.session.userId));
           }
         } catch(e) {}
+      }
+
+      if (deepSignal) {
+        data.suggestModeShift = true;
       }
 
       res.json(data);

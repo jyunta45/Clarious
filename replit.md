@@ -2,14 +2,7 @@
 
 ## Overview
 
-This is a "Life Assistant" web application — a Jarvis-style personal AI chatbot that uses Claude (Anthropic's API) to provide AI-powered coaching. The app features:
-- A 28-question onboarding questionnaire across 8 sections (with multi-select, dynamic options, slider, and optional skip)
-- A personalized "mirror" profile summary
-- A persistent chat interface with streaming AI responses
-- User accounts with database persistence
-- Multi-language support (English, Japanese, Spanish, Thai, Korean)
-
-The architecture is a simple Express server with a single-file vanilla HTML/CSS/JS frontend.
+This project is a "Life Assistant" web application, designed as a Jarvis-style personal AI chatbot using Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a detailed onboarding questionnaire for user profiling, user accounts with database persistence, and multi-language support (English, Japanese, Spanish, Thai, Korean). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
 
 ## User Preferences
 
@@ -20,97 +13,50 @@ The architecture is a simple Express server with a single-file vanilla HTML/CSS/
 
 ## System Architecture
 
-### Active Architecture
+The application utilizes a simple Express.js server as its backend and a single-file vanilla HTML/CSS/JS frontend.
 
-- **Server**: Express.js server (`server.js`) running on port 5000 that:
-  - Serves static files from `public/`
-  - Provides `/api/chat` POST endpoint with streaming (SSE) support
-  - Authentication endpoints: `/api/auth/signup`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`
-  - Data persistence endpoints: `/api/data` (GET/POST)
-  - Uses express-session with connect-pg-simple for session storage
-  - Uses bcrypt for password hashing
-  - Smart token management (300-800 tokens based on question complexity)
-  - Auto-trims chat history to last 16 messages
+The **Express.js server** (`server.js`) handles:
+- Serving static files.
+- Providing API endpoints for chat (streaming via Server-Sent Events), user authentication (`signup`, `login`, `logout`, `me`), and data persistence (`data`).
+- Session management using `express-session` with `connect-pg-simple` for PostgreSQL storage.
+- Password hashing with `bcrypt`.
+- Smart token management (300-800 tokens) and automatic chat history trimming to the last 16 messages for cost efficiency.
+- AI model routing based on complexity: Claude Haiku for low complexity, Claude Sonnet for high complexity.
+- Advanced AI memory systems including structured identity profiles, memory extraction, mood tracking, and behavioral triggers.
 
-- **Database**: PostgreSQL with Drizzle ORM
-  - `users` table: id, email, password_hash, created_at
-  - `user_data` table: id, user_id (unique FK), answers (JSONB), messages (JSONB), stage, step, lang, mirror, tier, msg_count, msg_count_date, identity_profile (JSONB), memories (JSONB), mood_log (JSONB), thread_summaries (JSONB), last_active_date, patterns (JSONB), updated_at
-  - Session storage: `session` table (auto-created by connect-pg-simple)
-  - Schema in `shared/schema.ts`, connection in `db/index.ts`
-  - Push schema with: `npx drizzle-kit push --dialect postgresql --schema ./shared/schema.ts --url "$DATABASE_URL"`
+The **PostgreSQL database**, managed with Drizzle ORM, stores:
+- User accounts (`users` table).
+- Comprehensive user data (`user_data` table) including questionnaire answers, chat messages, progression stage, language, personalized "mirror" summary, messaging statistics, identity profile, memories, mood logs, thread summaries, activity patterns, and open loops.
+- Session information (`session` table).
 
-- **Frontend**: Single-file vanilla HTML/CSS/JS (`public/index.html`) with:
-  - Auth screen (login/signup/guest mode) shown before app
-  - Multi-step onboarding questionnaire (37 questions, 8 sections)
-  - Progress tracking through the questionnaire
-  - "Mirror" summary page
-  - Streaming chat interface (SSE-based, text appears word-by-word)
-  - Conversation threads with auto-naming, quick-action buttons, daily check-in banner
-  - Voice input (Web Speech API microphone) and voice output (TTS on AI responses)
-  - User tier system: Guest (10 msgs), Free (50/day), Subscriber (200/day)
-  - Dark theme with purple/pink gradient accents, Playfair Display and DM Sans fonts
-  - Language switcher persistent across all screens
-  - Data saves to both localStorage (offline) and server (when logged in) with debounced sync
+The **Frontend** (`public/index.html`) features:
+- An authentication screen with login, signup, and guest modes.
+- A multi-step, 28-question onboarding questionnaire with dynamic inputs.
+- A personalized "mirror" profile summary.
+- A persistent chat interface with streaming AI responses, conversation threads, quick-action buttons, and a daily check-in banner.
+- Voice input (Web Speech API) and voice output (TTS) for AI responses.
+- A user tier system (Guest, Free, Subscriber) with corresponding message limits.
+- A dark theme with purple/pink accents, using Playfair Display and DM Sans fonts.
+- Multi-language support with a persistent language switcher.
+- Dual data storage: `localStorage` for offline access and server sync for logged-in users.
+- Two-tab conversation mode ("Daily" for personal life, "Deep Thinking" for life direction) with mode-aware backend processing and mode-shift detection.
+- A 7-day guided onboarding system with adaptive guidance based on user engagement.
+- Visible Personal Evolution / Growth panel for monthly summaries, pattern insights, and habit consistency.
+- Pattern tracking system for topic frequency, recurring challenges, and activity heatmaps.
+- Controlled proactivity triggers for context-aware check-ins.
 
-- **AI Integration**: Anthropic Claude API (`claude-sonnet-4-20250514`) via Express proxy. Streaming via SSE. API key stored as `ANTHROPIC_API_KEY` environment variable.
-
-- **Entry Point**: `server/index.ts` imports `server.js`. Running `npm run dev` starts the Express server.
-
-### Key Design Decisions
-
-1. **API Key Proxying**: Express server proxies Anthropic API so key stays server-side
-2. **Single-file Frontend**: Entire UI in one HTML file — fast to iterate, fully portable
-3. **Dual Storage**: localStorage for offline/guest, PostgreSQL for logged-in users
-4. **Session-based Auth**: express-session with PostgreSQL store, bcrypt passwords
-5. **Streaming**: Server-Sent Events for real-time AI response rendering
-
-## Recent Changes
-
-- **2026-03-05**: Open Loop Memory System: (1) Extended continuityEngine.js with persistent open loop detection — 8 trigger phrases ("should i", "i'm thinking about", "i'm torn between", etc.) create structured loops {type, content, createdAt, resolved}. (2) Resolution detection via 8 resolution phrases ("i decided", "i went with", etc.) with keyword overlap matching to mark loops resolved. (3) Safety limits: max 1 new loop per conversation, max 3 unresolved per user, trivial decision filter, keyword overlap dedup. (4) buildOpenLoopContext() in contextBuilder.js injects oldest active unresolved loop (within 30 days) into AI prompt. (5) Opening message engine: 20% chance morning reference to active loop with i18n chips (all 5 languages). Priority 4 between graduation and habit check. (6) New DB column: open_loops (JSONB array) on user_data. Zero API cost.
-- **2026-03-05**: Memory Continuity Rule appended to SYSTEM_PROMPT in capabilityLayer.js — instructs AI to use identity profile silently, reference patterns/themes (not events/timestamps), never mention databases/storage/profiles, speak as thoughtful partner. Good/bad examples included.
-- **2026-03-05**: Onboarding questionnaire overhaul: 37→28 questions with improved wording. New input types: dynamic multi-select (Q7 pulls from Q6 selections), slider (1-12 focus hours). Q21 (sleep) marked optional with visible skip button. Section names updated (Who You Are, What Drives You, Insecurities, Goals and Strategy, Obstacles, Resources, Lifestyle, Decision-Making). Q27 tone preference embeds respect instruction into AI prompt. Token limits increased: LOW=700, HIGH=1400, efficiency=250 (with 1.8x CJK multiplier). AI formatting instruction added: prioritize prose over heavy markdown, always complete answers.
-- **2026-03-05**: Decision Guidance Mode: (1) Identity sentence prepended to SYSTEM_PROMPT in capabilityLayer.js — defines AI as "calm, intelligent thinking partner." (2) detectDecisionMode() in adaptiveDepth.js detects 14 decision phrases (e.g. "should i", "torn between", "help me decide") with safety guard for empty/non-string inputs. (3) contextBuilder.js imports detectDecisionMode, extracts last user message from conversation, injects decision_guidance mode instructions when triggered. Zero cost when not triggered (empty string). AI helps user think through decisions without choosing for them.
-- **2026-03-03**: Server stability fixes: (1) Database pool error handlers on both app and session pools prevent crashes from dropped connections. (2) Global uncaughtException and unhandledRejection handlers. (3) Streaming error handler checks res.headersSent before responding. (4) Session middleware only runs on /api/* routes — root and static files bypass it. (5) Frontend auto-retry on failed chat requests. (6) Second retry for 529 API overload. (7) start.js lightweight startup script for fast port binding.
-- **2026-03-01**: 7-day guided onboarding system: (1) New DB columns: guidance_mode, guidance_day, last_guidance_date, last_active_at, guidance_day_open_count. (2) updateGuidanceDay() advances day only when user engaged (sent message) and new calendar day; pauses on 2+ day absence; graduates at day 8 with leadershipStyle="collaborative_autonomous". (3) buildGuidanceContext() in contextBuilder.js injects 3-phase tone (early=supportive, mid=reflective, late=peer-level) into AI prompt. (4) Stall nudge detection: if user opens app 2+ times without chatting, appends encouragement. (5) guidanceDayOpenCount resets on message send and daily reset. (6) Frontend shows nudge text appended to opening message.
-- **2026-02-27**: Opening message engine with production safety guards: (1) "Don't repeat yesterday" guard compares against stored lastOpeningMessage, (2) Silent fail fallback with 4-message pool rotated daily, (3) Personalized openers from user goals/struggles/patterns, (4) Engagement tracking via userSentMessageToday flag set on each chat message, reset daily. New file: openingMessageEngine.js. New DB columns: last_opening_message, user_sent_message_today. New endpoint: GET /api/opening-message. Token multiplier for CJK languages (1.8x for Thai/Japanese/Korean) to prevent cut-off responses. Memory awareness rule added to capability layer system prompt.
-- **2026-02-26**: Onboarding identity sync: after completing 37 questions, Haiku extracts goal/struggle/strength/decisionPattern/identityDirection from answers and seeds structured memory. Runs once (memorySeeded boolean flag prevents re-runs). New file: onboardingIdentitySync.js. New DB column: memory_seeded on user_data. User state engine: userStateEngine.js computes growthPhase (exploring/executing/restructuring/developing) and injects unified state block into AI prompt via contextBuilder.js. Token limits increased: LOW=500, HIGH=1024 to prevent cut-off responses.
-- **2026-02-25**: Major AI engine upgrade: (1) New complexity detection with strong/medium signal scoring replaces old depth scoring, (2) 2-tier model routing: Haiku for LOW complexity, Sonnet for HIGH complexity (no more Opus), (3) Structured memory system with goals/struggles/strengths/decisionPatterns/identityDirection — AI extracts facts via Haiku, merges without overwriting, 6-hour cooldown, (4) Memory context injection into system prompt (under 60 tokens), (5) New capability layer system prompt with situation/cognitive-need/leadership-calibration framework, (6) Updated token limits: LOW=500, HIGH=1024, efficiency=180.
-- **2026-02-24**: Forgot password feature: 3-step flow (enter email → get reset code → set new password). Reset tokens expire after 15 min. Anti-enumeration protection (same response for existing/non-existing emails). All 5 languages. Zero API cost. Database columns: reset_token, reset_token_expires on users table.
-- **2026-02-21**: Visible Personal Evolution / Growth panel: monthly evolution summary (days active, messages, topics, habit rates, mood trend), pattern insights (human-readable sentences from raw data), habit consistency trends (4-week completion rate bars), mood journey visualization (dot-line trend), milestone detection and celebration badges (streak milestones, days active, memory count, all-habits-done). Gold "Growth" button in chat header. Mutually exclusive with Patterns panel. Zero API cost. All 5 languages.
-- **2026-02-21**: Habit integration: add/track daily habits with streak counting, best-streak tracking, goal linking, completion progress. Habits section in Patterns panel with checkboxes, add-habit form, remove. habitsPromptBlock() injects habit status into AI system prompt. Proactive trigger when habits are unchecked. All stored in existing patterns JSONB (no new columns). Zero API cost. All 5 languages.
-- **2026-02-21**: Controlled proactivity triggers: context-aware check-in banner shows different messages based on conditions: inactivity (2+ days away: "still moving toward your goal?"), goal drift (3+ repeated challenges: "want to redesign your approach?"), unchecked habits ("you have habits to check off"), daily alignment (default: "what's one action today that moves you forward?"). All 5 languages. Both visible UI banners and AI prompt injection. Zero API cost.
-- **2026-02-21**: Pattern tracking system: topic frequency detection (8 categories: work, health, relationships, money, goals, learning, creativity, habits), recurring challenge identification, activity heatmap (hourly usage patterns), goal progress tracking, weekly topic trends. Visual Patterns dashboard panel accessible from chat header. Pattern insights injected into AI system prompt. Stored in new JSONB `patterns` column.
-- **2026-02-21**: Advanced AI memory systems: structured identity profiles (8 categories), memory extraction (6 fact types via regex), memory retrieval (keyword matching, top 3 results), mood tracking (sentiment scoring, 30-day rolling log), behavioral triggers (absence detection, mood trends, goal follow-ups), thread summarization (stored per-thread during context compression). All persisted in 5 new JSONB columns.
-- **2026-02-21**: Added voice input (Web Speech API microphone) and voice output (TTS auto-read on AI responses)
-- **2026-02-21**: Added user tier system: Guest (10 msgs/session), Free (50 msgs/day), Subscriber (200 msgs/day) with server-side tracking
-- **2026-02-21**: Added conversation threads, quick-action buttons, context compression, daily check-in, mobile UX
-- **2026-02-21**: Added database + user accounts (PostgreSQL, Drizzle ORM, express-session, bcrypt auth, data persistence API, auth UI with guest mode)
-- **2026-02-21**: Implemented streaming responses via SSE
-- **2026-02-21**: Added multi-language support (EN, JA, ES, TH, KO)
-- **2026-02-21**: Redesigned AI personality to Jarvis-style (supportive, no lecturing)
-- **2026-02-21**: Smart token management for cost optimization
+**Key Design Decisions**:
+- **API Key Proxying**: The server proxies the Anthropic API to secure the API key.
+- **Single-file Frontend**: Simplifies development and deployment.
+- **Dual Storage**: Provides a seamless experience for both guest and logged-in users.
+- **Session-based Authentication**: Robust user authentication with PostgreSQL for session storage.
+- **Streaming**: Uses Server-Sent Events for a real-time, dynamic user experience.
 
 ## External Dependencies
 
-- **Anthropic Claude API**: Core AI. Requires `ANTHROPIC_API_KEY`. Models: `claude-haiku-4-5-20251001` (LOW complexity + memory extraction), `claude-sonnet-4-20250514` (HIGH complexity).
-- **Google Fonts**: Playfair Display and DM Sans
-- **PostgreSQL**: User data persistence. Uses `DATABASE_URL` environment variable.
-- **Express.js**: Web server, port 5000, bound to `0.0.0.0`
-- **bcrypt**: Password hashing
-- **express-session + connect-pg-simple**: Session management with PostgreSQL store
-
-## Feature Roadmap
-
-- [x] Streaming responses (SSE)
-- [x] Database + user accounts
-- [x] Quick-action buttons in chat
-- [x] Conversation threads/topics
-- [x] Context compression (summarize old messages)
-- [x] Better mobile UX
-- [x] Daily check-in
-- [x] Voice input (Web Speech API)
-- [x] Voice output (TTS auto-read)
-- [x] User tier system (guest/free/subscriber)
-- [ ] Payment integration (Stripe)
-- [ ] Premium cloud voices (OpenAI TTS)
-- [ ] Admin panel for tier management
+- **Anthropic Claude API**: For AI coaching, utilizing `claude-haiku-4-5-20251001` and `claude-sonnet-4-20250514` models. Requires `ANTHROPIC_API_KEY`.
+- **Google Fonts**: For `Playfair Display` and `DM Sans` typefaces.
+- **PostgreSQL**: The primary database for all persistent data, configured via `DATABASE_URL`.
+- **Express.js**: The core web framework for the backend.
+- **bcrypt**: Used for secure password hashing.
+- **express-session** and **connect-pg-simple**: For session management and storing session data in PostgreSQL.

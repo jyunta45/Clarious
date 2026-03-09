@@ -196,6 +196,86 @@ Speak as someone who simply remembers.`;
 }
 
 // ======================================
+// DEEP TOPIC DETECTION
+// ======================================
+
+const DEEP_KEYWORDS = [
+  "career", "relationship", "marriage", "breakup",
+  "purpose", "life direction", "future", "identity",
+  "who i am", "what should i do with my life",
+  "financial future", "moving away", "major decision",
+  "long term"
+];
+
+function detectDeepTopic(message) {
+  if (!message || typeof message !== "string") return false;
+  const text = message.toLowerCase();
+  return DEEP_KEYWORDS.some(keyword => text.includes(keyword));
+}
+
+// ======================================
+// MODE PROMPTS
+// ======================================
+
+const DAILY_MODE_PROMPT = `
+CONVERSATION MODE: daily
+
+The user is in daily life mode.
+This is personal but not a life decision.
+
+Topics include: skin, food, exercise, mood, health questions,
+small daily choices, how they feel today, daily routines.
+
+Respond warmly and practically.
+Answer what was actually asked.
+Acknowledge feelings briefly and naturally.
+
+Do NOT enter deep life analysis.
+Do NOT reference long-term patterns out loud.
+Do NOT activate decision guidance.
+Do NOT turn daily moments into therapy.
+
+Keep responses shorter and lighter than deep mode.
+
+You still know who this person is — their background,
+goals, and struggles remain in memory and shape your awareness.
+But this conversation is not the place to bring those things forward.
+
+Just be present, warm, and genuinely helpful
+for what they are actually dealing with today.`;
+
+const DAILY_MODE_SHIFT_AWARENESS = `
+MODE SHIFT AWARENESS:
+While responding in Daily mode, quietly assess whether
+the user may actually be touching on a life direction
+question or meaningful personal decision.
+
+If the user's message suggests something that may shape
+the direction of their life, gently offer the option
+to move into Deep Thinking mode.
+
+Do NOT switch modes automatically.
+Instead briefly acknowledge what they said and add
+a soft optional invitation such as:
+"This sounds like something meaningful to think through.
+Would you like to explore it in Deep Thinking mode?"
+
+Keep the suggestion natural and optional.
+If the topic is clearly just a daily life matter,
+do NOT suggest switching modes.`;
+
+const DEEP_MODE_PROMPT = `
+CONVERSATION MODE: deep
+
+The user has chosen to think something through.
+Full thinking partner behavior applies.
+All systems active: memory extraction, pattern tracking,
+reflection context, decision guidance, open loop tracking.
+
+This is a meaningful conversation.
+Give it the full depth it deserves.`;
+
+// ======================================
 // CONTEXT BUILDER
 // ======================================
 
@@ -209,10 +289,13 @@ function buildContext({
   patterns,
   relationshipDepth,
   guidanceData,
-  openLoops
+  openLoops,
+  mode,
+  deepSignal
 }) {
   const TURN_THRESHOLD = 6;
   const RECENT_LIMIT = 4;
+  const isDaily = mode === "daily";
 
   let messages = [];
 
@@ -226,17 +309,25 @@ function buildContext({
 
   const lastUserMsg = [...conversation].reverse().find(m => m.role === 'user');
   const userMessage = lastUserMsg ? lastUserMsg.content : '';
-  const isDecision = detectDecisionMode(userMessage);
+
+  const isDecision = isDaily ? false : detectDecisionMode(userMessage);
 
   const decisionContext = isDecision
     ? `\nMODE: decision_guidance\nThe user is facing a decision right now.\nApply this approach:\n- Briefly restate what they are actually deciding in one clear sentence\n- Surface 2-3 key factors that genuinely matter for this specific decision\n- Explore what each direction could mean for them\n- End with ONE thoughtful question that helps them reflect on what matters most to them\n- Do not decide for them\n- Do not overwhelm with options\n- Do not give a recommendation unless they explicitly ask for one\n- Help them think — not choose`
     : "";
 
-  const stateBlock = buildStateContext(userState);
-  const guidanceBlock = buildGuidanceContext(guidanceData);
-  const reflectionBlock = buildReflectionContext(userMessage, userMemory || {}, patterns || null);
-  const openLoopBlock = buildOpenLoopContext(openLoops);
-  const combinedBlocks = [stateBlock, guidanceBlock, decisionContext, reflectionBlock, openLoopBlock].filter(b => b).join("\n\n");
+  const stateBlock = isDaily ? "" : buildStateContext(userState);
+  const guidanceBlock = isDaily ? "" : buildGuidanceContext(guidanceData);
+  const reflectionBlock = isDaily ? "" : buildReflectionContext(userMessage, userMemory || {}, patterns || null);
+  const openLoopBlock = isDaily ? "" : buildOpenLoopContext(openLoops);
+
+  let modeBlock = isDaily ? DAILY_MODE_PROMPT : DEEP_MODE_PROMPT;
+  if (isDaily && deepSignal) {
+    modeBlock += "\n\nPossible mode shift detected by backend.\nThe user's message contains a life direction signal.\nApply MODE SHIFT AWARENESS judgment.\nIf the topic genuinely touches on life direction, offer the switch naturally and optionally.";
+    modeBlock += "\n" + DAILY_MODE_SHIFT_AWARENESS;
+  }
+
+  const combinedBlocks = [modeBlock, stateBlock, guidanceBlock, decisionContext, reflectionBlock, openLoopBlock].filter(b => b).join("\n\n");
   const finalSystem = combinedBlocks
     ? enhancedSystem + "\n\n" + combinedBlocks
     : enhancedSystem;
@@ -262,4 +353,4 @@ function buildContext({
   return messages;
 }
 
-export { buildContext };
+export { buildContext, detectDeepTopic };
