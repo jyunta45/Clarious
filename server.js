@@ -643,7 +643,32 @@ app.post('/api/chat', async (req, res) => {
       modelName = 'claude-haiku-4-5-20251001';
     }
 
-    const deepSignal = chatMode === 'daily' ? detectDeepTopic(userMsg) : false;
+    let deepSignal = false;
+    if (chatMode === 'daily') {
+      deepSignal = detectDeepTopic(userMsg);
+      if (!deepSignal && userMsg.length > 80) {
+        try {
+          const judgeRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': process.env.ANTHROPIC_API_KEY,
+              'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 1,
+              messages: [{ role: 'user', content: 'Classify this message as DAILY or DEEP.\n\nDEEP = identity crisis, career/life direction, paradigm shifts, existential questions, relationship crossroads, personal transformation, feeling disconnected from people, questioning purpose, major life decisions, inner conflict about who you are becoming.\n\nDAILY = food, exercise, skin care, mood check-in, daily routine, small practical questions, health tips, what to eat, how to sleep better.\n\nMessage: "' + userMsg.slice(0, 300) + '"\n\nRespond with ONLY one word: DAILY or DEEP' }]
+            })
+          });
+          const judgeData = await judgeRes.json();
+          if (judgeData.content && judgeData.content[0]) {
+            const verdict = (judgeData.content[0].text || '').trim().toUpperCase();
+            if (verdict.includes('DEEP')) deepSignal = true;
+          }
+        } catch(e) {}
+      }
+    }
 
     let userLang = 'en';
     if (req.session.userId) {
