@@ -1,0 +1,401 @@
+Fix number1
+
+/*
+========================================================
+ADAPTIVE AI CHAT SERVER (Single File)
+Designed for easy editing by Replit AI Agent
+
+Features
+- Session memory
+- Identity tracking
+- Relationship depth tone
+- Model routing
+- Grounding questions
+- OpenAI API integration
+========================================================
+*/
+
+require("dotenv").config();
+const express = require("express");
+const axios = require("axios");
+
+const app = express();
+app.use(express.json());
+
+const PORT = 3000;
+
+
+
+/*
+========================================================
+IN MEMORY DATABASES
+These are simple Maps so the server can track users.
+Replit AI Agent can easily upgrade these later.
+========================================================
+*/
+
+const sessionStore = new Map();
+const identityDB = new Map();
+const relationshipDB = new Map();
+
+
+
+/*
+========================================================
+SESSION MEMORY FUNCTIONS
+Tracks recent conversation turns
+========================================================
+*/
+
+function initSession(userId) {
+
+  if (!sessionStore.has(userId)) {
+    sessionStore.set(userId, {
+      turns: [],
+      meaningfulTurns: 0,
+      lastGrounding: 0
+    });
+  }
+
+  return sessionStore.get(userId);
+}
+
+
+
+function storeTurn(userId, userMessage, assistantReply) {
+
+  const session = initSession(userId);
+
+  session.turns.push({
+    user: userMessage,
+    assistant: assistantReply
+  });
+
+  if (session.turns.length > 10) {
+    session.turns.shift();
+  }
+
+}
+
+
+
+/*
+========================================================
+IDENTITY MEMORY
+Stores long-term goals and principles mentioned by user
+========================================================
+*/
+
+function initIdentity(userId) {
+
+  if (!identityDB.has(userId)) {
+    identityDB.set(userId, {
+      goals: [],
+      principles: [],
+      traits: []
+    });
+  }
+
+  return identityDB.get(userId);
+
+}
+
+
+
+function updateIdentity(userId, message) {
+
+  if (!message || message.length < 15) return;
+
+  const identity = initIdentity(userId);
+  const text = message.toLowerCase();
+
+  if (text.includes("goal") || text.includes("want to")) {
+    identity.goals.push(message);
+  }
+
+  if (text.includes("important") || text.includes("should")) {
+    identity.principles.push(message);
+  }
+
+  if (text.includes("i am") || text.includes("i'm")) {
+    identity.traits.push(message);
+  }
+
+  if (identity.goals.length > 6) identity.goals.shift();
+  if (identity.principles.length > 6) identity.principles.shift();
+  if (identity.traits.length > 6) identity.traits.shift();
+
+}
+
+
+
+function buildIdentityPrompt(userId) {
+
+  const identity = initIdentity(userId);
+
+  const goal = identity.goals.slice(-1)[0] || "";
+  const principle = identity.principles.slice(-1)[0] || "";
+  const trait = identity.traits.slice(-1)[0] || "";
+
+  return `
+User Context
+
+Goal: "${goal}"
+Principle: "${principle}"
+Self View: "${trait}"
+
+Support decisions aligned with this trajectory.
+`;
+
+}
+
+
+
+/*
+========================================================
+RELATIONSHIP DEPTH SYSTEM
+Tone evolves as conversation count grows
+========================================================
+*/
+
+function initUser(userId) {
+
+  if (!relationshipDB.has(userId)) {
+    relationshipDB.set(userId, {
+      conversationCount: 0,
+      depthLevel: 1
+    });
+  }
+
+  return relationshipDB.get(userId);
+}
+
+
+
+function updateDepth(userId) {
+
+  const user = initUser(userId);
+
+  user.conversationCount++;
+
+  if (user.conversationCount > 50) user.depthLevel = 5;
+  else if (user.conversationCount > 30) user.depthLevel = 4;
+  else if (user.conversationCount > 15) user.depthLevel = 3;
+  else if (user.conversationCount > 5) user.depthLevel = 2;
+
+  return user.depthLevel;
+
+}
+
+
+
+function relationshipTone(depth) {
+
+  switch (depth) {
+
+    case 1:
+      return "Professional and clear.";
+
+    case 2:
+      return "Warm and encouraging.";
+
+    case 3:
+      return "Supportive and familiar.";
+
+    case 4:
+      return "Insightful and aware of patterns.";
+
+    case 5:
+      return "Trusted long-term thinking partner.";
+
+    default:
+      return "Helpful assistant.";
+  }
+
+}
+
+
+
+/*
+========================================================
+MODEL ROUTER
+Chooses model depending on complexity
+========================================================
+*/
+
+function detectComplexity(message) {
+
+  let score = 0;
+  const text = message.toLowerCase();
+
+  if (/purpose|meaning|future/.test(text)) score++;
+  if (/confused|lost|anxious/.test(text)) score++;
+  if (/however|on one hand/.test(text)) score++;
+  if (message.length > 250) score++;
+
+  return score;
+
+}
+
+
+
+function chooseModel(message) {
+
+  const complexity = detectComplexity(message);
+
+  if (complexity >= 3) {
+    return "gpt-4o";
+  }
+
+  return "gpt-4o-mini";
+
+}
+
+
+
+/*
+========================================================
+GROUNDING QUESTION SYSTEM
+Encourages user to focus on real decisions
+========================================================
+*/
+
+function needsGroundingQuestion(userMessage) {
+
+  const triggers = [
+    "difference",
+    "compare",
+    "better",
+    "why"
+  ];
+
+  const msg = userMessage.toLowerCase();
+
+  return triggers.some(t => msg.includes(t));
+
+}
+
+
+
+function groundingQuestion() {
+
+  const questions = [
+    "What decision are you facing right now?",
+    "What feels most unclear today?",
+    "What are you trying to move forward on?",
+    "Where do you feel stuck recently?"
+  ];
+
+  return questions[Math.floor(Math.random() * questions.length)];
+
+}
+
+
+
+/*
+========================================================
+SYSTEM PROMPT BUILDER
+Combines identity + tone for the AI
+========================================================
+*/
+
+function buildSystemPrompt(userId, userMessage) {
+
+  updateIdentity(userId, userMessage);
+
+  const depth = updateDepth(userId);
+  const tone = relationshipTone(depth);
+  const identityPrompt = buildIdentityPrompt(userId);
+
+  return `
+Speak naturally.
+
+Communication tone:
+${tone}
+
+${identityPrompt}
+
+Focus on the user's current message.
+Avoid repeating stored memory.
+`;
+
+}
+
+
+
+/*
+========================================================
+OPENAI API CALL
+========================================================
+*/
+
+async function callOpenAI(model, messages) {
+
+  const response = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: model,
+      messages: messages
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  return response.data.choices[0].message.content;
+}
+
+
+
+/*
+========================================================
+CHAT ENDPOINT
+========================================================
+*/
+
+app.post("/chat", async (req, res) => {
+
+  const { userId, message } = req.body;
+
+  const systemPrompt = buildSystemPrompt(userId, message);
+  const model = chooseModel(message);
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: message }
+  ];
+
+  let reply = await callOpenAI(model, messages);
+
+  storeTurn(userId, message, reply);
+
+  const session = initSession(userId);
+
+  if (
+    needsGroundingQuestion(message) &&
+    Date.now() - session.lastGrounding > 180000
+  ) {
+
+    reply += "\n\n" + groundingQuestion();
+    session.lastGrounding = Date.now();
+
+  }
+
+  res.json({ reply });
+
+});
+
+
+
+/*
+========================================================
+START SERVER
+========================================================
+*/
+
+app.listen(PORT, () => {
+  console.log(`AI server running on port ${PORT}`);
+});
