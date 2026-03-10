@@ -263,7 +263,7 @@ app.post('/api/data', async (req, res) => {
             memorySeeded: true,
             updatedAt: new Date()
           }).where(eq(userData.userId, req.session.userId));
-        } catch(e) {}
+        } catch(e) { console.error('[MEMORY SEED ERROR]', e.message || e); }
       }
     }
 
@@ -568,7 +568,7 @@ async function updateGuidanceDay(userId) {
     }
 
     await db.update(userData).set(updateFields).where(eq(userData.userId, userId));
-  } catch(e) {}
+  } catch(e) { console.error('[SAVE DATA ERROR]', e.message || e); }
 }
 
 app.post('/api/chat', async (req, res) => {
@@ -650,7 +650,7 @@ app.post('/api/chat', async (req, res) => {
           }
           await repairLegacyIdentity({ userRecord: uDataRepair, callModel: callModelForRepair, db, userData, eq });
         }
-      } catch(e) {}
+      } catch(e) { console.error('[LEGACY REPAIR ERROR]', e.message || e); }
     }
 
     if (req.session.userId && detectIdentityShift(userMsg)) {
@@ -693,7 +693,7 @@ app.post('/api/chat', async (req, res) => {
             updatedAt: new Date()
           }).where(eq(userData.userId, req.session.userId));
         }
-      } catch(e) {}
+      } catch(e) { console.error('[IDENTITY SHIFT ERROR]', e.message || e); }
     }
 
     const chatMode = req.body.mode || 'deep';
@@ -714,7 +714,7 @@ app.post('/api/chat', async (req, res) => {
       try {
         const [langData] = await db.select({ lang: userData.lang }).from(userData).where(eq(userData.userId, req.session.userId));
         if (langData && langData.lang) userLang = langData.lang;
-      } catch(e) {}
+      } catch(e) { console.error('[LANG FETCH ERROR]', e.message || e); }
     }
 
     const tokenLimit = getMaxTokens(complexity, efficiencyMode, userLang);
@@ -759,7 +759,7 @@ app.post('/api/chat', async (req, res) => {
       try {
         const [gData] = await db.select({ guidanceMode: userData.guidanceMode, guidanceDay: userData.guidanceDay }).from(userData).where(eq(userData.userId, req.session.userId));
         if (gData) guidanceData = gData;
-      } catch(e) {}
+      } catch(e) { console.error('[GUIDANCE FETCH ERROR]', e.message || e); }
     }
 
     const sessionSummary = sessionStore.has(userId) ? sessionStore.get(userId).rollingSummary : '';
@@ -942,7 +942,7 @@ app.post('/api/chat', async (req, res) => {
               }
             }
           }
-        } catch(e) {}
+        } catch(e) { console.error('[MEMORY EXTRACT ERROR]', e.message || e); }
       }
 
       if (Math.random() < 0.2 && sessionStore.has(userId)) {
@@ -967,7 +967,7 @@ app.post('/api/chat', async (req, res) => {
             if (sumData.content && sumData.content[0]) {
               session.rollingSummary = sumData.content[0].text || '';
             }
-          } catch(e) {}
+          } catch(e) { console.error('[ROLLING SUMMARY ERROR]', e.message || e); }
         }
       }
 
@@ -985,7 +985,7 @@ app.post('/api/chat', async (req, res) => {
               updatedAt: new Date()
             }).where(eq(userData.userId, req.session.userId));
           }
-        } catch(e) {}
+        } catch(e) { console.error('[OPEN LOOP ERROR]', e.message || e); }
       }
 
       if (deepSignal) {
@@ -1072,7 +1072,7 @@ app.post('/api/chat', async (req, res) => {
               }
             }
           }
-        } catch(e) {}
+        } catch(e) { console.error('[MEMORY EXTRACT ERROR]', e.message || e); }
       }
 
       if (Math.random() < 0.2 && sessionStore.has(userId)) {
@@ -1097,7 +1097,7 @@ app.post('/api/chat', async (req, res) => {
             if (sumData.content && sumData.content[0]) {
               session.rollingSummary = sumData.content[0].text || '';
             }
-          } catch(e) {}
+          } catch(e) { console.error('[ROLLING SUMMARY ERROR]', e.message || e); }
         }
       }
 
@@ -1115,7 +1115,7 @@ app.post('/api/chat', async (req, res) => {
               updatedAt: new Date()
             }).where(eq(userData.userId, req.session.userId));
           }
-        } catch(e) {}
+        } catch(e) { console.error('[OPEN LOOP ERROR]', e.message || e); }
       }
 
       if (deepSignal) {

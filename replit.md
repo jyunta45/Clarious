@@ -44,6 +44,7 @@ The **Frontend** (`public/index.html`) features:
 - Visible Personal Evolution / Growth panel for monthly summaries, pattern insights, and habit consistency.
 - Pattern tracking system for topic frequency, recurring challenges, and activity heatmaps.
 - Controlled proactivity triggers for context-aware check-ins.
+- Grounding question system: appends focusing questions when user messages are vague/abstract (3-minute cooldown, Deep Thinking mode only, multi-language, skipped if AI already asked a question).
 
 **Key Design Decisions**:
 - **API Key Proxying**: The server proxies the Anthropic API to secure the API key.

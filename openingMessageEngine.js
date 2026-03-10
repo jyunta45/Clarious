@@ -278,7 +278,7 @@ function _buildOpeningMessage({
     (Date.now() - loop.createdAt) < thirtyDays
   );
 
-  if (shouldReferenceLoop && activeLoop && isMorning) {
+  if (shouldReferenceLoop && activeLoop && activeLoop.content && isMorning) {
     const loopTexts = {
       en: { prefix: "You were thinking about", suffix: "recently.\n\nHas anything shifted on that?", chips: ["Still unresolved", "Something changed", "I made a decision", "Not ready to talk about it"] },
       ja: { prefix: "最近", suffix: "について考えていましたね。\n\n何か変わりましたか？", chips: ["まだ未解決", "何か変わった", "決断した", "まだ話したくない"] },
