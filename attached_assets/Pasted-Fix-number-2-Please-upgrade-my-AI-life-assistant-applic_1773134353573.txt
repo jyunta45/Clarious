@@ -1,0 +1,282 @@
+Fix number 2 : Please upgrade my AI life assistant application with the following improvements.
+
+IMPORTANT RULES:
+- Read ALL existing project files before making any modifications.
+- Do NOT break existing functionality.
+- Modify only the files mentioned below.
+- If functions already exist, replace them safely without breaking imports.
+- Maintain existing exports unless instructed otherwise.
+
+--------------------------------------------------
+1. UPGRADE adaptiveDepth.js
+--------------------------------------------------
+
+Replace the existing complexity detection with the following function:
+
+function detectComplexity(message) {
+  const text = message.toLowerCase().trim();
+  const wordCount = text.split(/\s+/).length;
+  let score = 0;
+
+  if (wordCount < 12) return "LOW";
+
+  const strongSignals = [
+    "i don't know what",
+    "should i quit",
+    "important choice",
+    "no hope",
+    "losing myself",
+    "don't see the point",
+    "feels pointless",
+    "not sure who i am"
+  ];
+
+  const mediumSignals = [
+    "part of me",
+    "can't seem to",
+    "i keep",
+    "been thinking about",
+    "feeling lost",
+    "feeling confused",
+    "fear of",
+    "pressure to",
+    "getting worse",
+    "keeps coming back",
+    "career decision",
+    "wrong direction",
+    "what if i",
+    "my future",
+    "stuck in"
+  ];
+
+  for (const s of strongSignals) {
+    if (text.includes(s)) {
+      score += 2;
+      if (score >= 3) return "HIGH";
+    }
+  }
+
+  for (const s of mediumSignals) {
+    if (text.includes(s)) {
+      score += 1;
+      if (score >= 3) return "HIGH";
+    }
+  }
+
+  if (wordCount > 80) score += 2;
+  if (wordCount > 140) score += 1;
+
+  return score >= 3 ? "HIGH" : "LOW";
+}
+
+Add the model router in the same file:
+
+function selectModel(complexity) {
+  return complexity === "HIGH"
+    ? "gpt-4.1"
+    : "gpt-4.1-mini";
+}
+
+Ensure both functions are exported:
+
+module.exports = {
+  detectComplexity,
+  selectModel
+};
+
+--------------------------------------------------
+2. UPGRADE continuityEngine.js
+--------------------------------------------------
+
+Add a persistent memory system.
+
+Memory object structure:
+
+{
+  goals: [],
+  recurringStruggles: [],
+  strengths: [],
+  decisionPatterns: [],
+  identityDirection: "",
+  lastUpdated: null
+}
+
+Add a deduplication guard:
+
+function addUnique(arr, value) {
+  if (!value) return;
+
+  if (!arr.some(v => v.toLowerCase() === value.toLowerCase())) {
+    arr.push(value);
+  }
+}
+
+Memory update must only run when ALL three conditions are true:
+
+1. complexity === "HIGH"
+2. session.memoryUpdatedThisSession is not true
+3. memory.lastUpdated is older than 6 hours
+
+Example timing logic:
+
+const SIX_HOURS = 6 * 60 * 60 * 1000;
+
+if (memory.lastUpdated && Date.now() - memory.lastUpdated < SIX_HOURS) {
+  return;
+}
+
+When updating memory:
+
+Use model "gpt-4.1-mini" to extract facts.
+
+Extraction rules:
+- Extract ONLY explicitly revealed facts
+- NEVER infer or guess
+- Output must be JSON only
+- Use null when information is unclear
+
+Expected JSON response format:
+
+{
+  "goal": null,
+  "recurringStruggle": null,
+  "strength": null,
+  "decisionPattern": null,
+  "identityDirection": null
+}
+
+When saving memory to PostgreSQL user_data table:
+
+Rules:
+- MERGE with existing memory
+- NEVER replace arrays
+- Append only using addUnique()
+- Never overwrite existing goals, struggles, strengths, or decisionPatterns
+- Replace identityDirection ONLY if new value is not null
+- Update lastUpdated to Date.now()
+
+Example merge logic:
+
+addUnique(memory.goals, result.goal);
+addUnique(memory.recurringStruggles, result.recurringStruggle);
+addUnique(memory.strengths, result.strength);
+addUnique(memory.decisionPatterns, result.decisionPattern);
+
+if (result.identityDirection) {
+  memory.identityDirection = result.identityDirection;
+}
+
+memory.lastUpdated = Date.now();
+
+After successful update:
+
+session.memoryUpdatedThisSession = true;
+
+--------------------------------------------------
+3. UPGRADE contextBuilder.js
+--------------------------------------------------
+
+Add memory context injection before each AI call.
+
+function buildMemoryContext(memory) {
+  if (!memory.identityDirection && memory.goals.length === 0)
+    return "";
+
+  const goals = memory.goals.slice(-3).join(", ");
+  const struggles = memory.recurringStruggles.slice(-2).join(", ");
+
+  return `
+User is working toward: ${memory.identityDirection || "direction still forming"}
+Current focus: ${goals || "exploration"}
+Recurring friction: ${struggles || "none consistently observed"}
+`.trim();
+}
+
+Inject memory before the system prompt:
+
+const memoryBlock = buildMemoryContext(userMemory);
+
+const finalPrompt = memoryBlock
+  ? SYSTEM_PROMPT + "\n\n" + memoryBlock
+  : SYSTEM_PROMPT;
+
+Rules:
+- Keep memory block under approximately 60 tokens
+- Never inject empty memory
+- Do not summarize user history
+
+--------------------------------------------------
+4. UPGRADE capabilityLayer.js
+--------------------------------------------------
+
+Replace the existing system prompt with the following:
+
+const SYSTEM_PROMPT = `
+You are an adaptive life assistant designed to help users
+think clearly, regain stability, and move forward intelligently.
+
+Your purpose is not to make decisions for users,
+but to strengthen their judgment and capability.
+
+Before replying, silently determine:
+
+1. Situation
+Recovery | Decision | Understanding | Execution | Celebration
+
+2. Cognitive Need
+Stabilize | Clarify | Evaluate | Act | Acknowledge
+
+3. Leadership Calibration
+Confused    → supportive
+Evaluating  → collaborative
+Hesitating  → gently persuasive
+Urgent      → calm and direct
+
+Core Principles:
+- Match response depth to user effort.
+- When users explain deeply, slow internal reasoning before answering.
+- Reflect underlying dilemmas when present.
+- Help users understand implications and possible future outcomes.
+- Emphasize conditions that allow progress rather than certainty.
+- Offer perspectives users may not have considered.
+- Preserve full user ownership of decisions.
+- Avoid generic motivation or empty reassurance.
+- Do not rush complex situations.
+- Execution guidance should remain simple and practical.
+- Maintain continuity with previously known user goals when relevant.
+- If stored memory conflicts with the user's current statement,
+  prioritize the present moment over stored memory.
+  Humans evolve.
+
+Style:
+- Calm, grounded, intelligent.
+- Speak clearly and thoughtfully.
+- Prefer insight over verbosity.
+- Avoid exaggerated emotional tone.
+- Avoid sounding like a motivational speaker or therapist.
+- Use structured reasoning when evaluating complex decisions.
+
+Response Guidelines:
+- Clarify the user's real dilemma when necessary.
+- Break complex thinking into understandable parts.
+- Offer reasoning before recommendations.
+- Provide practical steps when execution is needed.
+- Avoid overwhelming the user with too many options.
+- Encourage independent judgment rather than dependence.
+
+Final Objective:
+Your role is to help the user gain clarity, stability,
+and stronger decision-making ability over time.
+`;
+
+--------------------------------------------------
+FINAL REQUIREMENTS
+--------------------------------------------------
+
+Ensure:
+- adaptiveDepth.js exports detectComplexity and selectModel
+- continuityEngine.js merges memory safely
+- contextBuilder.js injects memory context
+- capabilityLayer.js uses the new SYSTEM_PROMPT
+- Existing API routes remain unchanged
+- No current functionality is broken
