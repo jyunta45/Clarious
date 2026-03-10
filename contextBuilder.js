@@ -204,13 +204,52 @@ const DEEP_KEYWORDS = [
   "purpose", "life direction", "future", "identity",
   "who i am", "what should i do with my life",
   "financial future", "moving away", "major decision",
-  "long term"
+  "long term", "paradigm shift", "version of me",
+  "who i was", "who i'm becoming", "life changing",
+  "life change", "turning point", "crossroads",
+  "meaning of", "what matters", "existential",
+  "self doubt", "self-doubt", "questioning everything",
+  "lost myself", "finding myself", "reinvent",
+  "transformation", "becoming someone", "old version",
+  "new version", "not the same person", "changed person",
+  "disconnected", "don't belong", "outgrow", "outgrown",
+  "growing apart", "different realities", "living two",
+  "torn between", "conflicted", "inner conflict",
+  "afraid to change", "scared to", "holding me back",
+  "stuck in life", "what's next", "big picture",
+  "vision", "legacy", "dream", "ambition",
+  "starting over", "new chapter", "pivot",
+  "quitting", "leaving everything", "walking away",
+  "sacrifice", "trade-off", "worth it",
+  "validation", "approval", "proving myself",
+  "imposter", "not good enough", "deserve",
+  "calling", "passion", "mission",
+  "lonely", "isolation", "nobody understands",
+  "family pressure", "expectations", "disappointing",
+  "letting go", "moving on", "grief"
+];
+
+const DEEP_PATTERNS = [
+  /i(?:'m| am) (?:not sure|confused|lost|torn|struggling) (?:about|with) (?:who|what|where|my)/i,
+  /(?:should i|do i) (?:quit|leave|stay|change|give up|keep going|pursue|follow)/i,
+  /(?:i feel like|it feels like) (?:i'm|i am) (?:becoming|changing|losing|different|not)/i,
+  /(?:my (?:life|world|reality|perspective) (?:has|is) (?:changed|changing|different|shifting))/i,
+  /(?:i (?:don't|can't) (?:connect|relate|fit in|belong) (?:with|to|anymore))/i,
+  /(?:the (?:person|version|me) i (?:was|used to be|want to be|am becoming))/i,
+  /(?:i'm (?:imagining|envisioning|seeing|building|creating) (?:a |my )(?:new|different|future|version))/i,
+  /(?:100%|completely|totally|fundamentally) (?:change|different|transform|shift)/i,
+  /(?:back (?:to|in) (?:my|the) (?:old|previous|hometown|past))/i,
+  /(?:they (?:don't|can't|won't) (?:understand|see|get|support))/i,
+  /(?:connection.{0,20}(?:lost|fading|gone|broken|different))/i,
+  /(?:momentum|energy|drive|fire).{0,20}(?:lost|gone|fading|back)/i,
+  /(?:big|global|massive|huge|large).{0,15}(?:scale|stage|level|project|vision)/i
 ];
 
 function detectDeepTopic(message) {
   if (!message || typeof message !== "string") return false;
   const text = message.toLowerCase();
-  return DEEP_KEYWORDS.some(keyword => text.includes(keyword));
+  if (DEEP_KEYWORDS.some(keyword => text.includes(keyword))) return true;
+  return DEEP_PATTERNS.some(pattern => pattern.test(message));
 }
 
 // ======================================
