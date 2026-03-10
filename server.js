@@ -459,6 +459,70 @@ LANGUAGE: Respond entirely in the user's language. Never mix languages. Never ap
 `;
 }
 
+const GROUNDING_TRIGGERS = ["difference", "compare", "better", "why", "how come", "what's the point", "does it matter"];
+const GROUNDING_COOLDOWN = 180000;
+const groundingTimestamps = new Map();
+
+const GROUNDING_QUESTIONS = {
+  en: [
+    "What decision are you facing right now?",
+    "What feels most unclear today?",
+    "What are you trying to move forward on?",
+    "Where do you feel stuck recently?"
+  ],
+  ja: [
+    "今、どんな決断に直面していますか？",
+    "今日、一番はっきりしないことは何ですか？",
+    "今、何を前に進めようとしていますか？",
+    "最近、どこで行き詰まっていますか？"
+  ],
+  es: [
+    "¿Qué decisión estás enfrentando ahora mismo?",
+    "¿Qué es lo que se siente más confuso hoy?",
+    "¿Qué estás tratando de avanzar?",
+    "¿Dónde te sientes atascado últimamente?"
+  ],
+  th: [
+    "ตอนนี้คุณกำลังเผชิญกับการตัดสินใจอะไรอยู่?",
+    "วันนี้อะไรที่รู้สึกไม่ชัดเจนที่สุด?",
+    "คุณกำลังพยายามผลักดันเรื่องอะไรให้ก้าวหน้า?",
+    "ช่วงนี้คุณรู้สึกติดอยู่ตรงไหน?"
+  ],
+  ko: [
+    "지금 어떤 결정을 앞두고 있나요?",
+    "오늘 가장 불분명하게 느껴지는 것은 무엇인가요?",
+    "지금 무엇을 앞으로 나아가게 하려고 하고 있나요?",
+    "최근에 어디서 막혀 있다고 느끼나요?"
+  ]
+};
+
+function needsGroundingQuestion(userMessage) {
+  if (!userMessage || typeof userMessage !== 'string') return false;
+  const msg = userMessage.toLowerCase();
+  if (msg.split(/\s+/).length < 5) return false;
+  return GROUNDING_TRIGGERS.some(t => msg.includes(t));
+}
+
+function groundingQuestion(lang) {
+  const questions = GROUNDING_QUESTIONS[lang] || GROUNDING_QUESTIONS.en;
+  return questions[Math.floor(Math.random() * questions.length)];
+}
+
+function shouldAskGrounding(userId) {
+  const last = groundingTimestamps.get(userId) || 0;
+  return Date.now() - last > GROUNDING_COOLDOWN;
+}
+
+function markGroundingAsked(userId) {
+  groundingTimestamps.set(userId, Date.now());
+}
+
+function replyAlreadyHasQuestion(text) {
+  if (!text) return false;
+  const lastChunk = text.slice(-200);
+  return /\?\s*$/.test(lastChunk.trim());
+}
+
 async function updateGuidanceDay(userId) {
   try {
     const [uGuidance] = await db.select().from(userData).where(eq(userData.userId, userId));
@@ -927,6 +991,14 @@ app.post('/api/chat', async (req, res) => {
       if (deepSignal) {
         res.write('data: ' + JSON.stringify({ type: 'meta', suggestModeShift: true }) + '\n\n');
       }
+
+      if (chatMode !== 'daily' && needsGroundingQuestion(userMsg) && shouldAskGrounding(userId) && !replyAlreadyHasQuestion(fullReply)) {
+        const gq = groundingQuestion(userLang);
+        const groundingText = '\n\n' + gq;
+        res.write('data: ' + JSON.stringify({ text: groundingText }) + '\n\n');
+        markGroundingAsked(userId);
+      }
+
       res.write('data: [DONE]\n\n');
       res.end();
     } else {
@@ -1048,6 +1120,14 @@ app.post('/api/chat', async (req, res) => {
 
       if (deepSignal) {
         data.suggestModeShift = true;
+      }
+
+      if (chatMode !== 'daily' && needsGroundingQuestion(userMsg) && shouldAskGrounding(userId) && !replyAlreadyHasQuestion(assistantReply)) {
+        const gq = groundingQuestion(userLang);
+        if (data.content && data.content[0]) {
+          data.content[0].text += '\n\n' + gq;
+        }
+        markGroundingAsked(userId);
       }
 
       res.json(data);
