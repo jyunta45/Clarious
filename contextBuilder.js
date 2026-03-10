@@ -361,9 +361,11 @@ function buildContext({
   const openLoopBlock = isDaily ? "" : buildOpenLoopContext(openLoops);
 
   let modeBlock = isDaily ? DAILY_MODE_PROMPT : DEEP_MODE_PROMPT;
-  if (isDaily && deepSignal) {
-    modeBlock += "\n\nPossible mode shift detected by backend.\nThe user's message contains a life direction signal.\nApply MODE SHIFT AWARENESS judgment.\nIf the topic genuinely touches on life direction, offer the switch naturally and optionally.";
-    modeBlock += "\n" + DAILY_MODE_SHIFT_AWARENESS;
+  if (isDaily) {
+    modeBlock += "\n\n" + DAILY_MODE_SHIFT_AWARENESS;
+    if (deepSignal) {
+      modeBlock += "\n\nPossible mode shift detected by backend.\nThe user's message contains a life direction signal.\nApply MODE SHIFT AWARENESS judgment.\nIf the topic genuinely touches on life direction, offer the switch naturally and optionally.";
+    }
   }
 
   const combinedBlocks = [modeBlock, stateBlock, guidanceBlock, decisionContext, reflectionBlock, openLoopBlock].filter(b => b).join("\n\n");
