@@ -774,6 +774,7 @@ const UI = {
 const QT = {
   en: {
     name:{q:'What should I call you?\nAnd how old are you?',p:'e.g. Alex, 25'},
+    gender:{q:'Which pronouns should I use when I refer to you?',o:['Male — He/Him','Female — She/Her','Non-binary — They/Them','Prefer not to say']},
     work_day:{q:'What do you do for work or to keep yourself occupied — and what does a typical day actually look like for you?',p:'Describe your day...'},
     proud:{q:'If your life looked exactly the way you wanted it to — what would you feel most proud of?',p:'Think deeply...'},
     tired:{q:'What\'s the one thing you\'re most tired of dealing with?',p:'Be honest...'},
@@ -804,6 +805,7 @@ const QT = {
   },
   ja: {
     name:{q:'何と呼べばいいですか？\n年齢は？',p:'例：太郎、25歳'},
+    gender:{q:'どの代名詞で呼んでほしいですか？',o:['男性 — He/Him','女性 — She/Her','ノンバイナリー — They/Them','答えたくない']},
     work_day:{q:'仕事は何をしていますか？\n普段の一日はどんな感じですか？',p:'あなたの一日を教えてください...'},
     proud:{q:'人生が思い通りになっていたら\n何を最も誇りに思いますか？',p:'深く考えて...'},
     tired:{q:'一番疲れていることは何ですか？',p:'正直に...'},
@@ -834,6 +836,7 @@ const QT = {
   },
   es: {
     name:{q:'¿Cómo te llamo?\n¿Y cuántos años tienes?',p:'ej. Juan, 25'},
+    gender:{q:'¿Con qué pronombres debería referirme a ti?',o:['Masculino — Él/He','Femenino — Ella/She','No binario — They/Them','Prefiero no decir']},
     work_day:{q:'¿A qué te dedicas o en qué ocupas tu tiempo — y cómo es realmente un día típico para ti?',p:'Describe tu día...'},
     proud:{q:'Si tu vida se viera exactamente como quieres — ¿de qué te sentirías más orgulloso?',p:'Piensa profundamente...'},
     tired:{q:'¿Cuál es la cosa que más te cansa enfrentar?',p:'Sé honesto...'},
@@ -864,6 +867,7 @@ const QT = {
   },
   th: {
     name:{q:'จะเรียกคุณว่าอะไรดี?\nอายุเท่าไหร่?',p:'เช่น สมชาย, 25'},
+    gender:{q:'ต้องการให้ใช้สรรพนามอะไรเวลาพูดถึงคุณ?',o:['ชาย — He/Him','หญิง — She/Her','Non-binary — They/Them','ไม่ระบุ']},
     work_day:{q:'คุณทำงานอะไร หรืออะไรที่ทำให้ตัวเองยุ่ง — แล้ววันปกติของคุณเป็นยังไง?',p:'เล่าวันของคุณให้ฟัง...'},
     proud:{q:'ถ้าชีวิตเป็นไปตามที่คุณต้องการ — คุณจะภูมิใจอะไรมากที่สุด?',p:'คิดลึกๆ...'},
     tired:{q:'สิ่งที่คุณเหนื่อยที่สุดในการรับมือคืออะไร?',p:'พูดตรงๆ...'},
@@ -894,6 +898,7 @@ const QT = {
   },
   ko: {
     name:{q:'뭐라고 부르면 될까요?\n나이는 어떻게 되나요?',p:'예: 민수, 25'},
+    gender:{q:'저에게 어떤 대명사로 불리기를 원하나요?',o:['남성 — He/Him','여성 — She/Her','논바이너리 — They/Them','답하지 않겠습니다']},
     work_day:{q:'무슨 일을 하거나 어떻게 시간을 보내나요 — 그리고 실제로 하루가 어떻게 되나요?',p:'하루를 설명해주세요...'},
     proud:{q:'인생이 원하는 대로 된다면 — 가장 자랑스러워할 것은?',p:'깊이 생각해보세요...'},
     tired:{q:'가장 지쳐있는 것은 무엇인가요?',p:'솔직하게...'},
@@ -926,6 +931,7 @@ const QT = {
 
 const Q = [
   {id:'name',s:'Who You Are',t:'text'},
+  {id:'gender',s:'Who You Are',t:'select'},
   {id:'work_day',s:'Who You Are',t:'textarea'},
   {id:'proud',s:'What Drives You',t:'textarea'},
   {id:'tired',s:'What Drives You',t:'textarea'},
@@ -1461,7 +1467,7 @@ function insecStr() {
 
 function buildIdentityProfile() {
   var p = {
-    core: { name: g('name', ''), workDay: g('work_day', '') },
+    core: { name: g('name', ''), pronouns: g('gender', ''), workDay: g('work_day', '') },
     personality: { style: g('style', ''), decisions: g('decisions', ''), execute: g('execute', ''), selfTalk: g('self_talk', ''), identity: g('identity', '') },
     goals: { tenYear: g('goal10', ''), mastering: g('mastering', ''), ifConfident: g('if_conf', '') },
     strengths: { proudOf: g('proud', ''), uniqueSkills: g('unique_sk', '') },
@@ -1482,7 +1488,12 @@ function identityPromptBlock() {
   var p = ST.identityProfile && ST.identityProfile.core && ST.identityProfile.core.name ? ST.identityProfile : buildIdentityProfile();
   var lines = [];
   lines.push('USER IDENTITY:');
-  lines.push('Name: ' + p.core.name + ' | Daily life: ' + p.core.workDay);
+  var pronounLine = 'Name: ' + p.core.name;
+  if (p.core.pronouns && p.core.pronouns.indexOf('not to say') === -1 && p.core.pronouns.indexOf('答えたくない') === -1 && p.core.pronouns.indexOf('Prefiero no') === -1 && p.core.pronouns.indexOf('ไม่ระบุ') === -1 && p.core.pronouns.indexOf('답하지') === -1) {
+    pronounLine += ' | Pronouns: ' + p.core.pronouns + ' — always use these pronouns when referring to this user';
+  }
+  pronounLine += ' | Daily life: ' + p.core.workDay;
+  lines.push(pronounLine);
   lines.push('Personality: ' + p.personality.style + ' style, decides ' + p.personality.decisions + ', executes best ' + p.personality.execute);
   lines.push('Goals: 10yr=' + p.goals.tenYear + ', mastering=' + p.goals.mastering);
   lines.push('Strengths: proud of ' + p.strengths.proudOf + ', skills=' + p.strengths.uniqueSkills);
@@ -2234,7 +2245,9 @@ function renderPatternsPanel() {
 }
 
 function buildMirror() {
-  return g('name', 'friend') + ', here is what I see about you.\n\nWHO YOU ARE\nDaily life: ' + g('work_day') + '\n\nWHAT DRIVES YOU\nProud of: ' + g('proud') + '\nTired of: ' + g('tired') + '\nChasing: ' + g('feeling') + '\n\nINSECURITIES\nAreas: ' + insecStr() + '\nBlockers: ' + blockersStr() + '\nIf confident: ' + g('if_conf') + '\n\nGOALS\nDirection: ' + g('goal10') + '\nFocused on: ' + g('mastering') + '\n\nOBSTACLES\nHabit: ' + g('bad_habit') + '\nAvoiding: ' + g('avoiding') + '\nTime waste: ' + g('time_waste') + '\n\nRESOURCES\nFinancial: ' + g('fin_level') + '\nStrengths: ' + g('unique_sk') + '\nConstraint: ' + g('constraint') + '\nFocus hours: ' + g('focus_hrs') + '\n\nLIFESTYLE\nSleep: ' + g('sleep', 'not shared') + '\nWork style: ' + g('style') + '\n\nDECISION-MAKING\nDecisions: ' + g('decisions') + '\nBest work: ' + g('execute') + '\nIdentity: ' + g('identity') + '\nTone: ' + g('tone') + '\nMode: ' + g('pressure') + '\n\n---\nI know your full story.\nEvery answer built around YOU.\nYou are not alone. Let us work.';
+  var genderVal = g('gender', '');
+  var pronounsLine = (genderVal && genderVal.indexOf('not to say') === -1 && genderVal.indexOf('答えたくない') === -1 && genderVal.indexOf('Prefiero no') === -1 && genderVal.indexOf('ไม่ระบุ') === -1 && genderVal.indexOf('답하지') === -1) ? '\nPronouns: ' + genderVal : '';
+  return g('name', 'friend') + ', here is what I see about you.\n\nWHO YOU ARE' + pronounsLine + '\nDaily life: ' + g('work_day') + '\n\nWHAT DRIVES YOU\nProud of: ' + g('proud') + '\nTired of: ' + g('tired') + '\nChasing: ' + g('feeling') + '\n\nINSECURITIES\nAreas: ' + insecStr() + '\nBlockers: ' + blockersStr() + '\nIf confident: ' + g('if_conf') + '\n\nGOALS\nDirection: ' + g('goal10') + '\nFocused on: ' + g('mastering') + '\n\nOBSTACLES\nHabit: ' + g('bad_habit') + '\nAvoiding: ' + g('avoiding') + '\nTime waste: ' + g('time_waste') + '\n\nRESOURCES\nFinancial: ' + g('fin_level') + '\nStrengths: ' + g('unique_sk') + '\nConstraint: ' + g('constraint') + '\nFocus hours: ' + g('focus_hrs') + '\n\nLIFESTYLE\nSleep: ' + g('sleep', 'not shared') + '\nWork style: ' + g('style') + '\n\nDECISION-MAKING\nDecisions: ' + g('decisions') + '\nBest work: ' + g('execute') + '\nIdentity: ' + g('identity') + '\nTone: ' + g('tone') + '\nMode: ' + g('pressure') + '\n\n---\nI know your full story.\nEvery answer built around YOU.\nYou are not alone. Let us work.';
 }
 
 function langName() {
