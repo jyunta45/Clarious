@@ -597,9 +597,9 @@ const UI = {
     mainThread: 'หลัก',
     modeDaily: 'ประจำวัน',
     modeDailySub: 'ผิวพรรณ อาหาร ออกกำลังกาย อารมณ์',
-    modeDeep: 'คิดลึก',
+    modeDeep: 'คิดแบบเชิงลึก',
     modeDeepSub: 'อาชีพ ตัวตน การตัดสินใจ',
-    switchToDeep: 'ไปที่คิดลึก',
+    switchToDeep: 'ไปที่คิดแบบเชิงลึก',
     stayHere: 'อยู่ที่นี่',
     checkinMsg: 'ดีใจที่ได้เจอ! วันนี้เป็นอย่างไรบ้าง?',
     checkinDismiss: 'ปิด',
@@ -2019,6 +2019,38 @@ function getTopTopics(n) {
   return entries.slice(0, n || 5);
 }
 
+var TOPIC_LABELS = {
+  en: { work: 'career', health: 'health', relationships: 'relationships', money: 'finances', goals: 'goals', learning: 'growth', creativity: 'creativity', habits: 'habits' },
+  th: { work: 'อาชีพ', health: 'สุขภาพ', relationships: 'ความสัมพันธ์', money: 'การเงิน', goals: 'เป้าหมาย', learning: 'การเรียนรู้', creativity: 'ความคิดสร้างสรรค์', habits: 'นิสัย' },
+  ja: { work: 'キャリア', health: '健康', relationships: '人間関係', money: 'お金', goals: '目標', learning: '学び', creativity: '創造性', habits: '習慣' },
+  es: { work: 'carrera', health: 'salud', relationships: 'relaciones', money: 'finanzas', goals: 'metas', learning: 'crecimiento', creativity: 'creatividad', habits: 'hábitos' },
+  ko: { work: '커리어', health: '건강', relationships: '관계', money: '재정', goals: '목표', learning: '성장', creativity: '창의성', habits: '습관' }
+};
+var DAILY_TOPIC_SET = { health: 1, habits: 1 };
+var DEEP_TOPIC_SET = { work: 1, relationships: 1, money: 1, goals: 1, learning: 1, creativity: 1 };
+var DEFAULT_DAILY_SUB = { en: 'health, habits, energy', th: 'สุขภาพ นิสัย อารมณ์', ja: '健康、習慣、気分', es: 'salud, hábitos, ánimo', ko: '건강, 습관, 기분' };
+var DEFAULT_DEEP_SUB = { en: 'career, identity, decisions', th: 'อาชีพ ตัวตน การตัดสินใจ', ja: 'キャリア、アイデンティティ、決断', es: 'carrera, identidad, decisiones', ko: '커리어, 정체성, 결정' };
+
+function getPersonalizedTabSubs() {
+  var lang = (ST.lang || 'en').split('-')[0];
+  var labels = TOPIC_LABELS[lang] || TOPIC_LABELS.en;
+  var topics = ST.patterns && ST.patterns.topics ? ST.patterns.topics : {};
+  var sorted = Object.keys(topics)
+    .map(function(k) { return { key: k, count: topics[k] }; })
+    .sort(function(a, b) { return b.count - a.count; });
+  var dailyFound = [];
+  var deepFound = [];
+  for (var i = 0; i < sorted.length; i++) {
+    var k = sorted[i].key;
+    if (DAILY_TOPIC_SET[k] && dailyFound.length < 3) dailyFound.push(labels[k] || k);
+    else if (DEEP_TOPIC_SET[k] && deepFound.length < 3) deepFound.push(labels[k] || k);
+  }
+  return {
+    daily: dailyFound.length >= 1 ? dailyFound.join(', ') : (DEFAULT_DAILY_SUB[lang] || DEFAULT_DAILY_SUB.en),
+    deep: deepFound.length >= 1 ? deepFound.join(', ') : (DEFAULT_DEEP_SUB[lang] || DEFAULT_DEEP_SUB.en)
+  };
+}
+
 function getActivityPeak() {
   if (!ST.patterns || !ST.patterns.activityLog || ST.patterns.activityLog.length === 0) return null;
   var hourCounts = {};
@@ -2715,9 +2747,10 @@ function renderChat(root) {
     return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '"' + bubbleId + '>' + content + ttsBtn + '</div></div>';
   }).join('');
 
+  var tabSubs = getPersonalizedTabSubs();
   var modeTabHtml = '<div class="mode-tabs" data-testid="mode-tabs">' +
-    '<button class="mode-tab' + (currentMode === 'daily' ? ' active' : '') + '" data-mode="daily" data-testid="mode-tab-daily"><span class="mode-label">' + ui('modeDaily') + '</span><span class="mode-sub">' + ui('modeDailySub') + '</span></button>' +
-    '<button class="mode-tab' + (currentMode === 'deep' ? ' active' : '') + '" data-mode="deep" data-testid="mode-tab-deep"><span class="mode-label">' + ui('modeDeep') + '</span><span class="mode-sub">' + ui('modeDeepSub') + '</span></button>' +
+    '<button class="mode-tab' + (currentMode === 'daily' ? ' active' : '') + '" data-mode="daily" data-testid="mode-tab-daily"><span class="mode-label">' + ui('modeDaily') + '</span><span class="mode-sub">' + tabSubs.daily + '</span></button>' +
+    '<button class="mode-tab' + (currentMode === 'deep' ? ' active' : '') + '" data-mode="deep" data-testid="mode-tab-deep"><span class="mode-label">' + ui('modeDeep') + '</span><span class="mode-sub">' + tabSubs.deep + '</span></button>' +
     '</div>';
 
   var checkinHtml = '';
