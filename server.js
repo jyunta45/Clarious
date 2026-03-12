@@ -724,11 +724,13 @@ app.post('/api/chat', async (req, res) => {
 
     let userMemoryData = null;
     let userOpenLoops = [];
+    let userPatterns = null;
     if (req.session.userId) {
       const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
       if (uData) {
         if (uData.memories) loadMemoryFromDB(userId, uData.memories);
         if (uData.openLoops) userOpenLoops = uData.openLoops;
+        if (uData.patterns) userPatterns = uData.patterns;
       }
     }
     const userMemory = initMemory(userId);
@@ -770,6 +772,7 @@ app.post('/api/chat', async (req, res) => {
       userMemory,
       guidanceData,
       openLoops: userOpenLoops,
+      patterns: userPatterns,
       mode: chatMode,
       deepSignal
     });
@@ -1158,4 +1161,22 @@ process.on('unhandledRejection', (reason) => {
 export { app };
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
-app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
+const server = app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
+
+function gracefulShutdown(signal) {
+  console.log(`[SHUTDOWN] ${signal} received — closing server...`);
+  server.close(() => {
+    console.log('[SHUTDOWN] HTTP server closed');
+    pool.end(() => {
+      console.log('[SHUTDOWN] Database pool closed');
+      process.exit(0);
+    });
+  });
+  setTimeout(() => {
+    console.error('[SHUTDOWN] Forced exit after timeout');
+    process.exit(1);
+  }, 10000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

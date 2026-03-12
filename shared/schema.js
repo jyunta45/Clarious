@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -26,6 +26,17 @@ export const userData = pgTable("user_data", {
   moodLog: jsonb("mood_log").default([]),
   threadSummaries: jsonb("thread_summaries").default({}),
   lastActiveDate: text("last_active_date").default(""),
+  patterns: jsonb("patterns").default({}),
+  memorySeeded: boolean("memory_seeded").default(false),
+  lastIdentityUpdate: timestamp("last_identity_update"),
+  lastOpeningMessage: text("last_opening_message").default(""),
+  userSentMessageToday: boolean("user_sent_message_today").default(false),
+  guidanceMode: boolean("guidance_mode").default(false),
+  guidanceDay: integer("guidance_day").default(0),
+  lastGuidanceDate: text("last_guidance_date").default(""),
+  lastActiveAt: text("last_active_at").default(""),
+  guidanceDayOpenCount: integer("guidance_day_open_count").default(0),
+  openLoops: jsonb("open_loops").default([]),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
