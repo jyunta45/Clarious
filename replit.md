@@ -1,8 +1,8 @@
-# Life Assistant
+# Clarus
 
 ## Overview
 
-This project is a "Life Assistant" web application, designed as a Jarvis-style personal AI chatbot using Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a detailed onboarding questionnaire for user profiling, user accounts with database persistence, and multi-language support (English, Japanese, Spanish, Thai, Korean). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
+This project is "Clarus", a Jarvis-style personal AI coach built on Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a detailed onboarding questionnaire for user profiling, user accounts with database persistence, and multi-language support (English, Japanese, Spanish, Thai, Korean). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
 
 ## User Preferences
 

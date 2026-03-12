@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Life Assistant</title>
+<title>Clarus</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{--bg:#0d0d14;--card:rgba(255,255,255,0.06);--border:rgba(255,255,255,0.12);--accent:#9b6dff;--accent2:#ff6db5;--gold:#f5c842;--text:#f0eaff;--muted:#9985c0;--radius:20px;}
@@ -213,7 +213,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <body>
 <div id="root">
 <div class="page"><div class="card">
-<div class="brand">Life Assistant</div>
+<div class="brand">Clarus</div>
 <p class="tagline">Loading...</p>
 </div></div>
 </div>
@@ -2525,7 +2525,7 @@ function renderAuth(root) {
   var hasLang = lang && lang.length > 0;
   if (!hasLang) {
     root.innerHTML = '<div class="page"><div class="card">' +
-      '<div class="brand">Life Assistant</div>' +
+      '<div class="brand">Clarus</div>' +
       '<p class="tagline">Choose your language / ' + UI.ja.chooseLanguage + ' / ' + UI.th.chooseLanguage + '</p>' +
       '<div class="lang-picker" data-testid="lang-picker">' +
       Object.keys(LANGS).map(function(k) {
@@ -2544,7 +2544,7 @@ function renderAuth(root) {
 
   if (isForgot) {
     root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
-      '<div class="brand">Life Assistant</div>' +
+      '<div class="brand">Clarus</div>' +
       '<p class="tagline">' + ui('enterEmail') + '</p>' +
       '<div class="auth-error" id="auth-err" style="display:none" data-testid="text-auth-error"></div>' +
       '<div class="auth-success" id="auth-success" style="display:none" data-testid="text-auth-success"></div>' +
@@ -2564,7 +2564,7 @@ function renderAuth(root) {
 
   if (isReset) {
     root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
-      '<div class="brand">Life Assistant</div>' +
+      '<div class="brand">Clarus</div>' +
       '<p class="tagline">' + ui('resetPassword') + '</p>' +
       '<div class="auth-error" id="auth-err" style="display:none" data-testid="text-auth-error"></div>' +
       '<div class="auth-success" id="auth-success" style="display:none" data-testid="text-auth-success"></div>' +
@@ -2584,7 +2584,7 @@ function renderAuth(root) {
   }
 
   root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
-    '<div class="brand">Life Assistant</div>' +
+    '<div class="brand">Clarus</div>' +
     '<p class="tagline">' + ui('tagline') + '</p>' +
     '<div class="auth-error" id="auth-err" style="display:none" data-testid="text-auth-error"></div>' +
     '<div class="auth-form">' +
@@ -2609,7 +2609,7 @@ function renderAuth(root) {
 function renderWelcome(root) {
   var authHtml = AUTH.loggedIn ? '<div class="auth-info" style="justify-content:center;margin-bottom:16px"><span class="email">' + esc(AUTH.email) + '</span> <button class="logout-btn" id="logout-btn" data-testid="button-logout">' + ui('logOut') + '</button></div>' : '';
   root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
-    '<div class="brand">Life Assistant</div>' +
+    '<div class="brand">Clarus</div>' +
     '<p class="tagline">' + ui('tagline') + '</p>' +
     authHtml +
     '<div class="meta-list">' +
@@ -2812,7 +2812,7 @@ function renderChat(root) {
   root.innerHTML = '<div class="chat-wrap mode-' + currentMode + '">' +
     '<div class="chat-header">' +
     '<div>' +
-    '<div style="font-family:Georgia,serif;font-size:1.4rem;color:#fff">Life Assistant</div>' +
+    '<div style="font-family:Georgia,serif;font-size:1.4rem;color:#fff">Clarus</div>' +
     '<div style="font-size:0.8rem;color:var(--muted)">' + ui('knows') + ' ' + esc(ST.ans.name || 'you') + ' ' + ui('completely') + '</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
@@ -3003,7 +3003,7 @@ checkAuth();
 
 } catch(e) {
   console.error('App error:', e);
-  document.getElementById('root').innerHTML = '<div class="page"><div class="card"><div class="brand">Life Assistant</div><p class="tagline">Something went wrong. Please refresh.</p></div></div>';
+  document.getElementById('root').innerHTML = '<div class="page"><div class="card"><div class="brand">Clarus</div><p class="tagline">Something went wrong. Please refresh.</p></div></div>';
 }
 </script>
 </body>
