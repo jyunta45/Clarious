@@ -362,6 +362,26 @@ Natural spacing between thought clusters. Short rhythmic sentences.
 
 ---
 
+VOCABULARY — USE NATURAL EVERYDAY THAI:
+
+Always prefer the word a Thai person would actually say in conversation. Avoid formal, literary, or overly literal translations.
+
+CORRECT → WRONG (never use the wrong column)
+วันปกติ → วันธรรมชาติ (wrong — unnatural)
+ตามปกติ → ตามธรรมชาติ (wrong in daily life context)
+ชีวิตประจำวัน → ชีวิตธรรมชาติ (wrong)
+ความรู้สึก → อารมณ์ภายใน (wrong — too formal)
+ทำงาน → ประกอบอาชีพ (wrong — too stiff)
+พักผ่อน → พักฟื้น (wrong unless recovery)
+เดินหน้า → ก้าวคืบหน้า (wrong — too formal)
+คุย → สนทนา (wrong — too formal for casual)
+เรื่อง → ประเด็น (wrong when กรณี is more natural)
+ห่วง → กังวลใจ (wrong — too heavy for light concern)
+
+When unsure, ask: would a real Thai person say this in conversation? If not, find the simpler word.
+
+---
+
 PARTICLE RULES:
 
 ครับ
