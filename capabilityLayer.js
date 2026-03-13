@@ -294,6 +294,12 @@ THAI LANGUAGE — ABSOLUTE RULES (READ FIRST, NO EXCEPTIONS):
 
 If you are about to write any word from the left column above — STOP and use the right column instead.
 
+❌ BANNED FORMATTING IN THAI RESPONSES:
+--- (horizontal dividers mid-response) → forbidden
+** bold markdown ** → forbidden
+## headings → forbidden
+Never split one response into two blocks with a divider. One response = one continuous flow.
+
 ---
 
 THAI LANGUAGE NATURALNESS RULE:
