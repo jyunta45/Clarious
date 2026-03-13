@@ -25,8 +25,9 @@ import { runHaikuMemoryMerge } from './memoryMerge.js';
 import { repairLegacyIdentity } from './legacyIdentityRepair.js';
 import { buildOpeningMessage } from './openingMessageEngine.js';
 import {
-  CATEGORY_ORDER, CATEGORY_INFO, getNextCategory, shouldAdvanceCategory,
-  buildOnboardingSystemPrompt, buildInitialQuestionPrompt,
+  CATEGORY_ORDER, CATEGORY_INFO, getNextCategory,
+  buildFreeFlowingOnboardingPrompt, buildInitialQuestionPrompt,
+  shouldCompleteOnboarding,
   COMPLETION_MESSAGES, SKIP_MESSAGES, getDefaultOnboardingProgress
 } from './onboardingEngine.js';
 
@@ -348,8 +349,8 @@ app.post('/api/onboarding-chat', async (req, res) => {
     }
 
     // ── START (first interaction) ────────────────────────────────────────────
-    if (!onboardingState.currentCategory) {
-      onboardingState = { currentCategory: 'whoYouAre', exchangeCount: 0, history: [] };
+    if (!onboardingState.started) {
+      onboardingState = { started: true, totalExchanges: 0, history: [] };
       const systemPrompt = buildInitialQuestionPrompt(safeLang);
       const text = await callOnboardingModel(systemPrompt, message || 'Let\'s start');
       await db.update(userData).set({
@@ -361,40 +362,21 @@ app.post('/api/onboarding-chat', async (req, res) => {
     }
 
     // ── REGULAR EXCHANGE ─────────────────────────────────────────────────────
-    const currentCategory = onboardingState.currentCategory;
-    onboardingState.exchangeCount = (onboardingState.exchangeCount || 0) + 1;
+    onboardingState.totalExchanges = (onboardingState.totalExchanges || 0) + 1;
 
-    const advance = shouldAdvanceCategory(onboardingState.exchangeCount);
     let responseText = '';
     let newOnboardingComplete = false;
     let responseChips = null;
 
-    if (advance) {
-      // Mark this category complete
-      onboardingProgress[currentCategory] = true;
-      onboardingProgress.lastCategoryDiscussed = currentCategory;
-
-      const nextCategory = getNextCategory(currentCategory);
-
-      if (!nextCategory) {
-        // All categories complete
-        newOnboardingComplete = true;
-        onboardingState = {};
-        responseText = COMPLETION_MESSAGES[safeLang] || COMPLETION_MESSAGES.en;
-        responseChips = ['en', 'ja', 'es', 'th', 'ko'].map(l => {
-          const chips = { en: ["Let's start", "Ask me something"], ja: ["始めましょう", "何か聞いて"], es: ["Empecemos", "Pregúntame algo"], th: ["เริ่มเลย", "ถามฉันสิ"], ko: ["시작해요", "뭔가 물어봐요"] };
-          return chips[safeLang] || chips.en;
-        })[0];
-      } else {
-        // Bridge to next category
-        onboardingState.currentCategory = nextCategory;
-        onboardingState.exchangeCount = 0;
-        const systemPrompt = buildOnboardingSystemPrompt(currentCategory, true, nextCategory, safeLang);
-        responseText = await callOnboardingModel(systemPrompt, message);
-      }
+    if (shouldCompleteOnboarding(onboardingState.totalExchanges)) {
+      // Enough exchanges — complete onboarding
+      newOnboardingComplete = true;
+      onboardingState = {};
+      responseText = COMPLETION_MESSAGES[safeLang] || COMPLETION_MESSAGES.en;
+      responseChips = { en: ["Let's start", "Ask me something"], th: ["เริ่มเลย", "ถามฉันสิ"] }[safeLang] || ["Let's start", "Ask me something"];
     } else {
-      // Continue within current category
-      const systemPrompt = buildOnboardingSystemPrompt(currentCategory, false, null, safeLang);
+      // Free-flowing conversation covering all topics naturally
+      const systemPrompt = buildFreeFlowingOnboardingPrompt(safeLang, onboardingState.totalExchanges);
       responseText = await callOnboardingModel(systemPrompt, message);
     }
 
