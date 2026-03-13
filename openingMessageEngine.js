@@ -212,11 +212,12 @@ function _buildOpeningMessage({
   lang,
   userData,
   openLoops,
-  mode
+  mode,
+  localHour
 }) {
   const L = lang || 'en';
   const now = new Date();
-  const hour = now.getHours();
+  const hour = (localHour !== undefined && localHour >= 0 && localHour <= 23) ? localHour : now.getHours();
   const daysAway = lastActiveAt
     ? (Date.now() - new Date(lastActiveAt)) / 86400000
     : 0;

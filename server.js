@@ -276,7 +276,9 @@ app.post('/api/data', async (req, res) => {
 app.get('/api/opening-message', async (req, res) => {
   try {
     const openingMode = req.query.mode || 'deep';
-    let params = { userData: {}, mode: openingMode };
+    const rawLocalHour = parseInt(req.query.localHour, 10);
+    const localHour = (!isNaN(rawLocalHour) && rawLocalHour >= 0 && rawLocalHour <= 23) ? rawLocalHour : new Date().getHours();
+    let params = { userData: {}, mode: openingMode, localHour };
     let uData = null;
     if (req.session.userId) {
       const [row] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
@@ -292,7 +294,8 @@ app.get('/api/opening-message', async (req, res) => {
           lang: uData.lang || 'en',
           userData: { lastOpeningMessage: uData.lastOpeningMessage },
           openLoops: uData.openLoops || [],
-          mode: openingMode
+          mode: openingMode,
+          localHour
         };
       }
     }

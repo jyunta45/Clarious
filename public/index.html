@@ -1390,7 +1390,8 @@ async function loadOpeningMessage() {
   if (ST.loading || ST.streaming) return;
   openingLoadedFor[currentMode] = true;
   try {
-    var res = await fetch('/api/opening-message?mode=' + currentMode, {
+    var localHour = new Date().getHours();
+    var res = await fetch('/api/opening-message?mode=' + currentMode + '&localHour=' + localHour, {
       method: 'GET',
       credentials: 'include'
     });
