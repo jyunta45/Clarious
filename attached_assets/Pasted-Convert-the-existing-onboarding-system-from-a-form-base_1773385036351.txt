@@ -1,0 +1,502 @@
+Convert the existing onboarding system from a form-based question list into a conversational onboarding experience.
+
+Read ALL files before making any changes.  
+Understand the entire existing system first — especially how onboarding data is currently collected, stored, and used in memory.
+
+Do not break any existing functionality.  
+Do not change the memory structure or fields.  
+Only change HOW the onboarding data is collected.
+
+---
+
+IMPORTANT IMPLEMENTATION RULE
+
+The onboardingEngine must control the onboarding structure.
+
+The AI model should ONLY generate natural language responses and questions based on the current onboarding category provided by the engine.
+
+The engine — not the AI — decides when to:
+
+- move to the next category  
+- pause onboarding  
+- mark progress  
+- resume onboarding  
+- complete onboarding  
+
+This ensures the onboarding flow remains structured while the conversation feels natural.
+
+While onboardingComplete === false, Clarus must prioritize onboarding guidance over normal conversation topics.
+
+---
+
+CONTEXT
+
+My app currently shows new users a list of questions to answer before their first conversation begins.
+
+I want to replace this with a natural conversation where Clarus guides the user through the same questions organically — one at a time — through dialogue.
+
+The user should never see a list.
+
+They should feel like they are having a first conversation — not filling out a form.
+
+---
+
+CORE PRINCIPLE
+
+Same 8 categories.  
+Same memory fields.  
+Same data collected.
+
+Only the collection experience changes.
+
+From form → conversation.
+
+---
+
+THE 8 CATEGORIES TO COVER
+
+Category 1 — Who You Are  
+What they do, their age, daily life
+
+Category 2 — What Drives Them  
+What they want to feel proud of  
+What they are tired of dealing with  
+What feeling they are working toward
+
+Category 3 — Insecurities  
+Areas of self-consciousness  
+What affects how they show up  
+Where they feel behind
+
+Category 4 — Goals and Strategy  
+Where they want to be in 5–10 years  
+What they are building right now  
+Where their time goes that it shouldn't
+
+Category 5 — Obstacles  
+Habits holding them back  
+Things they keep avoiding  
+What they have tried that didn't work
+
+Category 6 — Resources  
+Financial situation  
+What they are genuinely good at  
+Biggest obstacle between now and goals  
+Hours of genuine focus per day
+
+Category 7 — Lifestyle  
+Sleep schedule  
+How they work best  
+When they get their best work done
+
+Category 8 — Decision Making and Identity  
+How they make big decisions  
+What matters most to how they see themselves  
+How they respond when things don't go to plan  
+How direct they want Clarus to be  
+What they want from this space most
+
+---
+
+PART 1 — Database Changes
+
+Add the following fields to the user data table or JSONB column using Drizzle ORM patterns consistent with the existing schema.
+
+Do NOT remove or modify any existing columns.
+
+Add:
+
+onboardingMode: text default "conversational"  
+onboardingComplete: boolean default false  
+onboardingCompletedAt: text default null  
+onboardingProgress: JSONB default {}
+
+Example onboardingProgress structure:
+
+{
+  whoYouAre: false,
+  whatDrivesYou: false,
+  insecurities: false,
+  goals: false,
+  obstacles: false,
+  resources: false,
+  lifestyle: false,
+  decisionMaking: false,
+  lastCategoryDiscussed: null
+}
+
+Add onboarding runtime state tracking:
+
+onboardingState: JSONB default {}
+
+Example onboardingState structure:
+
+{
+  currentCategory: null,
+  exchangeCount: 0,
+  lastUserMessageId: null
+}
+
+---
+
+ONBOARDING STATE INITIALIZATION
+
+When onboarding begins (user selects "Let's do this"):
+
+Set onboardingState to:
+
+{
+  currentCategory: "whoYouAre",
+  exchangeCount: 0,
+  lastUserMessageId: null
+}
+
+---
+
+PART 2 — Conversational Onboarding Engine
+
+Create a new file:
+
+onboardingEngine.js
+
+This engine controls onboarding progression.
+
+Responsibilities:
+
+- Track the active category  
+- Track exchangeCount  
+- Decide when to move forward  
+- Handle pause/resume  
+- Trigger memory extraction  
+- Mark onboarding completion  
+
+The AI only generates conversational language.
+
+The engine controls all structural decisions.
+
+---
+
+ONBOARDING STATE USAGE
+
+For every incoming user message during onboarding:
+
+1. Read onboardingState.currentCategory  
+2. Read onboardingState.exchangeCount  
+3. Increment exchangeCount by 1  
+4. Update onboardingState.lastUserMessageId
+
+Category completion occurs ONLY when the engine decides to move forward.
+
+Completion conditions:
+
+- exchangeCount reaches 3  
+OR
+- the engine determines the user already covered enough information
+
+When a category completes:
+
+- onboardingProgress[currentCategory] = true
+- onboardingProgress.lastCategoryDiscussed = currentCategory
+- onboardingState.currentCategory = nextCategory
+- onboardingState.exchangeCount = 0
+
+Save updated onboardingState and onboardingProgress.
+
+---
+
+OPENING MESSAGE FOR NEW USERS
+
+When a brand new user opens the app instead of showing a form display:
+
+{
+  text: "Good to meet you.\n\nBefore we dive into anything serious, I'd like to understand a little about your world.\n\nIt won't take long, and you can pause whenever you want.\n\nTo start simple — what does a typical day look like for you?",
+  type: "onboarding_start",
+  chips: [
+    "Let's do this",
+    "Skip for now"
+  ]
+}
+
+If user selects "Skip for now":
+
+- onboardingComplete = true
+- onboardingState = {}
+- onboardingProgress remains default
+- continue to normal app experience
+
+Clarus gathers understanding naturally through conversation.
+
+---
+
+QUESTION FLOW LOGIC
+
+The onboardingEngine progresses sequentially through the 8 categories.
+
+After each user response:
+
+1. Clarus acknowledges the user's answer in one warm sentence.
+
+2. Call the existing Haiku memory extraction.
+
+3. Extracted data maps to existing memory fields.
+
+4. Engine decides whether to continue within category or move forward.
+
+When moving forward, the engine generates a natural bridge to the next category.
+
+Example bridge:
+
+"That helps me understand your day better. I'm curious about something a little deeper — if your life looked exactly the way you wanted it to, what would you feel most proud of?"
+
+---
+
+CATEGORY OPENERS (INTERNAL GUIDES)
+
+Category 1  
+"What does a typical day look like for you?"
+
+Category 2  
+"If life looked the way you truly wanted it to, what would you feel proud of?"
+
+Category 3  
+"Are there areas of life where you feel most self-conscious?"
+
+Category 4  
+"Where would you like to be in the next five to ten years?"
+
+Category 5  
+"Is there a habit that keeps holding you back?"
+
+Category 6  
+"How would you describe your financial situation right now?"
+
+Category 7  
+"What does your sleep schedule usually look like?"
+
+Category 8  
+"When you face big decisions, how do you usually approach them?"
+
+The AI should phrase these conversationally.
+
+---
+
+CATEGORY DEPTH
+
+Maximum exchanges per category: 3.
+
+This limit is enforced by onboardingEngine using exchangeCount.
+
+If the user already covers multiple areas naturally, the engine may skip forward early.
+
+---
+
+PAUSE AND RESUME
+
+At natural points Clarus may say:
+
+"We can keep going or pause here if you'd like — completely up to you."
+
+If the user pauses:
+
+- Save onboardingState
+- Save onboardingProgress
+
+Clarus responds:
+
+"No problem. Everything is saved. Come back anytime and we'll pick up where we left off."
+
+When user returns and onboardingComplete === false:
+
+Clarus resumes with:
+
+"Welcome back. Last time we were talking about [lastCategoryDiscussed]. Would you like to continue or start using the app now?"
+
+If user chooses to start using the app:
+
+- onboardingComplete = true
+- onboardingState = {}
+
+Remaining understanding is gathered gradually through conversation.
+
+---
+
+PART 3 — Memory Extraction During Onboarding
+
+After each onboarding exchange call the existing Haiku memory extraction.
+
+Map extracted information only to existing fields:
+
+goals  
+recurringStruggles  
+strengths  
+decisionPatterns  
+identityDirection  
+insecurities  
+lifestyle  
+resources  
+
+Do NOT create new memory fields.
+
+Use the existing extraction pipeline exactly as implemented.
+
+---
+
+COMPLETION
+
+When all 8 categories are completed:
+
+- onboardingComplete = true
+- onboardingCompletedAt = Date.now()
+
+Clarus sends:
+
+{
+  text: "That's everything I needed to know for now.\n\nI have a much clearer picture of where you are and what you're working toward.\n\nThis space is yours now — use it however feels right.",
+  type: "onboarding_complete",
+  chips: [
+    "Let's start",
+    "Ask me something"
+  ]
+}
+
+Normal app experience begins immediately.
+
+---
+
+PART 4 — Existing Onboarding Removal
+
+Locate the existing onboarding form.
+
+Do NOT delete immediately.
+
+If existing users already have onboarding data:
+
+- set onboardingComplete = true
+- preserve stored data
+- skip conversational onboarding
+
+If no existing user data exists:
+
+- safely disable the old form.
+
+---
+
+PART 5 — Opening Message Engine Integration
+
+When the app opens check onboarding status first.
+
+If onboardingComplete === false AND lastCategoryDiscussed === null:
+
+→ show onboarding start message
+
+If onboardingComplete === false AND lastCategoryDiscussed !== null:
+
+→ show onboarding resume message
+
+If onboardingComplete === true:
+
+→ run existing openingMessageEngine logic normally.
+
+---
+
+TWO TAB SYSTEM INTEGRATION
+
+While onboardingComplete === false:
+
+- hide Daily / Deep Thinking tabs
+- show only onboarding conversation
+
+When onboardingComplete becomes true:
+
+- tabs become visible immediately without reload
+- default tab = Daily
+- full app experience activates
+
+---
+
+PART 6 — Guidance Day Integration
+
+Guidance system remains inactive during onboarding.
+
+While onboardingComplete === false:
+
+guidanceDay = 0  
+guidanceMode = false
+
+When onboardingComplete becomes true:
+
+guidanceMode = true  
+guidanceDay = 1
+
+Guidance day 1 message fires on next app open.
+
+---
+
+PART 7 — Skip Path
+
+If user skips onboarding:
+
+onboardingComplete = true  
+onboardingProgress = default  
+onboardingState = {}
+
+Tabs visible immediately.
+
+Memory builds gradually through conversation.
+
+---
+
+CRITICAL RULES
+
+Only modify:
+
+- onboardingEngine.js (new file)
+- openingMessageEngine.js
+- database schema (add new fields only)
+- frontend tab visibility logic
+
+Do NOT modify:
+
+- authentication
+- streaming system
+- memory extraction logic
+- guidance system internals
+- contextBuilder.js
+- capabilityLayer.js
+- existing memory fields
+- existing user data
+
+Maintain backward compatibility.
+
+---
+
+FINAL VERIFICATION
+
+New user opens app  
+→ sees conversational onboarding not form
+
+Tabs hidden during onboarding
+
+User answers naturally  
+→ memory fields populated
+
+onboardingState tracks category and exchangeCount
+
+User pauses  
+→ state saved
+
+User returns  
+→ resumes correctly
+
+User skips  
+→ full app immediately
+
+Existing users unaffected
+
+Onboarding completion  
+→ tabs appear  
+→ guidance activates
+
+Server starts successfully  
+Streaming responses function normally  
+All existing systems remain intact
