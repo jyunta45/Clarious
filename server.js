@@ -303,8 +303,10 @@ app.post('/api/onboarding-chat', async (req, res) => {
       ? { ...uData.onboardingProgress }
       : getDefaultOnboardingProgress();
 
-    // Helper to call Claude
+    // Helper to call Claude with full conversation history
     async function callOnboardingModel(systemPrompt, userMessage) {
+      const history = (onboardingState.history || []).slice(-20);
+      const messages = [...history, { role: 'user', content: userMessage }];
       const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -316,11 +318,17 @@ app.post('/api/onboarding-chat', async (req, res) => {
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 200,
           system: systemPrompt,
-          messages: [{ role: 'user', content: userMessage }]
+          messages
         })
       });
       const data = await apiRes.json();
-      return (data.content && data.content[0]) ? data.content[0].text.trim() : '';
+      const reply = (data.content && data.content[0]) ? data.content[0].text.trim() : '';
+      // Append to history
+      onboardingState.history = [...(onboardingState.history || []),
+        { role: 'user', content: userMessage },
+        { role: 'assistant', content: reply }
+      ].slice(-30);
+      return reply;
     }
 
     // ── SKIP ────────────────────────────────────────────────────────────────
@@ -341,7 +349,7 @@ app.post('/api/onboarding-chat', async (req, res) => {
 
     // ── START (first interaction) ────────────────────────────────────────────
     if (!onboardingState.currentCategory) {
-      onboardingState = { currentCategory: 'whoYouAre', exchangeCount: 0, lastUserMessageId: null };
+      onboardingState = { currentCategory: 'whoYouAre', exchangeCount: 0, history: [] };
       const systemPrompt = buildInitialQuestionPrompt(safeLang);
       const text = await callOnboardingModel(systemPrompt, message || 'Let\'s start');
       await db.update(userData).set({
