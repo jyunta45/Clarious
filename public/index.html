@@ -208,6 +208,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .challenge-text{font-size:0.82rem;color:var(--text);display:block;}
 .challenge-count{font-size:0.68rem;color:var(--muted);margin-top:2px;display:block;}
 @media(max-width:600px){.card{padding:28px 20px;border-radius:20px;}.brand{font-size:2.2rem;}.question-text{font-size:1.15rem;}.bubble{max-width:90%;font-size:0.9rem;padding:12px 16px;}.lang-btn{min-width:100px;padding:10px 16px;font-size:0.9rem;}.lang-switcher{top:8px;right:8px;}.lang-mini{padding:4px 8px;font-size:0.7rem;}.chat-header{padding:12px 14px;}.chat-messages{padding:14px;gap:12px;}.chat-input-bar{padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));}.chat-input{padding:12px 14px;font-size:0.9rem;}.chat-send{padding:12px 18px;font-size:0.9rem;}.quick-actions{padding:0 14px 10px;gap:6px;}.quick-btn{padding:6px 12px;font-size:0.78rem;}.thread-tabs{padding:6px 10px;gap:4px;}.thread-tab{padding:5px 10px;font-size:0.75rem;}.thread-new{padding:5px 10px;font-size:0.78rem;}.msg.user .bubble{margin-left:20%;}}
+/* ── ONBOARDING CHAT ── */
+.ob-wrap{display:flex;flex-direction:column;height:100vh;max-width:780px;margin:0 auto;}
+.ob-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.ob-brand{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,#fff 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ob-msgs{flex:1;overflow-y:auto;padding:28px 24px;display:flex;flex-direction:column;gap:16px;}
+.ob-msg{display:flex;flex-direction:column;}
+.ob-msg.user{align-items:flex-end;}
+.ob-msg.assistant{align-items:flex-start;}
+.ob-bubble{max-width:75%;padding:14px 18px;border-radius:18px;font-size:0.97rem;line-height:1.6;white-space:pre-wrap;}
+.ob-bubble.assistant{background:rgba(155,109,255,0.12);border:1px solid rgba(155,109,255,0.2);color:var(--text);border-bottom-left-radius:4px;}
+.ob-bubble.user{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-bottom-right-radius:4px;}
+.ob-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 24px 12px;}
+.ob-chip{padding:8px 16px;background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.3);border-radius:100px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.15s;}
+.ob-chip:hover{background:rgba(155,109,255,0.2);border-color:var(--accent);}
+.ob-chip.skip{background:transparent;border-color:rgba(255,255,255,0.12);color:var(--muted);font-size:0.82rem;}
+.ob-chip.skip:hover{border-color:rgba(255,255,255,0.25);color:var(--text);}
+.ob-input-row{display:flex;gap:10px;padding:14px 24px;padding-bottom:max(14px,env(safe-area-inset-bottom));border-top:1px solid var(--border);flex-shrink:0;}
+.ob-input{flex:1;padding:13px 18px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);outline:none;resize:none;height:46px;max-height:120px;overflow-y:auto;}
+.ob-input:focus{border-color:var(--accent);}
+.ob-send{padding:13px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:var(--radius);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:opacity 0.15s;white-space:nowrap;}
+.ob-send:hover{opacity:0.88;}
+.ob-send:disabled{opacity:0.45;cursor:not-allowed;}
+.ob-typing{display:flex;gap:5px;align-items:center;padding:14px 18px;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.15);border-radius:18px;border-bottom-left-radius:4px;width:fit-content;}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:obpulse 1.2s ease-in-out infinite;}
+.ob-dot:nth-child(2){animation-delay:0.2s;}
+.ob-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes obpulse{0%,80%,100%{opacity:0.3;}40%{opacity:1;}}
+@media(max-width:600px){.ob-header{padding:12px 16px;}.ob-msgs{padding:20px 16px;}.ob-chips{padding:0 16px 10px;}.ob-input-row{padding:10px 16px;padding-bottom:max(10px,env(safe-area-inset-bottom));}.ob-bubble{max-width:88%;font-size:0.9rem;}.ob-send{padding:12px 16px;}}
 </style>
 </head>
 <body>
@@ -977,7 +1005,7 @@ function sectionName(s) {
   return UI[lang] && UI[lang].sections && UI[lang].sections[s] ? UI[lang].sections[s] : s;
 }
 
-var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} } };
+var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [] };
 var AUTH = { loggedIn: false, email: '', checked: false, guest: false, tier: 'guest' };
 var savePending = null;
 var checkinDismissed = false;
@@ -1103,7 +1131,10 @@ function save() {
           mood_log: ST.moodLog || [],
           thread_summaries: ST.threadSummaries || {},
           last_active_date: ST.lastActiveDate || '',
-          patterns: ST.patterns || { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }
+          patterns: ST.patterns || { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} },
+          onboarding_complete: ST.onboardingComplete || false,
+          onboarding_progress: ST.onboardingProgress || {},
+          onboarding_state: ST.onboardingState || {}
         })
       }).catch(function(){});
     }, 500);
@@ -1163,6 +1194,14 @@ async function loadServerData() {
       if (data.threadSummaries) ST.threadSummaries = data.threadSummaries;
       if (data.lastActiveDate) ST.lastActiveDate = data.lastActiveDate;
       if (data.patterns) ST.patterns = data.patterns;
+      // Onboarding fields
+      if (data.onboardingComplete !== undefined) {
+        ST.onboardingComplete = data.onboardingComplete;
+      } else if (data.stage === 'chat' || (data.answers && Object.keys(data.answers).length > 0)) {
+        ST.onboardingComplete = true;
+      }
+      if (data.onboardingProgress && Object.keys(data.onboardingProgress).length > 0) ST.onboardingProgress = data.onboardingProgress;
+      if (data.onboardingState && Object.keys(data.onboardingState).length > 0) ST.onboardingState = data.onboardingState;
       try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
     }
   } catch(e) {}
@@ -2476,7 +2515,8 @@ function reset() {
   if (!confirm(ui('deleteConfirm'))) return;
   var keepLang = ST.lang;
   try { localStorage.removeItem('la'); } catch(e) {}
-  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0 };
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [] };
+  OB_SENDING = false;
   checkinDismissed = false;
   save();
   render();
@@ -2512,11 +2552,296 @@ function render() {
   var root = document.getElementById('root');
   if (!AUTH.checked) return;
   if (!AUTH.loggedIn && !AUTH.guest) { renderAuth(root); return; }
-  if (ST.stage === 'welcome') { renderWelcome(root); }
-  else if (ST.stage === 'questions') { renderQuestion(root); }
-  else if (ST.stage === 'mirror') { renderMirror(root); }
-  else { renderChat(root); }
+  // Guests skip onboarding — they go straight to chat
+  if (AUTH.guest) {
+    if (ST.stage === 'welcome' || ST.stage === 'questions' || ST.stage === 'mirror') { renderChat(root); return; }
+    renderChat(root); return;
+  }
+  // Conversational onboarding gate — logged-in users only
+  if (!ST.onboardingComplete) { renderOnboardingChat(root); return; }
+  // Onboarding done — normal app
+  if (ST.stage === 'welcome' || ST.stage === 'questions' || ST.stage === 'mirror') {
+    ST.stage = 'chat';
+    if (!ST.threads || ST.threads.length === 0) {
+      var greet = [{ role: 'assistant', content: chatGreeting(), mode: 'deep' }];
+      ST.msgs = greet;
+      ST.threads = [{ name: ui('mainThread'), msgs: greet }];
+      ST.activeThread = 0;
+      currentMode = 'daily';
+    }
+    save();
+  }
+  renderChat(root);
 }
+
+// ─── ONBOARDING CONVERSATION ────────────────────────────────────────────────
+var OB_SENDING = false;
+
+var OB_START_MSGS = {
+  en: "Good to meet you.\n\nBefore we dive into anything serious, I'd like to understand a little about your world.\n\nIt won't take long, and you can pause whenever you want.",
+  ja: "はじめまして。\n\n本格的な話に入る前に、あなたのことを少し理解したいと思います。\n\n時間はかかりません。いつでも止められます。",
+  es: "Mucho gusto.\n\nAntes de entrar en cosas serias, me gustaría entender un poco tu mundo.\n\nNo llevará mucho tiempo, y puedes pausar cuando quieras.",
+  th: "ยินดีที่ได้รู้จัก\n\nก่อนจะเข้าเรื่องจริงจัง อยากทำความรู้จักคุณสักนิดก่อน\n\nไม่นานหรอก และหยุดพักเมื่อไหร่ก็ได้",
+  ko: "반갑습니다.\n\n본격적인 이야기 전에, 먼저 당신에 대해 조금 알고 싶어요.\n\n오래 걸리지 않고, 언제든지 멈출 수 있어요."
+};
+var OB_START_CHIPS = {
+  en: ["Let's do this", "Skip for now"],
+  ja: ["始めましょう", "後で"],
+  es: ["Vamos", "Por ahora, saltar"],
+  th: ["เริ่มเลย", "ข้ามก่อน"],
+  ko: ["시작해요", "나중에 할게요"]
+};
+var OB_RESUME_CHIPS = {
+  en: ["Continue", "Start using the app"],
+  ja: ["続ける", "アプリを使い始める"],
+  es: ["Continuar", "Empezar a usar la app"],
+  th: ["คุยต่อ", "เริ่มใช้แอปเลย"],
+  ko: ["계속하기", "앱 사용 시작"]
+};
+var OB_SEND_LABEL = { en: "Send", ja: "送信", es: "Enviar", th: "ส่ง", ko: "보내기" };
+var OB_PLACEHOLDER = { en: "Type your answer…", ja: "入力してください…", es: "Escribe tu respuesta…", th: "พิมพ์คำตอบของคุณ…", ko: "답변을 입력하세요…" };
+var OB_COMPLETION_CHIPS = {
+  en: ["Let's start", "Ask me something"],
+  ja: ["始めましょう", "何か聞いて"],
+  es: ["Empecemos", "Pregúntame algo"],
+  th: ["เริ่มเลย", "ถามฉันสิ"],
+  ko: ["시작해요", "뭔가 물어봐요"]
+};
+
+function renderOnboardingChat(root) {
+  var lang = ST.lang || 'en';
+  var msgs = ST.onboardingMsgs || [];
+  var lastCategory = (ST.onboardingProgress || {}).lastCategoryDiscussed;
+  var isResuming = lastCategory && msgs.length === 0;
+  var isFirstOpen = msgs.length === 0 && !lastCategory;
+
+  // Build messages HTML
+  var msgsHtml = msgs.map(function(m) {
+    var content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') : '';
+    return '<div class="ob-msg ' + m.role + '" data-testid="ob-msg-' + m.role + '">' +
+      '<div class="ob-bubble ' + m.role + '">' + content + '</div></div>';
+  }).join('');
+
+  // Typing indicator
+  if (OB_SENDING) {
+    msgsHtml += '<div class="ob-msg assistant" data-testid="ob-typing"><div class="ob-typing"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div></div>';
+  }
+
+  // If no messages yet, show the initial greeting
+  var initialGreetingHtml = '';
+  if (msgs.length === 0) {
+    var greetingText;
+    if (isResuming) {
+      greetingText = getObResumeMessage(lang, lastCategory);
+    } else {
+      greetingText = OB_START_MSGS[lang] || OB_START_MSGS.en;
+    }
+    initialGreetingHtml = '<div class="ob-msg assistant" data-testid="ob-greeting">' +
+      '<div class="ob-bubble assistant">' + greetingText.replace(/\n/g, '<br>') + '</div></div>';
+  }
+
+  // Chips (shown when no sending, and when appropriate)
+  var chipsHtml = '';
+  if (!OB_SENDING) {
+    if (msgs.length === 0 && isFirstOpen) {
+      var chips = OB_START_CHIPS[lang] || OB_START_CHIPS.en;
+      chipsHtml = '<div class="ob-chips" data-testid="ob-start-chips">' +
+        '<button class="ob-chip" data-testid="ob-chip-start" data-obaction="start">' + esc(chips[0]) + '</button>' +
+        '<button class="ob-chip skip" data-testid="ob-chip-skip" data-obaction="skip">' + esc(chips[1]) + '</button>' +
+        '</div>';
+    } else if (msgs.length === 0 && isResuming) {
+      var rChips = OB_RESUME_CHIPS[lang] || OB_RESUME_CHIPS.en;
+      chipsHtml = '<div class="ob-chips" data-testid="ob-resume-chips">' +
+        '<button class="ob-chip" data-testid="ob-chip-continue" data-obaction="continue">' + esc(rChips[0]) + '</button>' +
+        '<button class="ob-chip skip" data-testid="ob-chip-useapp" data-obaction="useapp">' + esc(rChips[1]) + '</button>' +
+        '</div>';
+    }
+  }
+
+  // Input row (shown when conversation has started and not yet complete)
+  var inputHtml = '';
+  if (msgs.length > 0 && !OB_SENDING) {
+    inputHtml = '<div class="ob-input-row">' +
+      '<textarea class="ob-input" id="ob-input" placeholder="' + esc(OB_PLACEHOLDER[lang] || OB_PLACEHOLDER.en) + '" data-testid="input-onboarding" rows="1"></textarea>' +
+      '<button class="ob-send" id="ob-send" data-testid="button-ob-send">' + esc(OB_SEND_LABEL[lang] || OB_SEND_LABEL.en) + '</button>' +
+      '</div>';
+  }
+
+  root.innerHTML = langSwitcherHtml() +
+    '<div class="ob-wrap">' +
+    '<div class="ob-header">' +
+    '<span class="ob-brand">Clarus</span>' +
+    '</div>' +
+    '<div class="ob-msgs" id="ob-msgs">' +
+    initialGreetingHtml + msgsHtml +
+    '</div>' +
+    chipsHtml +
+    inputHtml +
+    '</div>';
+
+  // Scroll to bottom
+  var msgsEl = document.getElementById('ob-msgs');
+  if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+
+  // Bind chip actions
+  document.querySelectorAll('[data-obaction]').forEach(function(btn) {
+    btn.onclick = function() {
+      var action = btn.dataset.obaction;
+      if (action === 'skip' || action === 'useapp') {
+        sendOnboardingMessage('__skip__');
+      } else if (action === 'start') {
+        sendOnboardingMessage('__start__');
+      } else if (action === 'continue') {
+        sendOnboardingMessage('__continue__');
+      }
+    };
+  });
+
+  // Bind send button and input
+  var sendBtn = document.getElementById('ob-send');
+  var inputEl = document.getElementById('ob-input');
+  if (sendBtn && inputEl) {
+    sendBtn.onclick = function() {
+      var txt = inputEl.value.trim();
+      if (txt && !OB_SENDING) sendOnboardingMessage(txt);
+    };
+    inputEl.onkeydown = function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        var txt = inputEl.value.trim();
+        if (txt && !OB_SENDING) sendOnboardingMessage(txt);
+      }
+    };
+    inputEl.focus();
+  }
+
+  bindLangSwitcher();
+}
+
+function getObResumeMessage(lang, lastCategory) {
+  var catNames = {
+    en: { whoYouAre: 'your day-to-day life', whatDrivesYou: 'what drives you', insecurities: 'your challenges', goals: 'your goals', obstacles: 'what holds you back', resources: 'your strengths', lifestyle: 'your lifestyle', decisionMaking: 'how you think and decide' },
+    ja: { whoYouAre: 'あなたの日常', whatDrivesYou: 'あなたを動かすもの', insecurities: 'あなたの課題', goals: 'あなたの目標', obstacles: 'あなたを止めるもの', resources: 'あなたの強み', lifestyle: 'あなたのライフスタイル', decisionMaking: 'あなたの思考と決断' },
+    es: { whoYouAre: 'tu día a día', whatDrivesYou: 'lo que te motiva', insecurities: 'tus desafíos', goals: 'tus metas', obstacles: 'lo que te frena', resources: 'tus fortalezas', lifestyle: 'tu estilo de vida', decisionMaking: 'cómo piensas y decides' },
+    th: { whoYouAre: 'ชีวิตประจำวัน', whatDrivesYou: 'สิ่งที่ขับเคลื่อนคุณ', insecurities: 'ความท้าทาย', goals: 'เป้าหมาย', obstacles: 'สิ่งที่ฉุดคุณ', resources: 'จุดแข็ง', lifestyle: 'ไลฟ์สไตล์', decisionMaking: 'วิธีคิดและตัดสินใจ' },
+    ko: { whoYouAre: '일상', whatDrivesYou: '동기', insecurities: '도전', goals: '목표', obstacles: '장애물', resources: '강점', lifestyle: '생활 방식', decisionMaking: '사고와 결정' }
+  };
+  var names = catNames[lang] || catNames.en;
+  var catName = names[lastCategory] || lastCategory;
+  var templates = {
+    en: 'Welcome back. Last time we were talking about ' + catName + '.\n\nWould you like to continue, or start using the app now?',
+    ja: 'おかえりなさい。前回は' + catName + 'について話していました。\n\n続けますか？それともアプリを使い始めますか？',
+    es: 'Bienvenido/a de vuelta. La última vez estábamos hablando de ' + catName + '.\n\n¿Te gustaría continuar, o empezar a usar la app ahora?',
+    th: 'ยินดีต้อนรับกลับมา ครั้งล่าสุดเราคุยเรื่อง' + catName + '\n\nอยากคุยต่อ หรือเริ่มใช้แอปเลยดี?',
+    ko: '다시 오셨군요. 지난번에는 ' + catName + '에 대해 이야기하고 있었어요.\n\n계속하시겠어요, 아니면 지금 앱을 사용하시겠어요?'
+  };
+  return templates[lang] || templates.en;
+}
+
+async function sendOnboardingMessage(message) {
+  if (OB_SENDING) return;
+  var lang = ST.lang || 'en';
+
+  // Add user message to UI (unless it's a system action)
+  var isSystemAction = message === '__skip__' || message === '__start__' || message === '__continue__';
+  if (!isSystemAction) {
+    ST.onboardingMsgs = ST.onboardingMsgs || [];
+    ST.onboardingMsgs.push({ role: 'user', content: message });
+  } else if (message === '__skip__') {
+    // Show skip message locally then transition
+    OB_SENDING = true;
+    render();
+    try {
+      var skipRes = await fetch('/api/onboarding-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ message: '__skip__', lang: lang })
+      });
+      var skipData = await skipRes.json();
+      ST.onboardingComplete = true;
+      ST.onboardingState = {};
+      ST.stage = 'chat';
+      var greet = [{ role: 'assistant', content: chatGreeting(), mode: 'deep' }];
+      ST.msgs = greet;
+      ST.threads = [{ name: ui('mainThread'), msgs: greet }];
+      ST.activeThread = 0;
+      currentMode = 'daily';
+      openingLoadedFor = {};
+      OB_SENDING = false;
+      save();
+      render();
+      loadOpeningMessage();
+    } catch(e) {
+      OB_SENDING = false;
+      render();
+    }
+    return;
+  } else if (message === '__continue__') {
+    // Resume: skip to completion
+    ST.onboardingComplete = true;
+    ST.onboardingState = {};
+    ST.stage = 'chat';
+    var greet = [{ role: 'assistant', content: chatGreeting(), mode: 'deep' }];
+    ST.msgs = greet;
+    ST.threads = [{ name: ui('mainThread'), msgs: greet }];
+    ST.activeThread = 0;
+    currentMode = 'daily';
+    openingLoadedFor = {};
+    save();
+    render();
+    loadOpeningMessage();
+    return;
+  }
+
+  OB_SENDING = true;
+  render();
+
+  try {
+    var apiMsg = message === '__start__' ? 'start' : message;
+    var res = await fetch('/api/onboarding-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ message: apiMsg, lang: lang })
+    });
+    var data = await res.json();
+
+    ST.onboardingMsgs = ST.onboardingMsgs || [];
+    if (data.text) {
+      ST.onboardingMsgs.push({ role: 'assistant', content: data.text });
+    }
+
+    if (data.onboardingComplete) {
+      // Transition to full chat after a brief moment to show completion message
+      ST.onboardingState = {};
+      save();
+      OB_SENDING = false;
+      render();
+      setTimeout(function() {
+        ST.onboardingComplete = true;
+        ST.stage = 'chat';
+        var greet = [{ role: 'assistant', content: chatGreeting(), mode: 'deep' }];
+        ST.msgs = greet;
+        ST.threads = [{ name: ui('mainThread'), msgs: greet }];
+        ST.activeThread = 0;
+        currentMode = 'daily';
+        openingLoadedFor = {};
+        save();
+        render();
+        loadOpeningMessage();
+      }, 3200);
+    } else {
+      OB_SENDING = false;
+      save();
+      render();
+    }
+  } catch(e) {
+    OB_SENDING = false;
+    render();
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function renderAuth(root) {
   var lang = ST.lang || 'en';

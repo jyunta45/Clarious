@@ -24,6 +24,11 @@ import { cooldownPassed } from './identityCooldown.js';
 import { runHaikuMemoryMerge } from './memoryMerge.js';
 import { repairLegacyIdentity } from './legacyIdentityRepair.js';
 import { buildOpeningMessage } from './openingMessageEngine.js';
+import {
+  CATEGORY_ORDER, CATEGORY_INFO, getNextCategory, shouldAdvanceCategory,
+  buildOnboardingSystemPrompt, buildInitialQuestionPrompt,
+  COMPLETION_MESSAGES, SKIP_MESSAGES, getDefaultOnboardingProgress
+} from './onboardingEngine.js';
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -188,6 +193,15 @@ app.get('/api/data', async (req, res) => {
       const [newData] = await db.insert(userData).values({ userId: req.session.userId }).returning();
       return res.json(newData);
     }
+    // Auto-migrate: existing users who completed old form onboarding are marked complete
+    if (!data.onboardingComplete && (data.stage === 'chat' || (data.answers && Object.keys(data.answers).length > 0))) {
+      await db.update(userData).set({
+        onboardingComplete: true,
+        onboardingMode: 'legacy',
+        updatedAt: new Date()
+      }).where(eq(userData.userId, req.session.userId));
+      data.onboardingComplete = true;
+    }
     res.json(data);
   } catch(e) {
     res.status(500).json({ error: 'Failed to load data' });
@@ -211,6 +225,9 @@ app.post('/api/data', async (req, res) => {
     if (thread_summaries !== undefined) updateFields.threadSummaries = thread_summaries;
     if (last_active_date !== undefined) updateFields.lastActiveDate = last_active_date;
     if (req.body.patterns !== undefined) updateFields.patterns = req.body.patterns;
+    if (req.body.onboarding_complete !== undefined) updateFields.onboardingComplete = req.body.onboarding_complete;
+    if (req.body.onboarding_progress !== undefined) updateFields.onboardingProgress = req.body.onboarding_progress;
+    if (req.body.onboarding_state !== undefined) updateFields.onboardingState = req.body.onboarding_state;
 
     const existing = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
     if (existing.length === 0) {
@@ -272,6 +289,136 @@ app.post('/api/data', async (req, res) => {
     res.status(500).json({ error: 'Failed to save data' });
   }
 });
+
+// ─── CONVERSATIONAL ONBOARDING ────────────────────────────────────────────────
+app.post('/api/onboarding-chat', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
+  try {
+    const { message, lang } = req.body;
+    const safeLang = ['en', 'ja', 'es', 'th', 'ko'].includes(lang) ? lang : 'en';
+
+    const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+    let onboardingState = (uData && uData.onboardingState) ? { ...uData.onboardingState } : {};
+    let onboardingProgress = (uData && uData.onboardingProgress && Object.keys(uData.onboardingProgress).length > 0)
+      ? { ...uData.onboardingProgress }
+      : getDefaultOnboardingProgress();
+
+    // Helper to call Claude
+    async function callOnboardingModel(systemPrompt, userMessage) {
+      const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 200,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMessage }]
+        })
+      });
+      const data = await apiRes.json();
+      return (data.content && data.content[0]) ? data.content[0].text.trim() : '';
+    }
+
+    // ── SKIP ────────────────────────────────────────────────────────────────
+    if (message === '__skip__') {
+      await db.update(userData).set({
+        onboardingComplete: true,
+        onboardingState: {},
+        guidanceMode: true,
+        guidanceDay: 1,
+        stage: 'chat',
+        updatedAt: new Date()
+      }).where(eq(userData.userId, req.session.userId));
+      return res.json({
+        text: SKIP_MESSAGES[safeLang] || SKIP_MESSAGES.en,
+        onboardingComplete: true
+      });
+    }
+
+    // ── START (first interaction) ────────────────────────────────────────────
+    if (!onboardingState.currentCategory) {
+      onboardingState = { currentCategory: 'whoYouAre', exchangeCount: 0, lastUserMessageId: null };
+      const systemPrompt = buildInitialQuestionPrompt(safeLang);
+      const text = await callOnboardingModel(systemPrompt, message || 'Let\'s start');
+      await db.update(userData).set({
+        onboardingState,
+        onboardingProgress,
+        updatedAt: new Date()
+      }).where(eq(userData.userId, req.session.userId));
+      return res.json({ text, onboardingComplete: false });
+    }
+
+    // ── REGULAR EXCHANGE ─────────────────────────────────────────────────────
+    const currentCategory = onboardingState.currentCategory;
+    onboardingState.exchangeCount = (onboardingState.exchangeCount || 0) + 1;
+
+    const advance = shouldAdvanceCategory(onboardingState.exchangeCount);
+    let responseText = '';
+    let newOnboardingComplete = false;
+    let responseChips = null;
+
+    if (advance) {
+      // Mark this category complete
+      onboardingProgress[currentCategory] = true;
+      onboardingProgress.lastCategoryDiscussed = currentCategory;
+
+      const nextCategory = getNextCategory(currentCategory);
+
+      if (!nextCategory) {
+        // All categories complete
+        newOnboardingComplete = true;
+        onboardingState = {};
+        responseText = COMPLETION_MESSAGES[safeLang] || COMPLETION_MESSAGES.en;
+        responseChips = ['en', 'ja', 'es', 'th', 'ko'].map(l => {
+          const chips = { en: ["Let's start", "Ask me something"], ja: ["始めましょう", "何か聞いて"], es: ["Empecemos", "Pregúntame algo"], th: ["เริ่มเลย", "ถามฉันสิ"], ko: ["시작해요", "뭔가 물어봐요"] };
+          return chips[safeLang] || chips.en;
+        })[0];
+      } else {
+        // Bridge to next category
+        onboardingState.currentCategory = nextCategory;
+        onboardingState.exchangeCount = 0;
+        const systemPrompt = buildOnboardingSystemPrompt(currentCategory, true, nextCategory, safeLang);
+        responseText = await callOnboardingModel(systemPrompt, message);
+      }
+    } else {
+      // Continue within current category
+      const systemPrompt = buildOnboardingSystemPrompt(currentCategory, false, null, safeLang);
+      responseText = await callOnboardingModel(systemPrompt, message);
+    }
+
+    // Memory seeding happens on onboarding completion — see below
+
+    // Save updated onboarding state
+    const updateFields = {
+      onboardingState,
+      onboardingProgress,
+      updatedAt: new Date()
+    };
+    if (newOnboardingComplete) {
+      updateFields.onboardingComplete = true;
+      updateFields.onboardingCompletedAt = String(Date.now());
+      updateFields.guidanceMode = true;
+      updateFields.guidanceDay = 1;
+      updateFields.stage = 'chat';
+    }
+    await db.update(userData).set(updateFields).where(eq(userData.userId, req.session.userId));
+
+    res.json({
+      text: responseText,
+      onboardingComplete: newOnboardingComplete,
+      chips: responseChips
+    });
+
+  } catch(e) {
+    console.error('[ONBOARDING CHAT ERROR]', e.message || e);
+    res.status(500).json({ error: 'Failed to process onboarding message' });
+  }
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 app.get('/api/opening-message', async (req, res) => {
   try {

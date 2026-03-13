@@ -37,6 +37,11 @@ export const userData = pgTable("user_data", {
   lastActiveAt: text("last_active_at").default(""),
   guidanceDayOpenCount: integer("guidance_day_open_count").default(0),
   openLoops: jsonb("open_loops").default([]),
+  onboardingMode: text("onboarding_mode").default("conversational"),
+  onboardingComplete: boolean("onboarding_complete").default(false),
+  onboardingCompletedAt: text("onboarding_completed_at").default(""),
+  onboardingProgress: jsonb("onboarding_progress").default({}),
+  onboardingState: jsonb("onboarding_state").default({}),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 

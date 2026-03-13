@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is "Clarus", a Jarvis-style personal AI coach built on Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a detailed onboarding questionnaire for user profiling, user accounts with database persistence, and multi-language support (English, Japanese, Spanish, Thai, Korean). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
+This project is "Clarus", a Jarvis-style personal AI coach built on Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a conversational onboarding experience (replacing the old form), user accounts with database persistence, and multi-language support (English, Japanese, Spanish, Thai, Korean). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
 
 ## User Preferences
 
@@ -31,8 +31,7 @@ The **PostgreSQL database**, managed with Drizzle ORM, stores:
 
 The **Frontend** (`public/index.html`) features:
 - An authentication screen with login, signup, and guest modes.
-- A multi-step, 28-question onboarding questionnaire with dynamic inputs.
-- A personalized "mirror" profile summary.
+- A conversational onboarding experience: Clarus guides new users through 8 topic categories (who they are, what drives them, insecurities, goals, obstacles, resources, lifestyle, decision-making) via natural dialogue instead of a form. Users can skip or pause and resume at any time. Mode tabs are hidden until onboarding completes.
 - A persistent chat interface with streaming AI responses, conversation threads, quick-action buttons, and a daily check-in banner.
 - Voice input (Web Speech API) and voice output (TTS) for AI responses.
 - A user tier system (Guest, Free, Subscriber) with corresponding message limits.
