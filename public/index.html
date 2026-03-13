@@ -242,11 +242,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .ob-dot:nth-child(3){animation-delay:0.4s;}
 @keyframes obpulse{0%,80%,100%{opacity:0.3;}40%{opacity:1;}}
 @media(max-width:600px){.ob-header{padding:12px 16px;}.ob-msgs{padding:20px 16px;}.ob-chips{padding:0 16px 10px;}.ob-input-row{padding:10px 16px;padding-bottom:max(10px,env(safe-area-inset-bottom));}.ob-bubble{max-width:88%;font-size:0.9rem;}.ob-send{padding:12px 16px;}}
-.mode-tab[data-mode="deep"]{flex:0 0 auto;flex-direction:row;gap:5px;padding:7px 13px;margin:7px 8px 7px 0;background:rgba(90,60,160,0.1);border:1px solid rgba(120,90,200,0.18);border-radius:20px;border-bottom:1px solid rgba(120,90,200,0.18);color:rgba(175,145,255,0.6);font-size:0.73rem;letter-spacing:0.03em;}
+.mode-tab[data-mode="deep"]{flex:0 0 auto;flex-direction:row;gap:4px;padding:4px 10px;margin:8px 8px 8px 0;background:rgba(90,60,160,0.1);border:1px solid rgba(120,90,200,0.18);border-radius:20px;border-bottom:1px solid rgba(120,90,200,0.18);color:rgba(175,145,255,0.6);font-size:0.67rem;letter-spacing:0.02em;}
 .mode-tab[data-mode="deep"]:hover{background:rgba(90,60,160,0.2);border-color:rgba(140,100,220,0.35);color:rgba(200,170,255,0.9);}
-.mode-tab[data-mode="deep"].active{background:rgba(90,60,160,0.25);border-color:rgba(130,90,210,0.55);color:#c4aaff;box-shadow:0 0 14px rgba(90,60,160,0.25);border-bottom-color:rgba(130,90,210,0.55);}
+.mode-tab[data-mode="deep"].active{background:rgba(90,60,160,0.25);border-color:rgba(130,90,210,0.55);color:#c4aaff;box-shadow:0 0 10px rgba(90,60,160,0.2);border-bottom-color:rgba(130,90,210,0.55);}
 .mode-tab[data-mode="deep"] .mode-sub{display:none;}
-.mode-tab[data-mode="deep"] .deep-gem{font-size:0.85rem;line-height:1;}
+.mode-tab[data-mode="deep"] .deep-gem{font-size:0.72rem;line-height:1;}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @keyframes fadeOut{from{opacity:1;}to{opacity:0;}}
 @keyframes slideUp{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
@@ -281,6 +281,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .deep-hist-msg.user span{background:rgba(90,60,160,0.2);border-radius:14px 14px 3px 14px;padding:7px 13px;display:inline-block;color:rgba(225,215,245,0.93);}
 .deep-hist-msg.assistant span{background:rgba(22,12,48,0.7);border-radius:3px 14px 14px 14px;padding:7px 13px;display:inline-block;color:rgba(198,186,226,0.83);}
 .deep-hist-empty{color:var(--muted);font-size:0.85rem;text-align:center;padding:48px 20px;font-family:'DM Sans',sans-serif;opacity:0.65;}
+.deep-hist-session{padding:14px 0;border-bottom:1px solid rgba(120,90,200,0.1);}
+.deep-hist-session:last-child{border-bottom:none;}
+.deep-hist-session-meta{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.deep-hist-date{font-family:'DM Sans',sans-serif;font-size:0.72rem;color:rgba(196,170,255,0.7);font-weight:600;letter-spacing:0.03em;}
+.deep-hist-turns{font-family:'DM Sans',sans-serif;font-size:0.67rem;color:rgba(160,140,200,0.5);}
+.deep-hist-summary{font-family:'DM Sans',sans-serif;font-size:0.83rem;color:rgba(200,188,228,0.82);line-height:1.6;}
 </style>
 </head>
 <body>
@@ -354,9 +360,9 @@ const UI = {
     deepConfirmBody: 'Deep Thinking is your space for big decisions, hard questions, and real clarity. Your daily conversations stay separate.',
     deepConfirmYes: "Let's go",
     deepConfirmNo: 'Not yet',
-    deepHistoryBtn: 'Daily history',
-    deepHistoryTitle: 'Your Daily conversations',
-    deepHistoryEmpty: 'No daily conversations yet.',
+    deepHistoryBtn: 'Past sessions',
+    deepHistoryTitle: 'Deep Thinking sessions',
+    deepHistoryEmpty: 'No past sessions yet. Your first Deep Thinking conversation will be summarized here.',
     checkinMsg: 'Good to see you! How are you feeling today?',
     checkinDismiss: 'dismiss',
     triggerInactivity: 'Quick check-in -- still moving toward your goal?',
@@ -685,9 +691,9 @@ const UI = {
     deepConfirmBody: 'โหมดคิดเชิงลึกเหมาะกับเรื่องสำคัญ — การตัดสินใจใหญ่ คำถามยาก และความชัดเจนที่แท้จริง การสนทนาประจำวันจะแยกต่างหาก',
     deepConfirmYes: 'เข้าสู่โหมดนี้',
     deepConfirmNo: 'ยังไม่พร้อม',
-    deepHistoryBtn: 'ประวัติประจำวัน',
-    deepHistoryTitle: 'การสนทนาประจำวันของคุณ',
-    deepHistoryEmpty: 'ยังไม่มีการสนทนาประจำวัน',
+    deepHistoryBtn: 'เซสชันที่ผ่านมา',
+    deepHistoryTitle: 'เซสชันคิดเชิงลึก',
+    deepHistoryEmpty: 'ยังไม่มีเซสชันที่ผ่านมา การสนทนาคิดเชิงลึกครั้งแรกจะถูกสรุปไว้ที่นี่',
     checkinMsg: 'ดีใจที่ได้เจอ! วันนี้เป็นอย่างไรบ้าง?',
     checkinDismiss: 'ปิด',
     triggerInactivity: 'แค่เช็คอิน -- ยังมุ่งหน้าสู่เป้าหมายอยู่ไหม?',
@@ -1064,7 +1070,7 @@ function sectionName(s) {
   return UI[lang] && UI[lang].sections && UI[lang].sections[s] ? UI[lang].sections[s] : s;
 }
 
-var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [] };
+var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [] };
 var AUTH = { loggedIn: false, email: '', checked: false, guest: false, tier: 'guest' };
 var savePending = null;
 var checkinDismissed = false;
@@ -1383,9 +1389,13 @@ function getAllMsgs() {
 
 function getActiveMsgs() {
   var all = getAllMsgs();
+  if (currentMode === 'deep') {
+    return all.filter(function(m) {
+      return m.mode === 'deep' && m.deepSessionId === ST.deepSessionId;
+    });
+  }
   return all.filter(function(m) {
-    var msgMode = m.mode || 'deep';
-    return msgMode === currentMode;
+    return (m.mode || 'daily') === 'daily';
   });
 }
 
@@ -1484,9 +1494,10 @@ var openingLoadedFor = {};
 async function loadOpeningMessage() {
   var activeMsgs = getActiveMsgs();
   if (activeMsgs.length > 1) return;
-  if (openingLoadedFor[currentMode]) return;
+  var openingKey = currentMode === 'deep' ? 'deep_' + ST.deepSessionId : currentMode;
+  if (openingLoadedFor[openingKey]) return;
   if (ST.loading || ST.streaming) return;
-  openingLoadedFor[currentMode] = true;
+  openingLoadedFor[openingKey] = true;
   try {
     var localHour = new Date().getHours();
     var res = await fetch('/api/opening-message?mode=' + currentMode + '&localHour=' + localHour, {
@@ -1503,11 +1514,17 @@ async function loadOpeningMessage() {
         openingNudge = null;
       }
       var allMsgs = getAllMsgs();
-      var modeMsg = allMsgs.find(function(m) { return (m.mode || 'deep') === currentMode && m.role === 'assistant'; });
+      var modeMsg = allMsgs.find(function(m) {
+        if (m.role !== 'assistant') return false;
+        if (currentMode === 'deep') return m.mode === 'deep' && m.deepSessionId === ST.deepSessionId;
+        return (m.mode || 'daily') === 'daily';
+      });
       if (modeMsg) {
         modeMsg.content = data.text;
       } else {
-        allMsgs.push({ role: 'assistant', content: data.text, mode: currentMode });
+        var newMsg = { role: 'assistant', content: data.text, mode: currentMode };
+        if (currentMode === 'deep') newMsg.deepSessionId = ST.deepSessionId;
+        allMsgs.push(newMsg);
       }
       setActiveMsgs(allMsgs);
       render();
@@ -2417,8 +2434,11 @@ async function sendMsg(userText) {
   pendingModeShift = false;
   if (currentMode === 'daily' && modeShiftSuppressCount > 0) modeShiftSuppressCount--;
   var allMsgs = getAllMsgs();
-  allMsgs.push({ role: 'user', content: userText, mode: currentMode });
-  allMsgs.push({ role: 'assistant', content: '', mode: currentMode });
+  var userMsg = { role: 'user', content: userText, mode: currentMode };
+  var assistMsg = { role: 'assistant', content: '', mode: currentMode };
+  if (currentMode === 'deep') { userMsg.deepSessionId = ST.deepSessionId; assistMsg.deepSessionId = ST.deepSessionId; }
+  allMsgs.push(userMsg);
+  allMsgs.push(assistMsg);
   setActiveMsgs(allMsgs);
   ST.streaming = true;
   var threads = getThreads();
@@ -3140,11 +3160,13 @@ function showDeepConfirm() {
   document.body.appendChild(overlay);
   overlay.querySelector('.deep-confirm-yes').onclick = function() {
     document.body.removeChild(overlay);
+    ST.deepSessionId = (ST.deepSessionId || 0) + 1;
     currentMode = 'deep';
     pendingModeShift = false;
     modeShiftSuppressCount = 0;
     openingChips = null;
     openingNudge = null;
+    save();
     playDeepAura();
     render();
     loadOpeningMessage();
@@ -3172,16 +3194,42 @@ function playDeepAura() {
   }, 1200);
 }
 
+async function summarizeDeepSession(msgs, sessionId) {
+  var userMsgs = msgs.filter(function(m) { return m.role === 'user'; });
+  if (userMsgs.length === 0) return;
+  try {
+    var res = await fetch('/api/deep-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ messages: msgs, lang: ST.lang || 'en' })
+    });
+    var data = await res.json();
+    if (data.summary) {
+      ST.deepSessionSummaries = ST.deepSessionSummaries || [];
+      ST.deepSessionSummaries.push({
+        id: sessionId,
+        date: new Date().toLocaleDateString(ST.lang === 'th' ? 'th-TH' : 'en-US', { month: 'short', day: 'numeric' }),
+        summary: data.summary,
+        turns: userMsgs.length
+      });
+      save();
+    }
+  } catch (e) {}
+}
+
 function showDailyHistory() {
-  var all = getAllMsgs();
-  var dailyMsgs = all.filter(function(m) { return (m.mode || 'daily') === 'daily'; });
+  var sessions = ST.deepSessionSummaries || [];
   var modal = document.createElement('div');
   modal.className = 'deep-hist-modal';
-  var msgsHtml = dailyMsgs.length === 0
+  var msgsHtml = sessions.length === 0
     ? '<div class="deep-hist-empty">' + esc(ui('deepHistoryEmpty')) + '</div>'
-    : dailyMsgs.map(function(m) {
-        var content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-        return '<div class="deep-hist-msg ' + m.role + '"><span>' + content + '</span></div>';
+    : sessions.slice().reverse().map(function(s) {
+        var turns = s.turns === 1 ? '1 exchange' : (s.turns || '?') + ' exchanges';
+        return '<div class="deep-hist-session">' +
+          '<div class="deep-hist-session-meta"><span class="deep-hist-date">' + esc(s.date) + '</span><span class="deep-hist-turns">' + esc(turns) + '</span></div>' +
+          '<div class="deep-hist-summary">' + esc(s.summary) + '</div>' +
+          '</div>';
       }).join('');
   modal.innerHTML = '<div class="deep-hist-panel">' +
     '<div class="deep-hist-panel-hd">' +
@@ -3197,10 +3245,6 @@ function showDailyHistory() {
   };
   modal.querySelector('.deep-hist-close').onclick = closeModal;
   modal.onclick = function(e) { if (e.target === modal) closeModal(); };
-  setTimeout(function() {
-    var msgs = modal.querySelector('.deep-hist-msgs');
-    if (msgs) msgs.scrollTop = msgs.scrollHeight;
-  }, 50);
 }
 
 function renderChat(root) {
@@ -3334,6 +3378,9 @@ function renderChat(root) {
       if (newMode === 'deep') {
         showDeepConfirm();
       } else {
+        var prevMode = currentMode;
+        var prevSessionId = ST.deepSessionId;
+        var prevSessionMsgs = prevMode === 'deep' ? getActiveMsgs().slice() : [];
         currentMode = newMode;
         pendingModeShift = false;
         modeShiftSuppressCount = 0;
@@ -3341,6 +3388,9 @@ function renderChat(root) {
         openingNudge = null;
         render();
         loadOpeningMessage();
+        if (prevMode === 'deep' && prevSessionMsgs.length > 1) {
+          summarizeDeepSession(prevSessionMsgs, prevSessionId);
+        }
       }
     };
   });
@@ -3352,9 +3402,11 @@ function renderChat(root) {
   if (modeShiftSwitch) modeShiftSwitch.onclick = function() {
     pendingModeShift = false;
     modeShiftSuppressCount = 0;
+    ST.deepSessionId = (ST.deepSessionId || 0) + 1;
     currentMode = 'deep';
     openingChips = null;
     openingNudge = null;
+    save();
     playDeepAura();
     render();
     loadOpeningMessage();
