@@ -219,8 +219,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .ob-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .ob-logout-btn{padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.78rem;background:transparent;border:none;color:rgba(255,255,255,0.3);cursor:pointer;transition:color 0.15s;}
 .ob-logout-btn:hover{color:rgba(255,255,255,0.6);}
-.ob-goto-btn{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);padding:10px 22px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;background:rgba(13,13,20,0.85);border:1px solid rgba(155,109,255,0.3);border-radius:100px;color:rgba(155,109,255,0.9);cursor:pointer;backdrop-filter:blur(10px);transition:all 0.15s;white-space:nowrap;z-index:50;}
-.ob-goto-btn:hover{border-color:var(--accent);color:white;background:rgba(155,109,255,0.15);}
+.ob-goto-wrap{display:flex;justify-content:center;padding:8px 0 4px;flex-shrink:0;}
+.ob-goto-btn{padding:9px 20px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;background:transparent;border:1px solid rgba(155,109,255,0.3);border-radius:100px;color:rgba(155,109,255,0.85);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.ob-goto-btn:hover{border-color:var(--accent);color:white;}
 .ob-brand{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,#fff 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .ob-msgs{flex:1;overflow-y:auto;padding:28px 24px;display:flex;flex-direction:column;gap:16px;}
 .ob-msg{display:flex;flex-direction:column;}
@@ -2761,11 +2762,11 @@ function renderOnboardingChat(root) {
     '<span class="ob-brand">Clarus</span>' +
     '<span style="width:80px"></span>' +
     '</div>' +
-    (msgs.length > 0 ? '<button class="ob-goto-btn" id="ob-goto-btn" data-testid="button-ob-goto">' + esc(gotoLabel) + '</button>' : '') +
     '<div class="ob-msgs" id="ob-msgs">' +
     initialGreetingHtml + msgsHtml +
     '</div>' +
     chipsHtml +
+    (msgs.length > 0 ? '<div class="ob-goto-wrap"><button class="ob-goto-btn" id="ob-goto-btn" data-testid="button-ob-goto">' + esc(gotoLabel) + '</button></div>' : '') +
     inputHtml +
     '</div>';
 
