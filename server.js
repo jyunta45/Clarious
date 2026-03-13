@@ -348,6 +348,15 @@ app.post('/api/onboarding-chat', async (req, res) => {
       });
     }
 
+    // ── MIGRATE old-format state (currentCategory → started) ─────────────────
+    if (!onboardingState.started && onboardingState.currentCategory) {
+      onboardingState = {
+        started: true,
+        totalExchanges: (onboardingState.exchangeCount || 0) + 3,
+        history: onboardingState.history || []
+      };
+    }
+
     // ── START (first interaction) ────────────────────────────────────────────
     if (!onboardingState.started) {
       onboardingState = { started: true, totalExchanges: 0, history: [] };

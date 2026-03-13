@@ -219,6 +219,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .ob-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .ob-goto-btn{padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.78rem;background:transparent;border:1px solid rgba(255,255,255,0.12);border-radius:100px;color:var(--muted);cursor:pointer;transition:all 0.15s;}
 .ob-goto-btn:hover{border-color:rgba(155,109,255,0.4);color:var(--accent);}
+.ob-logout-btn{padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.78rem;background:transparent;border:none;color:rgba(255,255,255,0.3);cursor:pointer;transition:color 0.15s;}
+.ob-logout-btn:hover{color:rgba(255,255,255,0.6);}
 .ob-brand{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,#fff 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .ob-msgs{flex:1;overflow-y:auto;padding:28px 24px;display:flex;flex-direction:column;gap:16px;}
 .ob-msg{display:flex;flex-direction:column;}
@@ -2751,12 +2753,13 @@ function renderOnboardingChat(root) {
   }
 
   var gotoLabel = OB_GOTO_LABEL[lang] || OB_GOTO_LABEL.en;
-  var showGotoBtn = ST.onboardingMsgs && ST.onboardingMsgs.length > 0;
+  var logoutLabel = { en: 'Log out', th: 'ออกจากระบบ' }[lang] || 'Log out';
   root.innerHTML = langSwitcherHtml() +
     '<div class="ob-wrap">' +
     '<div class="ob-header">' +
+    '<button class="ob-logout-btn" id="ob-logout-btn" data-testid="button-ob-logout">' + esc(logoutLabel) + '</button>' +
     '<span class="ob-brand">Clarus</span>' +
-    (showGotoBtn ? '<button class="ob-goto-btn" id="ob-goto-btn" data-testid="button-ob-goto">' + esc(gotoLabel) + '</button>' : '') +
+    '<button class="ob-goto-btn" id="ob-goto-btn" data-testid="button-ob-goto">' + esc(gotoLabel) + '</button>' +
     '</div>' +
     '<div class="ob-msgs" id="ob-msgs">' +
     initialGreetingHtml + msgsHtml +
@@ -2769,11 +2772,11 @@ function renderOnboardingChat(root) {
   var msgsEl = document.getElementById('ob-msgs');
   if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
 
-  // Bind "Go to app" header button
+  // Bind header buttons
   var gotoBtn = document.getElementById('ob-goto-btn');
-  if (gotoBtn) {
-    gotoBtn.onclick = function() { sendOnboardingMessage('__skip__'); };
-  }
+  if (gotoBtn) gotoBtn.onclick = function() { sendOnboardingMessage('__skip__'); };
+  var logoutBtn = document.getElementById('ob-logout-btn');
+  if (logoutBtn) logoutBtn.onclick = function() { doLogout(); };
 
   // Bind chip actions
   document.querySelectorAll('[data-obaction]').forEach(function(btn) {
