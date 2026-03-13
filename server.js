@@ -38,7 +38,7 @@ app.use(express.static(path.join(__app_dirname, 'public')));
 
 const runtimeUsers = new Map();
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000 });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000, keepAlive: true, keepAliveInitialDelayMillis: 10000 });
 pool.on('error', (err) => { console.error('[SESSION DB] Pool error:', err.message); });
 const PgSession = connectPgSimple(session);
 
@@ -578,22 +578,27 @@ app.post('/api/chat', async (req, res) => {
   try {
     let tier = 'guest';
     if (req.session.userId) {
-      const [data] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
-      tier = data ? data.tier : 'free';
-      const today = new Date().toISOString().slice(0, 10);
-      const currentCount = (data && data.msgCountDate === today) ? data.msgCount : 0;
-      const limit = tier === 'subscriber' ? 200 : 50;
-      if (currentCount >= limit) {
-        return res.status(429).json({ error: 'limit', limit: limit });
+      try {
+        const [data] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+        tier = data ? data.tier : 'free';
+        const today = new Date().toISOString().slice(0, 10);
+        const currentCount = (data && data.msgCountDate === today) ? data.msgCount : 0;
+        const limit = tier === 'subscriber' ? 200 : 50;
+        if (currentCount >= limit) {
+          return res.status(429).json({ error: 'limit', limit: limit });
+        }
+        await db.update(userData).set({
+          msgCount: data && data.msgCountDate === today ? currentCount + 1 : 1,
+          msgCountDate: today,
+          userSentMessageToday: true,
+          guidanceDayOpenCount: 0,
+          lastActiveAt: new Date().toISOString(),
+          updatedAt: new Date()
+        }).where(eq(userData.userId, req.session.userId));
+      } catch(dbErr) {
+        console.error('[TIER FETCH ERROR]', dbErr.message || dbErr);
+        tier = 'free';
       }
-      await db.update(userData).set({
-        msgCount: data && data.msgCountDate === today ? currentCount + 1 : 1,
-        msgCountDate: today,
-        userSentMessageToday: true,
-        guidanceDayOpenCount: 0,
-        lastActiveAt: new Date().toISOString(),
-        updatedAt: new Date()
-      }).where(eq(userData.userId, req.session.userId));
     } else {
       if (!req.session.guestMsgCount) req.session.guestMsgCount = 0;
       if (req.session.guestMsgCount >= 10) {
@@ -729,11 +734,15 @@ app.post('/api/chat', async (req, res) => {
     let userOpenLoops = [];
     let userPatterns = null;
     if (req.session.userId) {
-      const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
-      if (uData) {
-        if (uData.memories) loadMemoryFromDB(userId, uData.memories);
-        if (uData.openLoops) userOpenLoops = uData.openLoops;
-        if (uData.patterns) userPatterns = uData.patterns;
+      try {
+        const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
+        if (uData) {
+          if (uData.memories) loadMemoryFromDB(userId, uData.memories);
+          if (uData.openLoops) userOpenLoops = uData.openLoops;
+          if (uData.patterns) userPatterns = uData.patterns;
+        }
+      } catch(dbErr) {
+        console.error('[MEMORY LOAD ERROR]', dbErr.message || dbErr);
       }
     }
     const userMemory = initMemory(userId);
