@@ -1,0 +1,271 @@
+Please implement four urgent cost optimisation changes to my app.
+
+Read ALL project files before making any changes.
+Understand the current architecture first.
+
+Do NOT refactor unrelated code.
+Do NOT break any existing functionality.
+
+This is urgent — the current AI cost is approximately $30 per user per month.
+Target cost is approximately $3 per user per month.
+
+Only implement the changes described below.
+
+---
+
+PROJECT CONTEXT
+
+The AI identity is Clarious.
+
+The system builds a system prompt using multiple layers including:
+
+• capabilityLayer.js  
+• contextBuilder.js  
+• memory and continuity layers  
+• adaptive depth / model routing
+
+The current prompt size is extremely large because all layers are loaded for every message.
+
+The goal is to reduce token usage while preserving the intelligence and behaviour of the system.
+
+---
+
+FIX 1 — HIGHEST PRIORITY  
+Compress System Prompt
+
+Open capabilityLayer.js.
+
+Locate ALL of these existing blocks:
+
+• CLARIOUS IDENTITY AND PHILOSOPHY  
+• CONVERSATIONAL INTELLIGENCE PRINCIPLES  
+• CLARIOUS COGNITIVE PARTNERSHIP PRINCIPLES  
+• VOICE AND TONE section  
+• CORE BEHAVIORAL PRINCIPLES section  
+
+Replace ALL of those blocks together with the following compressed block.
+
+Do NOT append this — replace the five blocks entirely.
+
+CLARIOUS CORE IDENTITY:
+
+You are Clarious — a calm intelligent thinking partner for life decisions.
+
+Core principle:  
+Human creativity and decision-making combined with broad intelligence leads to stronger outcomes than either alone.
+
+The direction of a person's life is always determined by their own decisions.  
+Clarious does not replace that agency.  
+Clarious illuminates — never controls.
+
+Before offering analysis or advice:
+
+Acknowledge → Investigate → Understand → Reflect → Guide
+
+Use judgment based on meaning.  
+Ask thoughtful questions.  
+Help users think — not decide for them.
+
+Voice: calm, precise, human.  
+Never dramatic. Never generic. Never robotic.
+
+Every response should help the user feel:
+
+• understood  
+• clearer about their situation  
+• capable of stronger decisions
+
+Maintain awareness of the user's broader journey across conversations.  
+Connect present discussions to past goals.  
+Surface patterns when genuinely useful.
+
+Challenge assumptions respectfully when it serves long-term growth.  
+Help translate reflection into realistic next steps.
+
+The goal is not to control decisions.  
+It is to illuminate them.
+
+IMPORTANT:
+
+Do NOT remove or modify the following blocks:
+
+• MEMORY CONTINUITY RULE  
+• MODE INSTRUCTIONS  
+• THAI LANGUAGE NATURALNESS RULE  
+• WEB SEARCH RULE  
+• ENGAGEMENT RULE  
+• Any other blocks not listed above
+
+Only replace the five sections listed earlier.
+
+---
+
+FIX 2 — SECOND HIGHEST PRIORITY  
+Smarter Model Routing
+
+Locate where model selection happens.
+
+This may be in:
+
+• server.js  
+or  
+• adaptiveDepth.js
+
+Replace the existing model routing logic with the following logic.
+
+DEFAULT MODEL: Haiku
+
+Use Sonnet ONLY when ALL three conditions are true:
+
+1. Active tab or mode is Deep Thinking
+2. User message contains 20 or more words
+3. Message contains at least one decision signal phrase:
+
+should i  
+deciding  
+torn between  
+what do i do  
+career  
+relationship  
+life direction  
+future  
+i don't know  
+stuck  
+major decision  
+quit  
+leave  
+change my life
+
+Word count should be determined using:
+
+const wordCount = message.trim().split(/\s+/).length
+
+If these conditions are NOT met:
+
+Use Haiku.
+
+Daily tab must always use Haiku.
+
+Short questions → Haiku  
+Emotional venting → Haiku  
+General conversation → Haiku  
+
+Only complex life decisions trigger Sonnet.
+
+---
+
+FIX 3 — Language Detection for Thai
+
+Open contextBuilder.js.
+
+Add the following helper function:
+
+function detectThai(message) {
+  if (!message || typeof message !== "string") return false;
+  return /[\u0E00-\u0E7F]/.test(message);
+}
+
+Locate where THAI_LANGUAGE_RULE is currently inserted into the final prompt.
+
+Determine the latest user message safely.
+
+Example:
+
+const latestMessage =
+  userMessage ||
+  messages?.[messages.length - 1]?.content ||
+  "";
+
+Create a conditional block:
+
+const thaiBlock = detectThai(latestMessage)
+  ? THAI_LANGUAGE_RULE
+  : "";
+
+Replace direct insertion of THAI_LANGUAGE_RULE with thaiBlock.
+
+Result:
+
+Thai language rules load ONLY when the user message contains Thai characters.
+
+English conversations will not include this block.
+
+Do NOT modify the Thai rule content itself.
+
+---
+
+FIX 4 — Verify Daily Tab Context
+
+Still in contextBuilder.js.
+
+Locate where the final prompt context is assembled.
+
+When mode === "daily", reduce the context size.
+
+In daily mode do NOT include:
+
+• buildReflectionContext()  
+• buildOpenLoopContext()  
+• buildDecisionContext()  
+• patternContext  
+• userStateContext  
+• guidanceContext  
+
+Daily mode should include ONLY:
+
+• SYSTEM_PROMPT (base identity including compressed Clarious core identity)  
+• basic identity memory summary (max ~200 tokens)  
+• thaiBlock (only if Thai detected)  
+• Daily mode instruction
+
+Deep Thinking mode should continue loading all contexts exactly as before.
+
+Do NOT modify the internal logic of the builder functions themselves.
+Only skip including them when mode === "daily".
+
+---
+
+CRITICAL RULES
+
+Before making modifications:
+
+1. Read ALL project files.
+2. Understand how contextBuilder assembles prompts.
+3. Understand how model routing currently works.
+
+Only modify:
+
+• capabilityLayer.js  
+• contextBuilder.js  
+• server.js OR adaptiveDepth.js (model routing only)
+
+Do NOT modify:
+
+• authentication  
+• onboarding system  
+• memory extraction logic  
+• database schema  
+• UI components  
+• streaming pipeline  
+• Thai language rule content  
+• memory continuity rule  
+• web search rule
+
+Existing exports must remain unchanged.
+
+---
+
+VERIFICATION CHECKLIST
+
+After implementation confirm:
+
+✓ Server starts successfully  
+✓ Streaming responses still work  
+✓ English messages do NOT load Thai rules  
+✓ Thai messages DO load Thai rules  
+✓ Daily tab loads minimal context only  
+✓ Deep Thinking loads full context  
+✓ Simple messages use Haiku  
+✓ Complex decision questions use Sonnet  
+✓ Token usage significantly reduced  
+✓ All existing features remain intact

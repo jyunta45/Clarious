@@ -12,7 +12,7 @@ import { eq, sql } from 'drizzle-orm';
 import { buildAdaptivePrompt, detectComplexity, selectModel } from './adaptiveDepth.js';
 import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 import { buildCalmAuthorityPrompt } from './calmAuthority.js';
-import { buildCapabilityLayer } from './capabilityLayer.js';
+import { buildCapabilityLayer, THAI_LANGUAGE_RULES } from './capabilityLayer.js';
 import { buildAttentionLayer } from './hybridModel.js';
 import { resetDailyUsage, truncateInput, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
 import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave, extractOpenLoop, resolveMatchingLoop } from './continuityEngine.js';
@@ -29,6 +29,25 @@ import {
   getDefaultOnboardingProgress, QUESTIONS, Q11_CHIPS,
   INITIAL_MESSAGES, COMPLETION_MESSAGES, SKIP_MESSAGES
 } from './onboardingEngine.js';
+
+function detectThai(message) {
+  if (!message || typeof message !== 'string') return false;
+  return /[\u0E00-\u0E7F]/.test(message);
+}
+
+const SONNET_DECISION_SIGNALS = [
+  'should i','deciding','torn between','what do i do',
+  'career','relationship','life direction','future',
+  "i don't know",'stuck','major decision','quit','leave','change my life'
+];
+
+function shouldUseSonnet(mode, message) {
+  if (mode !== 'deep') return false;
+  const wordCount = message.trim().split(/\s+/).length;
+  if (wordCount < 20) return false;
+  const lower = message.toLowerCase();
+  return SONNET_DECISION_SIGNALS.some(s => lower.includes(s));
+}
 
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
@@ -868,8 +887,10 @@ app.post('/api/chat', async (req, res) => {
     let modelName = budgetState.model;
     const efficiencyMode = budgetState.efficiencyMode || false;
 
-    if (chatMode === 'daily' && complexity !== 'HIGH') {
-      modelName = 'claude-haiku-4-5-20251001';
+    if (!efficiencyMode) {
+      modelName = shouldUseSonnet(chatMode, userMsg)
+        ? 'claude-sonnet-4-20250514'
+        : 'claude-haiku-4-5-20251001';
     }
 
     const deepSignal = chatMode === 'daily' ? detectDeepTopic(userMsg) : false;
@@ -911,6 +932,7 @@ app.post('/api/chat', async (req, res) => {
     const calmLayer = buildCalmAuthorityPrompt(userMsg);
     const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
     const capabilityLayer = buildCapabilityLayer();
+    const thaiBlock = detectThai(userMsg) ? '\n\n' + THAI_LANGUAGE_RULES : '';
     const attentionLayer = buildAttentionLayer(complexity === "HIGH" ? "opus" : "sonnet");
     const continuityLayer = buildContinuityLayer(userId, userMsg);
     const questionControlLayer = buildQuestionControlLayer(userId, userMsg);
@@ -923,7 +945,7 @@ app.post('/api/chat', async (req, res) => {
     if (budgetState.systemNotice) {
       budgetNotice = '\n' + budgetState.systemNotice + '\n';
     }
-    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + questionControlLayer + '\n\n' + truncationNotice + budgetNotice + (req.body.system || '');
+    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + thaiBlock + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + questionControlLayer + '\n\n' + truncationNotice + budgetNotice + (req.body.system || '');
 
     let guidanceData = null;
     if (req.session.userId) {
