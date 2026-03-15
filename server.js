@@ -38,11 +38,15 @@ function detectThai(message) {
 const CJK_LANGS = ['th', 'ja', 'ko'];
 
 function phaseTokenLimit(phase, chatMode, userLang) {
-  const mult = CJK_LANGS.includes(userLang) ? 1.8 : 1;
-  if (chatMode === 'daily') return Math.round(300 * mult);
-  if (phase === 'opening')     return Math.round(300 * mult);
-  if (phase === 'exploration') return Math.round(500 * mult);
-  return Math.round(900 * mult); // decision
+  // Thai tokenizes far less efficiently than English — needs a higher multiplier.
+  // Japanese/Korean use 1.8x. All others (English etc) use 1x.
+  const mult = userLang === 'th' ? 2.5 : (['ja', 'ko'].includes(userLang) ? 1.8 : 1);
+
+  // Base limits are set generously enough to never cut a sentence mid-thought.
+  if (chatMode === 'daily') return Math.round(500 * mult);
+  if (phase === 'opening')     return Math.round(500 * mult);
+  if (phase === 'exploration') return Math.round(700 * mult);
+  return Math.round(1200 * mult); // decision
 }
 
 var __app_dirname;
