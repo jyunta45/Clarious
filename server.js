@@ -12,7 +12,7 @@ import { eq, sql } from 'drizzle-orm';
 import { buildAdaptivePrompt, detectComplexity, selectModel } from './adaptiveDepth.js';
 import { updateIdentity, buildIdentityPrompt } from './identityLayer.js';
 import { buildCalmAuthorityPrompt } from './calmAuthority.js';
-import { buildCapabilityLayer, THAI_LANGUAGE_RULES } from './capabilityLayer.js';
+import { buildCapabilityLayer, THAI_LANGUAGE_RULES, THAI_LANGUAGE_RULES_MINIMAL } from './capabilityLayer.js';
 import { buildAttentionLayer } from './hybridModel.js';
 import { resetDailyUsage, truncateInput, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
 import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave, extractOpenLoop, resolveMatchingLoop, generateMemoryDigest } from './continuityEngine.js';
@@ -964,7 +964,9 @@ app.post('/api/chat', async (req, res) => {
     const calmLayer = buildCalmAuthorityPrompt(userMsg);
     const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
     const capabilityLayer = buildCapabilityLayer();
-    const thaiBlock = detectThai(userMsg) ? '\n\n' + THAI_LANGUAGE_RULES : '';
+    const thaiBlock = detectThai(userMsg)
+      ? '\n\n' + (chatMode === 'deep' ? THAI_LANGUAGE_RULES : THAI_LANGUAGE_RULES_MINIMAL)
+      : '';
     const attentionLayer = buildAttentionLayer(complexity === "HIGH" ? "opus" : "sonnet");
     const continuityLayer = buildContinuityLayer(userId, userMsg);
     const questionControlLayer = buildQuestionControlLayer(userId, userMsg);
