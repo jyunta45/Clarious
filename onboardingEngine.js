@@ -191,7 +191,17 @@ Rules:
 - Do NOT repeat or rephrase any question already in the conversation history
 - Sound like a real person who is genuinely curious
 - Keep responses under 80 words
-- Respond entirely in ${langName}`;
+- Respond entirely in ${langName}${lang === 'th' ? `
+
+THAI VOCABULARY — ABSOLUTE RULES:
+วันปกติ ✅ — NEVER วันธรรมชาติ ❌
+ตามปกติ ✅ — NEVER ตามธรรมชาติ ❌
+ชีวิตประจำวัน ✅ — NEVER ชีวิตธรรมชาติ ❌
+ความรู้สึก ✅ — NEVER อารมณ์ภายใน ❌
+ทำงาน ✅ — NEVER ประกอบอาชีพ ❌
+คุย ✅ — NEVER สนทนา ❌
+Always use ครับ — NEVER ค่ะ
+Never use ผม or ฉัน as self-reference` : ''}`;
 }
 
 export function getNextCategory(currentCategory) {
@@ -215,7 +225,15 @@ Rules:
 - Do NOT sound like an intake form or questionnaire
 - Do NOT introduce yourself again — just ask the question
 - Keep it to 1-2 sentences maximum
-- Respond entirely in ${langName}`;
+- Respond entirely in ${langName}${lang === 'th' ? `
+
+THAI VOCABULARY — ABSOLUTE RULES:
+วันปกติ ✅ — NEVER วันธรรมชาติ ❌
+ตามปกติ ✅ — NEVER ตามธรรมชาติ ❌
+ชีวิตประจำวัน ✅ — NEVER ชีวิตธรรมชาติ ❌
+ทำงาน ✅ — NEVER ประกอบอาชีพ ❌
+Always use ครับ — NEVER ค่ะ
+Never use ผม or ฉัน as self-reference` : ''}`;
 }
 
 export function getDefaultOnboardingProgress() {
