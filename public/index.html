@@ -1205,8 +1205,7 @@ function save() {
           last_active_date: ST.lastActiveDate || '',
           patterns: ST.patterns || { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} },
           onboarding_complete: ST.onboardingComplete || false,
-          onboarding_progress: ST.onboardingProgress || {},
-          onboarding_state: ST.onboardingState || {}
+          onboarding_progress: ST.onboardingProgress || {}
         })
       }).catch(function(){});
     }, 500);
