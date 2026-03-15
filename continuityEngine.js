@@ -157,6 +157,45 @@ function getMemoryForSave(userId) {
 }
 
 // ======================================
+// MEMORY DIGEST GENERATION
+// ======================================
+
+async function generateMemoryDigest(userMemory, callModel) {
+  if (!userMemory) return null;
+
+  const hasContent =
+    userMemory.goals?.length ||
+    userMemory.recurringStruggles?.length ||
+    userMemory.strengths?.length ||
+    userMemory.identityDirection;
+
+  if (!hasContent) return null;
+
+  const prompt = `You are summarizing a user profile for an AI thinking partner.
+
+Write a 2-3 sentence summary that captures who this person is, what they are working toward, and what holds them back.
+
+Write naturally as if describing a person — not listing data fields.
+
+Maximum 60 words.
+
+User profile:
+Goals: ${JSON.stringify(userMemory.goals || [])}
+Struggles: ${JSON.stringify(userMemory.recurringStruggles || [])}
+Strengths: ${JSON.stringify(userMemory.strengths || [])}
+Direction: ${userMemory.identityDirection || ""}
+Decision patterns: ${JSON.stringify(userMemory.decisionPatterns || [])}`;
+
+  try {
+    const result = await callModel('claude-haiku-4-5-20251001', '', prompt);
+    return result ? result.trim() : null;
+  } catch (e) {
+    console.error('[DIGEST GENERATION ERROR]', e.message || e);
+    return null;
+  }
+}
+
+// ======================================
 // OPEN LOOP SYSTEM (PERSISTENT)
 // ======================================
 
@@ -258,5 +297,6 @@ export {
   mergeExtractedMemory,
   getMemoryForSave,
   extractOpenLoop,
-  resolveMatchingLoop
+  resolveMatchingLoop,
+  generateMemoryDigest
 };

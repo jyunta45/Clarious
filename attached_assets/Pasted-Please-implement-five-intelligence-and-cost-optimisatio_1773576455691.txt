@@ -1,0 +1,523 @@
+Please implement five intelligence
+and cost optimisation improvements
+for Clarious.
+
+Read ALL project files before
+making any changes.
+
+Understand the current architecture:
+
+• how contextBuilder assembles prompts
+• how model routing works
+• how memory fields are stored
+• how conversation history is tracked
+
+Do NOT break existing functionality.
+Do NOT refactor unrelated code.
+
+Only implement the improvements
+described below.
+
+---
+
+PROJECT CONTEXT
+
+Clarious currently includes:
+
+• Two-tab system (Daily / Deep Thinking)
+• Model routing (Haiku / Sonnet)
+• Memory system with structured fields
+• Context builder assembling prompts
+• Streaming responses
+
+Current cost:
+
+Light users ≈ $2/month
+Heavy users ≈ $10–14/month
+
+Target cost after improvements:
+
+Light users ≈ $0.80–$1.20
+Heavy users ≈ $2–$3
+
+Goal:
+
+Scale intelligence depth only
+when needed.
+
+---
+
+IMPROVEMENT 1 — RESPONSE LENGTH
+INTELLIGENCE
+
+Open capabilityLayer.js.
+
+After the CLARIOUS CORE IDENTITY
+block add:
+
+RESPONSE LENGTH INTELLIGENCE
+
+SHORT responses
+(2–4 sentences + one question):
+
+• Daily tab conversations
+• first two messages of any
+  conversation
+• emotional moments
+• casual exchanges
+
+MEDIUM responses (4–8 sentences):
+
+• exploration conversations
+• early decision exploration
+• pattern observations
+
+FULL responses:
+
+• major life decisions
+• structured analysis requests
+• deep reflection moments
+
+Default to SHORT unless deeper
+thinking is genuinely required.
+
+The most precise response is
+always better than the longest one.
+
+Knowing when to say less is
+the mark of real intelligence.
+
+---
+
+IMPROVEMENT 2 — MEMORY DIGEST
+COMPRESSION
+
+DATABASE:
+
+Add two new fields to user data
+table or JSONB column using
+Drizzle ORM consistent with
+existing schema patterns.
+
+Do NOT remove existing columns.
+
+Add:
+
+memoryDigest: text default null
+memoryDigestUpdatedAt: text default null
+
+---
+
+DIGEST GENERATION:
+
+Create function generateMemoryDigest
+in continuityEngine.js or wherever
+memory is currently managed.
+
+async function generateMemoryDigest(userMemory) {
+  if (!userMemory) return null;
+
+  const hasContent =
+    userMemory.goals?.length ||
+    userMemory.recurringStruggles?.length ||
+    userMemory.strengths?.length ||
+    userMemory.identityDirection;
+
+  if (!hasContent) return null;
+
+  const prompt = `
+You are summarizing a user profile
+for an AI thinking partner.
+
+Write a 2-3 sentence summary that
+captures who this person is,
+what they are working toward,
+and what holds them back.
+
+Write naturally as if describing
+a person — not listing data fields.
+
+Maximum 60 words.
+
+User profile:
+Goals: ${JSON.stringify(userMemory.goals || [])}
+Struggles: ${JSON.stringify(userMemory.recurringStruggles || [])}
+Strengths: ${JSON.stringify(userMemory.strengths || [])}
+Direction: ${userMemory.identityDirection || ""}
+Decision patterns: ${JSON.stringify(userMemory.decisionPatterns || [])}
+  `;
+
+  const response = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 150,
+    messages: [{ role: "user", content: prompt }]
+  });
+
+  return response.content[0].text.trim();
+}
+
+IMPORTANT:
+Always use model: claude-haiku-4-5-20251001
+for digest generation.
+max_tokens: 150
+Never use Sonnet for this call.
+This must be a background call —
+never affects streaming.
+
+---
+
+DIGEST TRIGGER:
+
+After every memory update —
+regenerate the digest and save:
+
+userData.memoryDigest = digest
+userData.memoryDigestUpdatedAt =
+  Date.now().toString()
+
+---
+
+DIGEST USAGE IN CONTEXT BUILDER:
+
+In contextBuilder.js when building
+the memory block for the prompt:
+
+If memoryDigest exists and is not null:
+→ Use digest as memory block
+→ Do NOT load raw memory fields
+→ Format as:
+  "ABOUT THIS USER:\n" + memoryDigest
+
+If memoryDigest is null:
+→ Fall back to existing raw
+  memory field loading
+
+const memoryBlock = userData.memoryDigest
+  ? `ABOUT THIS USER:\n${userData.memoryDigest}`
+  : buildRawMemoryBlock(userData);
+
+---
+
+IMPROVEMENT 3 — CONVERSATION PHASE
+DETECTION
+
+ADD THIS FUNCTION to contextBuilder.js:
+
+function detectConversationPhase(messages) {
+  if (!messages || !Array.isArray(messages))
+    return "opening";
+
+  const userMessages = messages.filter(
+    m => m.role === "user"
+  );
+
+  const count = userMessages.length;
+
+  if (count <= 2) return "opening";
+  if (count <= 6) return "exploration";
+  return "decision";
+}
+
+---
+
+USE THIS FUNCTION:
+
+Call detectConversationPhase before
+assembling the final prompt context.
+
+const phase = detectConversationPhase(
+  conversationHistory
+);
+
+---
+
+PHASE BEHAVIOR:
+
+OPENING PHASE (messages 1-2):
+
+• load: system prompt +
+  basic identity summary only
+• model: Haiku
+• max_tokens: 300
+• skip: patterns, open loops,
+  reflection context,
+  decision context
+
+EXPLORATION PHASE (messages 3-6):
+
+• load: system prompt +
+  full memory digest +
+  pattern context
+• model: Haiku
+• max_tokens: 500
+• skip: decision context,
+  open loops unless directly relevant
+
+DECISION PHASE (messages 7+):
+
+• load: full context —
+  everything
+• model: Sonnet only if
+  Deep Thinking tab AND
+  complexity scores HIGH
+• max_tokens: 900
+• focus: maximum thinking
+  partner depth
+
+---
+
+DECISION OVERRIDE:
+
+If message contains any of these
+signals — treat as decision phase
+regardless of message count:
+
+should i
+torn between
+what do i do
+major decision
+quit
+leave
+life direction
+
+---
+
+DAILY TAB OVERRIDE:
+
+If mode is Daily:
+→ Always use Haiku
+→ Always max_tokens: 300
+→ Regardless of phase
+
+---
+
+PASS PHASE to model routing.
+
+Model routing should accept phase
+as an additional input alongside
+existing complexity scoring.
+
+---
+
+IMPROVEMENT 4 — CONTEXT ACTIVATION
+
+ADD intent detection to
+contextBuilder.js.
+
+Place this function at the top
+of the context assembly section —
+before any context blocks are built.
+
+function detectIntent(message) {
+  if (!message || typeof message !== "string")
+    return [];
+
+  const text = message.toLowerCase();
+  const intents = [];
+
+  const signals = {
+    decision: [
+      "should i", "deciding",
+      "torn between", "major decision",
+      "quit", "leave"
+    ],
+    reflection: [
+      "reflect", "looking back",
+      "progress", "past year"
+    ],
+    opportunity: [
+      "opportunity", "business idea",
+      "side hustle", "market"
+    ],
+    habit: [
+      "routine", "discipline",
+      "consistency", "habit"
+    ],
+    emotional: [
+      "overwhelmed", "burned out",
+      "sad", "stressed"
+    ]
+  };
+
+  for (const [intent, phrases] of
+    Object.entries(signals)) {
+    if (phrases.some(p => text.includes(p))) {
+      intents.push(intent);
+    }
+  }
+
+  return intents;
+}
+
+---
+
+INTENT USAGE:
+
+Call detectIntent(userMessage)
+before assembling context blocks.
+
+const activeIntents =
+  detectIntent(userMessage);
+
+Load only context blocks that
+match detected intents:
+
+→ decision intent detected:
+   load decision context block
+
+→ reflection intent detected:
+   load reflection context block
+
+→ opportunity intent detected:
+   load opportunity context block
+
+→ habit intent detected:
+   load habit pattern context
+
+→ emotional intent detected:
+   load emotional awareness context
+
+If no intent detected:
+→ Load only base identity
+   and memory digest
+→ Skip all optional context blocks
+
+---
+
+IMPROVEMENT 5 — SELECTIVE INTELLIGENCE
+ESCALATION
+
+ADD complexity scoring before
+model routing in server.js
+or adaptiveDepth.js:
+
+function detectComplexity(message) {
+  if (!message || typeof message !== "string")
+    return "low";
+
+  const wordCount =
+    message.trim().split(/\s+/).length;
+
+  if (wordCount > 40) return "high";
+  if (wordCount > 15) return "medium";
+  return "low";
+}
+
+---
+
+ROUTING RULES:
+
+LOW complexity:
+→ Haiku
+→ minimal context only
+
+MEDIUM complexity:
+→ Haiku
+→ activated context modules only
+
+HIGH complexity + Deep Thinking tab:
+→ Sonnet
+→ full context
+
+HIGH complexity + Daily tab:
+→ Haiku
+→ activated context modules only
+
+---
+
+TOKEN LIMIT CONTROL
+
+Opening phase:    max_tokens = 300
+Exploration phase: max_tokens = 500
+Decision phase:   max_tokens = 900
+Daily tab:        max_tokens = 300
+(Daily tab override always applies)
+
+---
+
+IMPLEMENTATION ORDER
+
+Implement in this exact order.
+Stop and report if any step fails
+before continuing to the next.
+
+1. Response length intelligence
+   (capabilityLayer.js only)
+
+2. Memory digest
+   (continuityEngine.js + DB fields
+   + contextBuilder integration)
+
+3. Phase detection
+   (contextBuilder + model routing)
+
+4. Context activation
+   (contextBuilder intent detection)
+
+5. Selective intelligence escalation
+   (server.js or adaptiveDepth.js)
+
+---
+
+FILES THAT MAY BE MODIFIED
+
+capabilityLayer.js
+contextBuilder.js
+continuityEngine.js
+server.js or adaptiveDepth.js
+database schema (two new fields only)
+
+---
+
+DO NOT MODIFY
+
+authentication
+onboarding system
+streaming pipeline
+Thai language rules
+memory continuity rule
+web search rule
+UI components
+existing memory fields
+tab routing system
+guidance system
+
+Existing exports must remain unchanged.
+Backward compatibility required.
+Existing users unaffected.
+
+---
+
+VERIFICATION CHECKLIST
+
+After implementation confirm:
+
+✓ Server starts successfully
+✓ Streaming responses still work
+✓ First two messages use Haiku
+  and load minimal context
+✓ Exploration phase loads memory
+  digest and pattern context
+✓ Decision phase escalates to Sonnet
+  only in Deep Thinking tab
+  with high complexity
+✓ Memory digest generates correctly
+  after memory update using Haiku
+✓ Memory digest loads instead of
+  raw fields when available
+✓ New users fall back to raw
+  memory fields correctly
+✓ Intent detection loads only
+  relevant context modules
+✓ No intent detected = base
+  context only
+✓ Response length matches
+  conversation moment
+✓ Daily tab always uses Haiku
+  with max 300 tokens
+✓ Decision override signals
+  trigger decision phase correctly
+✓ Cost per message reduced
+✓ All existing features intact
+✓ Existing users unaffected
+✓ No errors in server logs

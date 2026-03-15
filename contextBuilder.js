@@ -253,6 +253,75 @@ function detectDeepTopic(message) {
 }
 
 // ======================================
+// CONVERSATION PHASE DETECTION
+// ======================================
+
+const DECISION_OVERRIDE_SIGNALS = [
+  "should i", "torn between", "what do i do",
+  "major decision", "quit", "leave", "life direction"
+];
+
+function detectConversationPhase(messages, userMessage) {
+  if (!messages || !Array.isArray(messages)) return "opening";
+
+  // Check decision override signals first
+  if (userMessage && typeof userMessage === "string") {
+    const lower = userMessage.toLowerCase();
+    if (DECISION_OVERRIDE_SIGNALS.some(s => lower.includes(s))) return "decision";
+  }
+
+  const userMessages = messages.filter(m => m.role === "user");
+  const count = userMessages.length;
+
+  if (count <= 2) return "opening";
+  if (count <= 6) return "exploration";
+  return "decision";
+}
+
+// ======================================
+// INTENT DETECTION
+// ======================================
+
+function detectIntent(message) {
+  if (!message || typeof message !== "string") return [];
+
+  const text = message.toLowerCase();
+  const intents = [];
+
+  const signals = {
+    decision: [
+      "should i", "deciding",
+      "torn between", "major decision",
+      "quit", "leave"
+    ],
+    reflection: [
+      "reflect", "looking back",
+      "progress", "past year"
+    ],
+    opportunity: [
+      "opportunity", "business idea",
+      "side hustle", "market"
+    ],
+    habit: [
+      "routine", "discipline",
+      "consistency", "habit"
+    ],
+    emotional: [
+      "overwhelmed", "burned out",
+      "sad", "stressed"
+    ]
+  };
+
+  for (const [intent, phrases] of Object.entries(signals)) {
+    if (phrases.some(p => text.includes(p))) {
+      intents.push(intent);
+    }
+  }
+
+  return intents;
+}
+
+// ======================================
 // MODE PROMPTS
 // ======================================
 
@@ -330,7 +399,8 @@ function buildContext({
   guidanceData,
   openLoops,
   mode,
-  deepSignal
+  deepSignal,
+  memoryDigest
 }) {
   const TURN_THRESHOLD = 6;
   const RECENT_LIMIT = 4;
@@ -349,17 +419,51 @@ function buildContext({
   const lastUserMsg = [...conversation].reverse().find(m => m.role === 'user');
   const userMessage = lastUserMsg ? lastUserMsg.content : '';
 
-  const isDecision = isDaily ? false : detectDecisionMode(userMessage);
+  // Phase and intent detection
+  const phase = detectConversationPhase(conversation, userMessage);
+  const activeIntents = detectIntent(userMessage);
+  const isOpening = phase === 'opening';
+  const isExploration = phase === 'exploration';
+  const isDecisionPhase = phase === 'decision';
 
-  const decisionContext = isDecision
+  // ── Memory block (digest if available) ──────────────────
+  const memoryBlock = (!isDaily && !isOpening && memoryDigest)
+    ? `ABOUT THIS USER:\n${memoryDigest}`
+    : "";
+
+  // ── State block ──────────────────────────────────────────
+  const stateBlock = (isDaily || isOpening)
+    ? ""
+    : buildStateContext(userState);
+
+  // ── Guidance block ───────────────────────────────────────
+  const guidanceBlock = isDaily ? "" : buildGuidanceContext(guidanceData);
+
+  // ── Decision context ─────────────────────────────────────
+  const hasDecisionSignal = isDaily ? false : detectDecisionMode(userMessage);
+  const decisionContext = (!isDaily && isDecisionPhase && hasDecisionSignal)
     ? `\nMODE: decision_guidance\nThe user is facing a decision right now.\nApply this approach:\n- Briefly restate what they are actually deciding in one clear sentence\n- Surface 2-3 key factors that genuinely matter for this specific decision\n- Explore what each direction could mean for them\n- End with ONE thoughtful question that helps them reflect on what matters most to them\n- Do not decide for them\n- Do not overwhelm with options\n- Do not give a recommendation unless they explicitly ask for one\n- Help them think — not choose`
     : "";
 
-  const stateBlock = isDaily ? "" : buildStateContext(userState);
-  const guidanceBlock = isDaily ? "" : buildGuidanceContext(guidanceData);
-  const reflectionBlock = isDaily ? "" : buildReflectionContext(userMessage, userMemory || {}, patterns || null);
-  const openLoopBlock = isDaily ? "" : buildOpenLoopContext(openLoops);
+  // ── Reflection block (intent-gated in exploration) ───────
+  const shouldLoadReflection = !isDaily && !isOpening && (
+    isDecisionPhase ||
+    (isExploration && (
+      activeIntents.includes('reflection') ||
+      activeIntents.includes('decision') ||
+      activeIntents.includes('emotional')
+    ))
+  );
+  const reflectionBlock = shouldLoadReflection
+    ? buildReflectionContext(userMessage, userMemory || {}, patterns || null)
+    : "";
 
+  // ── Open loop block (decision phase only) ────────────────
+  const openLoopBlock = (isDaily || isOpening || isExploration)
+    ? ""
+    : buildOpenLoopContext(openLoops);
+
+  // ── Mode block ────────────────────────────────────────────
   let modeBlock = isDaily ? DAILY_MODE_PROMPT : DEEP_MODE_PROMPT;
   if (isDaily) {
     modeBlock += "\n\n" + DAILY_MODE_SHIFT_AWARENESS;
@@ -368,7 +472,11 @@ function buildContext({
     }
   }
 
-  const combinedBlocks = [modeBlock, stateBlock, guidanceBlock, decisionContext, reflectionBlock, openLoopBlock].filter(b => b).join("\n\n");
+  const combinedBlocks = [
+    modeBlock, memoryBlock, stateBlock, guidanceBlock,
+    decisionContext, reflectionBlock, openLoopBlock
+  ].filter(b => b).join("\n\n");
+
   const finalSystem = combinedBlocks
     ? enhancedSystem + "\n\n" + combinedBlocks
     : enhancedSystem;
@@ -394,4 +502,4 @@ function buildContext({
   return messages;
 }
 
-export { buildContext, detectDeepTopic };
+export { buildContext, detectDeepTopic, detectConversationPhase };
