@@ -42,6 +42,8 @@ export const userData = pgTable("user_data", {
   onboardingCompletedAt: text("onboarding_completed_at").default(""),
   onboardingProgress: jsonb("onboarding_progress").default({}),
   onboardingState: jsonb("onboarding_state").default({}),
+  deepSessionId: integer("deep_session_id").default(0),
+  deepSessionSummaries: jsonb("deep_session_summaries").default([]),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 

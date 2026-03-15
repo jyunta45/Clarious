@@ -227,6 +227,8 @@ app.post('/api/data', async (req, res) => {
     if (req.body.patterns !== undefined) updateFields.patterns = req.body.patterns;
     if (req.body.onboarding_complete !== undefined) updateFields.onboardingComplete = req.body.onboarding_complete;
     if (req.body.onboarding_progress !== undefined) updateFields.onboardingProgress = req.body.onboarding_progress;
+    if (req.body.deep_session_id !== undefined) updateFields.deepSessionId = req.body.deep_session_id;
+    if (req.body.deep_session_summaries !== undefined) updateFields.deepSessionSummaries = req.body.deep_session_summaries;
     // onboardingState is server-managed exclusively through /api/onboarding-chat — never accept from client
 
     const existing = await db.select().from(userData).where(eq(userData.userId, req.session.userId));

@@ -1206,7 +1206,9 @@ function save() {
           last_active_date: ST.lastActiveDate || '',
           patterns: ST.patterns || { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} },
           onboarding_complete: ST.onboardingComplete || false,
-          onboarding_progress: ST.onboardingProgress || {}
+          onboarding_progress: ST.onboardingProgress || {},
+          deep_session_id: ST.deepSessionId || 0,
+          deep_session_summaries: ST.deepSessionSummaries || []
         })
       }).catch(function(){});
     }, 500);
@@ -1274,6 +1276,8 @@ async function loadServerData() {
       }
       if (data.onboardingProgress && Object.keys(data.onboardingProgress).length > 0) ST.onboardingProgress = data.onboardingProgress;
       if (data.onboardingState && Object.keys(data.onboardingState).length > 0) ST.onboardingState = data.onboardingState;
+      if (data.deepSessionId) ST.deepSessionId = data.deepSessionId;
+      if (data.deepSessionSummaries && data.deepSessionSummaries.length > 0) ST.deepSessionSummaries = data.deepSessionSummaries;
       try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
     }
   } catch(e) {}
