@@ -18,7 +18,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .page{max-width:780px;margin:0 auto;padding:40px 20px;min-height:100vh;display:flex;align-items:center;justify-content:center;}
 .card{background:var(--card);border:1px solid var(--border);border-radius:28px;padding:52px;width:100%;}
 .brand{font-family:'Playfair Display',serif;font-size:3.2rem;font-weight:700;text-align:center;background:linear-gradient(135deg,#fff 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
-.brand-logo{display:block;max-width:220px;width:100%;margin:0 auto 4px;object-fit:contain;}
+.brand-gold{background:linear-gradient(135deg,#f5d87a 0%,#c9a840 50%,#f0c04a 100%) !important;-webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;}
 .tagline{text-align:center;color:var(--muted);font-size:1.1rem;margin-bottom:40px;}
 .meta-list{background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.2);border-radius:var(--radius);padding:28px;margin-bottom:36px;}
 .meta-list p{color:var(--muted);line-height:2;font-size:0.95rem;}
@@ -300,7 +300,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <body>
 <div id="root">
 <div class="page"><div class="card">
-<img src="/logo.png" alt="Clarious" class="brand-logo">
+<div class="brand brand-gold">C</div>
 <p class="tagline">Loading...</p>
 </div></div>
 </div>
@@ -2963,7 +2963,7 @@ function renderAuth(root) {
   var hasLang = lang && lang.length > 0;
   if (!hasLang) {
     root.innerHTML = '<div class="page"><div class="card">' +
-      '<img src="/logo.png" alt="Clarious" class="brand-logo">' +
+      '<div class="brand brand-gold">C</div>' +
       '<p class="tagline">Choose your language / ' + UI.ja.chooseLanguage + ' / ' + UI.th.chooseLanguage + '</p>' +
       '<div class="lang-picker" data-testid="lang-picker">' +
       Object.keys(LANGS).map(function(k) {
@@ -2982,7 +2982,7 @@ function renderAuth(root) {
 
   if (isForgot) {
     root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
-      '<img src="/logo.png" alt="Clarious" class="brand-logo">' +
+      '<div class="brand brand-gold">C</div>' +
       '<p class="tagline">' + ui('enterEmail') + '</p>' +
       '<div class="auth-error" id="auth-err" style="display:none" data-testid="text-auth-error"></div>' +
       '<div class="auth-success" id="auth-success" style="display:none" data-testid="text-auth-success"></div>' +
@@ -3002,7 +3002,7 @@ function renderAuth(root) {
 
   if (isReset) {
     root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
-      '<img src="/logo.png" alt="Clarious" class="brand-logo">' +
+      '<div class="brand brand-gold">C</div>' +
       '<p class="tagline">' + ui('resetPassword') + '</p>' +
       '<div class="auth-error" id="auth-err" style="display:none" data-testid="text-auth-error"></div>' +
       '<div class="auth-success" id="auth-success" style="display:none" data-testid="text-auth-success"></div>' +
@@ -3022,7 +3022,7 @@ function renderAuth(root) {
   }
 
   root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
-    '<img src="/logo.png" alt="Clarious" class="brand-logo">' +
+    '<div class="brand brand-gold">C</div>' +
     '<p class="tagline">' + ui('tagline') + '</p>' +
     '<div class="auth-error" id="auth-err" style="display:none" data-testid="text-auth-error"></div>' +
     '<div class="auth-form">' +
@@ -3047,7 +3047,7 @@ function renderAuth(root) {
 function renderWelcome(root) {
   var authHtml = AUTH.loggedIn ? '<div class="auth-info" style="justify-content:center;margin-bottom:16px"><span class="email">' + esc(AUTH.email) + '</span> <button class="logout-btn" id="logout-btn" data-testid="button-logout">' + ui('logOut') + '</button></div>' : '';
   root.innerHTML = langSwitcherHtml() + '<div class="page"><div class="card">' +
-    '<img src="/logo.png" alt="Clarious" class="brand-logo">' +
+    '<div class="brand brand-gold">C</div>' +
     '<p class="tagline">' + ui('tagline') + '</p>' +
     authHtml +
     '<div class="meta-list">' +
@@ -3359,7 +3359,7 @@ function renderChat(root) {
   root.innerHTML = '<div class="chat-wrap mode-' + currentMode + '">' +
     '<div class="chat-header">' +
     '<div>' +
-    '<img src="/logo.png" alt="Clarious" style="height:36px;object-fit:contain;">' +
+    '<div style="font-family:Playfair Display,serif;font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,#f5d87a 0%,#c9a840 50%,#f0c04a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Clarious</div>' +
     '<div style="font-size:0.8rem;color:var(--muted)">' + ui('knows') + ' ' + esc(ST.ans.name || 'you') + ' ' + ui('completely') + '</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
@@ -3568,7 +3568,7 @@ checkAuth();
 
 } catch(e) {
   console.error('App error:', e);
-  document.getElementById('root').innerHTML = '<div class="page"><div class="card"><img src="/logo.png" alt="Clarious" class="brand-logo"><p class="tagline">Something went wrong. Please refresh.</p></div></div>';
+  document.getElementById('root').innerHTML = '<div class="page"><div class="card"><div class="brand brand-gold">C</div><p class="tagline">Something went wrong. Please refresh.</p></div></div>';
 }
 </script>
 </body>
