@@ -200,6 +200,7 @@ Speak as someone who simply remembers.`;
 // ======================================
 
 const DEEP_KEYWORDS = [
+  // English
   "career", "relationship", "marriage", "breakup",
   "purpose", "life direction", "future", "identity",
   "who i am", "what should i do with my life",
@@ -226,7 +227,37 @@ const DEEP_KEYWORDS = [
   "calling", "passion", "mission",
   "lonely", "isolation", "nobody understands",
   "family pressure", "expectations", "disappointing",
-  "letting go", "moving on", "grief"
+  "letting go", "moving on", "grief",
+
+  // Thai — career & job
+  "ลาออก", "ออกจากงาน", "เปลี่ยนงาน", "เปลี่ยนอาชีพ",
+  "เปลี่ยนเส้นทาง", "หยุดทำงาน", "ลาออกจาก",
+  // Thai — life direction & purpose
+  "ทิศทางชีวิต", "เส้นทางชีวิต", "ความหมายของชีวิต",
+  "เป้าหมายชีวิต", "ชีวิตที่อยากได้", "ชีวิตที่ต้องการ",
+  "บทใหม่", "เริ่มใหม่", "เริ่มต้นใหม่",
+  // Thai — identity & self
+  "ตัวตน", "ตัวเองจริงๆ", "เป็นตัวเอง", "ไม่รู้จักตัวเอง",
+  "ตัวเองคือใคร", "ไม่รู้ว่าตัวเองต้องการอะไร",
+  // Thai — stuck / lost / unsure
+  "ติดอยู่", "หลงทาง", "ไม่รู้จะทำอะไร", "ไม่รู้จะไปทางไหน",
+  "ลังเล", "ไม่แน่ใจว่าจะ", "ไม่รู้ว่าควรจะ",
+  "วนเวียน", "วนซ้ำ", "วนอยู่",
+  // Thai — relationships
+  "เลิกกัน", "แยกทาง", "แต่งงาน", "ความสัมพันธ์",
+  "ปัญหาครอบครัว", "ครอบครัวกดดัน",
+  // Thai — major decisions
+  "ตัดสินใจใหญ่", "เลือกไม่ได้", "ไม่รู้จะเลือก",
+  "ย้าย", "ย้ายประเทศ", "ย้ายที่", "ออกไป",
+  // Thai — ambition & dreams
+  "ความฝัน", "ความทะเยอทะยาน", "อยากเป็น", "อยากทำ",
+  "อยากมี", "อยากได้", "วิชั่น",
+  // Thai — pressure & worth
+  "แรงกดดัน", "ความคาดหวัง", "พิสูจน์ตัวเอง",
+  "คุ้มค่าไหม", "คุ้มไหม", "มีคุณค่า",
+  // Thai — quitting or giving up
+  "ยอมแพ้", "เลิกทำ", "หยุดทำ", "ทิ้งทุกอย่าง",
+  "ไม่ไหวแล้ว", "เหนื่อยแล้ว", "อยากเลิก"
 ];
 
 const DEEP_PATTERNS = [
