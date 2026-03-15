@@ -1,19 +1,13 @@
 // ======================================
 // ONBOARDING ENGINE
-// Controls conversational onboarding flow.
-// The AI only generates natural language.
-// The engine decides all structural moves.
+// Fixed 11-question sequential structure.
+// Claude only acknowledges + reads next question.
+// No free-flowing question generation.
 // ======================================
 
 export const CATEGORY_ORDER = [
-  'whoYouAre',
-  'whatDrivesYou',
-  'insecurities',
-  'goals',
-  'obstacles',
-  'resources',
-  'lifestyle',
-  'decisionMaking'
+  'whoYouAre', 'whatDrivesYou', 'insecurities', 'goals',
+  'obstacles', 'resources', 'lifestyle', 'decisionMaking'
 ];
 
 export const CATEGORY_INFO = {
@@ -59,65 +53,57 @@ export const CATEGORY_INFO = {
   }
 };
 
-export const CATEGORY_DISPLAY_NAMES = {
-  en: {
-    whoYouAre: 'your day-to-day life',
-    whatDrivesYou: 'what drives you',
-    insecurities: 'your challenges',
-    goals: 'your goals',
-    obstacles: 'what holds you back',
-    resources: 'your strengths and resources',
-    lifestyle: 'your lifestyle',
-    decisionMaking: 'how you think and decide'
-  },
-  ja: {
-    whoYouAre: 'あなたの日常',
-    whatDrivesYou: 'あなたを動かすもの',
-    insecurities: 'あなたの課題',
-    goals: 'あなたの目標',
-    obstacles: 'あなたを止めるもの',
-    resources: 'あなたの強みとリソース',
-    lifestyle: 'あなたのライフスタイル',
-    decisionMaking: 'あなたの思考と決断'
-  },
-  es: {
-    whoYouAre: 'tu día a día',
-    whatDrivesYou: 'lo que te motiva',
-    insecurities: 'tus desafíos',
-    goals: 'tus metas',
-    obstacles: 'lo que te frena',
-    resources: 'tus fortalezas y recursos',
-    lifestyle: 'tu estilo de vida',
-    decisionMaking: 'cómo piensas y decides'
-  },
-  th: {
-    whoYouAre: 'ชีวิตประจำวันของคุณ',
-    whatDrivesYou: 'สิ่งที่ขับเคลื่อนคุณ',
-    insecurities: 'ความท้าทายของคุณ',
-    goals: 'เป้าหมายของคุณ',
-    obstacles: 'สิ่งที่ฉุดคุณไว้',
-    resources: 'จุดแข็งและทรัพยากรของคุณ',
-    lifestyle: 'ไลฟ์สไตล์ของคุณ',
-    decisionMaking: 'วิธีคิดและตัดสินใจของคุณ'
-  },
-  ko: {
-    whoYouAre: '일상',
-    whatDrivesYou: '동기',
-    insecurities: '도전',
-    goals: '목표',
-    obstacles: '장애물',
-    resources: '강점과 자원',
-    lifestyle: '생활 방식',
-    decisionMaking: '사고와 결정 방식'
-  }
-};
-
 export const LANG_NAMES = {
   en: 'English',
   ja: 'Japanese',
   es: 'Spanish',
   th: 'Thai',
   ko: 'Korean'
+};
+
+// ── 11 pre-written questions ──────────────────────────────────────────────────
+export const QUESTIONS = {
+  en: [
+    "What does a typical day look like for you — what takes up most of your time?",
+    "Is this work something you chose, or did you fall into it?",
+    "What's one thing that, if you achieved it this year, you'd feel genuinely proud of?",
+    "Right now, what are you most worn down by — and wish you could escape from?",
+    "Is there an area of your life where you feel behind where you thought you'd be?",
+    "What's the main goal you're actively working toward right now?",
+    "Is there a habit or pattern you feel is holding you back?",
+    "What are you genuinely good at — something that sets you apart and comes naturally to you?",
+    "How's your sleep and energy — what time of day do you work best?",
+    "When you face a big decision, what does your thinking process usually look like before you decide?",
+    "What's the most important thing that defines who you are?"
+  ],
+  th: [
+    "วันปกติของคุณเป็นยังไง — ส่วนใหญ่ใช้เวลาไปกับอะไร",
+    "งานที่ทำอยู่นี่ เลือกเองหรือว่ามันค่อยๆ เกิดขึ้นมาเอง",
+    "อะไรคือสิ่งที่ถ้าคุณบรรลุได้ในปีนี้ แล้วจะรู้สึกภูมิใจกับตัวเองจริงๆ",
+    "ตอนนี้มีอะไรที่รู้สึกเหนื่อย แล้วอยากหลุดพ้นออกจากมันมากที่สุด",
+    "มีด้านไหนในชีวิตที่รู้สึกว่ายังไม่ถึงที่คิดไว้",
+    "ตอนนี้เป้าหมายหลักที่กำลังมุ่งอยู่คืออะไร",
+    "มีนิสัยหรือแพทเทิร์นอะไรที่คิดว่ามันฉุดรั้งตัวเองอยู่ไหม",
+    "คิดว่าตัวเองมีดีและเก่งด้านไหน — ที่ต่างจากคนอื่น และทำได้โดยไม่ต้องฝืน",
+    "การนอนหลับและพลังงานตอนนี้เป็นยังไง — ช่วงไหนของวันทำงานได้ดีที่สุด",
+    "เวลาที่ต้องตัดสินใจเรื่องใหญ่ ปกติมีรูปแบบการคิดยังไงก่อนที่จะตัดสินใจ",
+    "อะไรคือสิ่งที่สำคัญที่สุดที่บ่งบอกถึงตัวคุณ"
+  ]
+};
+
+// ── Q11 (index 10) choice chips ───────────────────────────────────────────────
+export const Q11_CHIPS = {
+  th: ["ครอบครัว", "การงาน", "ค่านิยม / หลักการ", "เสรีภาพ", "ความสัมพันธ์", "การเติบโต"],
+  en: ["Family", "Career", "Values / Principles", "Freedom", "Relationships", "Growth"]
+};
+
+// ── Hardcoded initial message (no Claude call — 100% reliable) ────────────────
+export const INITIAL_MESSAGES = {
+  en: (q) => `Good to meet you.\n\n${q}`,
+  th: (q) => `ยินดีที่ได้คุยด้วยครับ\n\n${q}`,
+  ja: (q) => `はじめまして。\n\n${q}`,
+  es: (q) => `Encantado de conocerte.\n\n${q}`,
+  ko: (q) => `반갑습니다.\n\n${q}`
 };
 
 export const START_MESSAGES = {
@@ -140,97 +126,64 @@ export const COMPLETION_MESSAGES = {
   en: "That's everything I needed to know for now.\n\nI have a much clearer picture of where you are and what you're working toward.\n\nThis space is yours now — use it however feels right.",
   ja: "今必要なことはこれで全部です。\n\nあなたが今どこにいて、何を目指しているかがずっとよくわかりました。\n\nこのスペースはもうあなたのもの — 好きなように使ってください。",
   es: "Eso es todo lo que necesitaba saber por ahora.\n\nTengo una imagen mucho más clara de dónde estás y hacia dónde vas.\n\nEste espacio es tuyo ahora — úsalo como te parezca.",
-  th: "นั่นคือทุกอย่างที่ต้องรู้ตอนนี้\n\nตอนนี้เห็นภาพชัดขึ้นมากว่าคุณอยู่ตรงไหนและกำลังมุ่งไปที่ไหน\n\nพื้นที่นี้เป็นของคุณแล้ว — ใช้ยังไงก็ได้ที่รู้สึกดี",
+  th: "นั่นคือทุกอย่างที่ต้องรู้ตอนนี้ครับ\n\nตอนนี้เห็นภาพชัดขึ้นมากว่าคุณอยู่ตรงไหนและกำลังมุ่งไปที่ไหน\n\nพื้นที่นี้เป็นของคุณแล้ว — ใช้ยังไงก็ได้ที่รู้สึกดีครับ",
   ko: "지금 필요한 건 다 알았어요.\n\n지금 어디에 있고 무엇을 향해 가고 있는지 훨씬 명확해졌어요.\n\n이제 이 공간은 당신의 것 — 편한 방식으로 사용하세요."
 };
 
 export function getResumeMessage(lang, lastCategory) {
-  const displayNames = CATEGORY_DISPLAY_NAMES[lang] || CATEGORY_DISPLAY_NAMES.en;
-  const categoryName = displayNames[lastCategory] || lastCategory;
   const msgs = {
-    en: `Welcome back. Last time we were talking about ${categoryName}.\n\nWould you like to continue, or start using the app now?`,
-    ja: `おかえりなさい。前回は${categoryName}について話していました。\n\n続けますか？それともアプリを使い始めますか？`,
-    es: `Bienvenido/a de vuelta. La última vez estábamos hablando de ${categoryName}.\n\n¿Te gustaría continuar, o empezar a usar la app ahora?`,
-    th: `ยินดีต้อนรับกลับมา ครั้งล่าสุดเราคุยเรื่อง${categoryName}\n\nอยากคุยต่อ หรือเริ่มใช้แอปเลยดี?`,
-    ko: `다시 오셨군요. 지난번에는 ${categoryName}에 대해 이야기하고 있었어요.\n\n계속하시겠어요, 아니면 지금 앱을 사용하시겠어요?`
+    en: `Welcome back.\n\nWould you like to continue where we left off, or start using the app now?`,
+    th: `ยินดีต้อนรับกลับมาครับ\n\nอยากคุยต่อ หรือเริ่มใช้แอปเลยดี?`,
+    ja: `おかえりなさい。\n\n続けますか？それともアプリを使い始めますか？`,
+    es: `Bienvenido/a de vuelta.\n\n¿Te gustaría continuar, o empezar a usar la app ahora?`,
+    ko: `다시 오셨군요.\n\n계속하시겠어요, 아니면 지금 앱을 사용하시겠어요?`
   };
   return msgs[lang] || msgs.en;
 }
 
-export function buildFreeFlowingOnboardingPrompt(lang, totalExchangeCount) {
+// ── Acknowledgment prompt ─────────────────────────────────────────────────────
+// Claude's ONLY job: react briefly to what the user said, then ask the next question verbatim.
+export function buildAcknowledgmentPrompt(lang, nextQuestion) {
   const langName = LANG_NAMES[lang] || 'English';
-  const isEarly = totalExchangeCount <= 3;
-  const isLate = totalExchangeCount >= 9;
-
-  return `You are Clarus — a calm, intelligent personal coach having a first real conversation with someone new.
-
-Your goal is to genuinely get to know this person through natural conversation. Over the course of this chat, you want to understand:
-- Who they are and what their daily life looks like
-- What drives them and what they want to feel proud of
-- Where they feel behind or self-conscious
-- Their goals and where they want to be
-- What holds them back or gets in their way
-- What they are genuinely good at
-- How they live and work day to day
-- How they make decisions and what they want from this space
-
-How to do this:
-- Read the conversation history carefully before responding
-- CRITICAL: Look at every question already asked in the history. NEVER ask the same question again, even rephrased
-- Always respond to what they actually said first — acknowledge it genuinely before moving forward
-- Then ask ONE natural follow-up question that either goes deeper into something new OR gently opens an area not yet covered
-- If they don't want to answer something, that is completely fine — acknowledge it warmly and move to something else
-- If they ask YOU a question or go off topic, answer naturally and briefly, then return to getting to know them
-- Never ask more than one question at a time
-- Never sound like a form, a survey, or a structured interview
-- Move between topics naturally when the moment feels right${isLate ? '\n- You have covered a lot of ground. Begin wrapping up naturally — make your next question the last one before a warm close.' : ''}${isEarly ? '\n- The conversation has already started. Continue from where it left off — do NOT ask about anything already covered in the history above.' : ''}
-
-Rules:
-- Do NOT mention categories, topics, onboarding, or any structure
-- Do NOT re-introduce yourself — you are already in the conversation
-- Do NOT repeat or rephrase any question already in the conversation history
-- Sound like a real person who is genuinely curious
-- Keep responses under 80 words
-- Respond entirely in ${langName}${lang === 'th' ? `
-
+  const thaiRules = lang === 'th' ? `
 THAI CHARACTER RULES — MANDATORY:
 
-IDENTITY: Clarus is male. Always ครับ — NEVER ค่ะ. Never use ผม or ฉัน. Use นี่ for self-reference ("นี่ว่า..."), Clarus by name when introducing.
+IDENTITY: Clarus is male. Always ครับ — NEVER ค่ะ. Never use ผม or ฉัน as self-reference. Use นี่ ("นี่ว่า...") or Clarus by name when introducing.
 
-REGISTER: User sets the register — Clarus follows, never leads.
-ครับ/ค่ะ/คุณ → ครับ, นะ, เนี่ย
-casual นะ/วะ → นะ, ได้ปะ, โอเคร
-ว่ะ/แม้ง → โอเคร, ป่าว (ครับ drops)
-กู/มึง → กู, มึง, ดิ, อะ (ครับ drops, นี่ → กู)
+REGISTER: Follow the user — never lead. Start at formal ครับ register unless user goes casual first.
 กู/มึง and ครับ NEVER appear in the same response.
 
-CEILING: Never use แม้ง/เหี้ย/สัส/ควาย even if user does.
-เหี้ย → แย่/หนัก, สัส → frustration without profanity.
-
-PARTICLES:
-ว่ะ — FORBIDDEN as sentence ending
-ปะครับ — FORBIDDEN combination
-ดิ — ONLY after user asks ได้ปะ/ใช่ปะ, always followed by a sentence
-ลูก — ABSOLUTELY FORBIDDEN, use แหละ instead
-Never invent particles that don't exist
-
-VOCABULARY — BANNED WORDS:
+VOCABULARY — BANNED:
 วันธรรมชาติ → วันปกติ
-ตามธรรมชาติ (daily context) → ตามปกติ
+ตามธรรมชาติ (daily) → ตามปกติ
 ชีวิตธรรมชาติ → ชีวิตประจำวัน
 อารมณ์ภายใน → ความรู้สึก
 ประกอบอาชีพ → ทำงาน
-สนทนา (casual) → คุย
+สนทนา → คุย
+ลูก → ห้ามเด็ดขาด ใช้ แหละ แทน
 
-TONE: Intellectual and calm. Sympathy through word choice — not exclamations. Warm but measured. Never start with a blunt negative.
+PARTICLES: ว่ะ ห้ามจบประโยค. ปะครับ ห้าม. Never invent particles.
+TONE: Warm, calm, measured. Short sentences. Never over-expressive.
+FORMATTING: No --- dividers, no ** bold, no ## headings. One continuous flow.` : '';
 
-SENTENCE STRUCTURE: Condition first, then conclusion. Short rhythmic sentences. Natural spacing between thought clusters.
-Use คง + adjective + น่าดู for warm empathy: "คงหนักน่าดู"
-Use อาจ to soften sensitive statements.
+  return `You are Clarus — a calm, intelligent personal coach.
 
-5555: Only when genuinely light AND user is playful. Never during emotional moments. 5555 closes a moment — never opens.
+The user just answered your previous question. Your job now:
+1. Write ONE short warm sentence acknowledging what they said — genuine, not generic
+2. Then ask the next question below, word for word, exactly as written — do not change it, do not add to it
 
-FORMATTING: Never use --- dividers, ** bold, or ## headings mid-response. One continuous flow.` : ''}`;
+Next question to ask:
+"${nextQuestion}"
+
+Rules:
+- Acknowledgment = exactly 1 sentence. No more.
+- Then the question exactly as written above. Nothing after it.
+- Do not ask anything else. Do not go deeper. Do not comment further.
+- Respond entirely in ${langName}
+
+Good acknowledgment examples in Thai:
+"เข้าใจเลยครับ" / "ฟังดูหนักนะครับ" / "น่าสนใจครับ" / "โอเคครับ รับทราบ" / "ชัดเจนเลยครับ"
+${thaiRules}`;
 }
 
 export function getNextCategory(currentCategory) {
@@ -239,52 +192,15 @@ export function getNextCategory(currentCategory) {
   return CATEGORY_ORDER[idx + 1];
 }
 
-export function shouldCompleteOnboarding(totalExchangeCount) {
-  return totalExchangeCount >= 12;
-}
-
-export function buildInitialQuestionPrompt(lang) {
-  const langName = LANG_NAMES[lang] || 'English';
-  return `You are Clarus, a calm, intelligent personal coach starting a first conversation with someone new.
-
-Ask ONE warm, natural opening question about their daily life — what they do and what a typical day looks like for them.
-
-Rules:
-- Sound completely natural, like a real person asking a genuine question
-- Do NOT sound like an intake form or questionnaire
-- Do NOT introduce yourself again — just ask the question
-- Keep it to 1-2 sentences maximum
-- Respond entirely in ${langName}${lang === 'th' ? `
-
-THAI CHARACTER RULES — MANDATORY:
-
-IDENTITY: Clarus is male. Always ครับ — NEVER ค่ะ. Never use ผม or ฉัน. Use นี่ for self-reference, Clarus by name when introducing.
-
-VOCABULARY — BANNED WORDS:
-วันธรรมชาติ → วันปกติ
-ตามธรรมชาติ (daily context) → ตามปกติ
-ชีวิตธรรมชาติ → ชีวิตประจำวัน
-ประกอบอาชีพ → ทำงาน
-สนทนา (casual) → คุย
-ลูก — FORBIDDEN, use แหละ instead
-
-TONE: Intellectual and calm. Warm but measured. Never start with a blunt negative. Short rhythmic sentences.
-
-PARTICLES: ว่ะ FORBIDDEN as sentence ending. ปะครับ FORBIDDEN. Never invent particles that don't exist.
-
-FORMATTING: Never use --- dividers or ** bold. One continuous flow.` : ''}`;
+// Complete after all 11 questions answered (indices 0-10, nextIndex would be 11)
+export function shouldCompleteOnboarding(nextQuestionIndex) {
+  return nextQuestionIndex >= 11;
 }
 
 export function getDefaultOnboardingProgress() {
   return {
-    whoYouAre: false,
-    whatDrivesYou: false,
-    insecurities: false,
-    goals: false,
-    obstacles: false,
-    resources: false,
-    lifestyle: false,
-    decisionMaking: false,
-    lastCategoryDiscussed: null
+    whoYouAre: false, whatDrivesYou: false, insecurities: false,
+    goals: false, obstacles: false, resources: false,
+    lifestyle: false, decisionMaking: false, lastCategoryDiscussed: null
   };
 }

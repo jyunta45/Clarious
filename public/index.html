@@ -235,6 +235,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .ob-chip:hover{background:rgba(155,109,255,0.2);border-color:var(--accent);}
 .ob-chip.skip{background:transparent;border-color:rgba(255,255,255,0.12);color:var(--muted);font-size:0.82rem;}
 .ob-chip.skip:hover{border-color:rgba(255,255,255,0.25);color:var(--text);}
+.ob-inline-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
 .ob-input-row{display:flex;gap:10px;padding:14px 24px;padding-bottom:max(14px,env(safe-area-inset-bottom));border-top:1px solid var(--border);flex-shrink:0;}
 .ob-input{flex:1;padding:13px 18px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);outline:none;resize:none;height:46px;max-height:120px;overflow-y:auto;}
 .ob-input:focus{border-color:var(--accent);}
@@ -2702,10 +2703,17 @@ function renderOnboardingChat(root) {
   var isFirstOpen = msgs.length === 0 && !lastCategory;
 
   // Build messages HTML
-  var msgsHtml = msgs.map(function(m) {
+  var msgsHtml = msgs.map(function(m, idx) {
     var content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') : '';
+    var inlineChipsHtml = '';
+    if (m.chips && m.chips.length && idx === msgs.length - 1 && !OB_SENDING) {
+      inlineChipsHtml = '<div class="ob-inline-chips">' +
+        m.chips.map(function(c) {
+          return '<button class="ob-chip" data-obchip="' + c.replace(/"/g, '&quot;') + '">' + c.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</button>';
+        }).join('') + '</div>';
+    }
     return '<div class="ob-msg ' + m.role + '" data-testid="ob-msg-' + m.role + '">' +
-      '<div class="ob-bubble ' + m.role + '">' + content + '</div></div>';
+      '<div class="ob-bubble ' + m.role + '">' + content + '</div>' + inlineChipsHtml + '</div>';
   }).join('');
 
   // Typing indicator
@@ -2791,6 +2799,13 @@ function renderOnboardingChat(root) {
       } else if (action === 'continue') {
         sendOnboardingMessage('__continue__');
       }
+    };
+  });
+
+  // Bind inline Q11 choice chips
+  document.querySelectorAll('[data-obchip]').forEach(function(btn) {
+    btn.onclick = function() {
+      sendOnboardingMessage(btn.dataset.obchip);
     };
   });
 
@@ -2906,7 +2921,7 @@ async function sendOnboardingMessage(message) {
 
     ST.onboardingMsgs = ST.onboardingMsgs || [];
     if (data.text) {
-      ST.onboardingMsgs.push({ role: 'assistant', content: data.text });
+      ST.onboardingMsgs.push({ role: 'assistant', content: data.text, chips: data.chips || null });
     }
 
     if (data.onboardingComplete) {

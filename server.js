@@ -25,10 +25,9 @@ import { runHaikuMemoryMerge } from './memoryMerge.js';
 import { repairLegacyIdentity } from './legacyIdentityRepair.js';
 import { buildOpeningMessage } from './openingMessageEngine.js';
 import {
-  CATEGORY_ORDER, CATEGORY_INFO, getNextCategory,
-  buildFreeFlowingOnboardingPrompt, buildInitialQuestionPrompt,
-  shouldCompleteOnboarding,
-  COMPLETION_MESSAGES, SKIP_MESSAGES, getDefaultOnboardingProgress
+  buildAcknowledgmentPrompt, shouldCompleteOnboarding,
+  getDefaultOnboardingProgress, QUESTIONS, Q11_CHIPS,
+  INITIAL_MESSAGES, COMPLETION_MESSAGES, SKIP_MESSAGES
 } from './onboardingEngine.js';
 
 var __app_dirname;
@@ -297,40 +296,14 @@ app.post('/api/onboarding-chat', async (req, res) => {
   try {
     const { message, lang } = req.body;
     const safeLang = ['en', 'ja', 'es', 'th', 'ko'].includes(lang) ? lang : 'en';
+    // Questions: use TH if available, fall back to EN
+    const qList = QUESTIONS[safeLang] || QUESTIONS.en;
 
     const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
     let onboardingState = (uData && uData.onboardingState) ? { ...uData.onboardingState } : {};
     let onboardingProgress = (uData && uData.onboardingProgress && Object.keys(uData.onboardingProgress).length > 0)
       ? { ...uData.onboardingProgress }
       : getDefaultOnboardingProgress();
-
-    // Helper to call Claude with full conversation history
-    async function callOnboardingModel(systemPrompt, userMessage) {
-      const history = (onboardingState.history || []).slice(-20);
-      const messages = [...history, { role: 'user', content: userMessage }];
-      const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 200,
-          system: systemPrompt,
-          messages
-        })
-      });
-      const data = await apiRes.json();
-      const reply = (data.content && data.content[0]) ? data.content[0].text.trim() : '';
-      // Append to history
-      onboardingState.history = [...(onboardingState.history || []),
-        { role: 'user', content: userMessage },
-        { role: 'assistant', content: reply }
-      ].slice(-30);
-      return reply;
-    }
 
     // ── SKIP ────────────────────────────────────────────────────────────────
     if (message === '__skip__') {
@@ -348,20 +321,30 @@ app.post('/api/onboarding-chat', async (req, res) => {
       });
     }
 
-    // ── MIGRATE old-format state (currentCategory → started) ─────────────────
+    // ── MIGRATE old-format state ──────────────────────────────────────────────
+    // Old formats used currentCategory or totalExchanges — map to new questionIndex
     if (!onboardingState.started && onboardingState.currentCategory) {
+      const oldExchanges = (onboardingState.exchangeCount || 0);
       onboardingState = {
         started: true,
-        totalExchanges: (onboardingState.exchangeCount || 0) + 3,
-        history: onboardingState.history || []
+        questionIndex: Math.min(Math.floor(oldExchanges / 1.5), 10)
+      };
+    } else if (onboardingState.started && typeof onboardingState.totalExchanges !== 'undefined'
+               && typeof onboardingState.questionIndex === 'undefined') {
+      // Had totalExchanges — map to questionIndex
+      onboardingState = {
+        started: true,
+        questionIndex: Math.min(onboardingState.totalExchanges || 0, 10)
       };
     }
 
     // ── START (first interaction) ────────────────────────────────────────────
+    // Send Q0 as a hardcoded initial message — no Claude call, 100% reliable
     if (!onboardingState.started) {
-      onboardingState = { started: true, totalExchanges: 0, history: [] };
-      const systemPrompt = buildInitialQuestionPrompt(safeLang);
-      const text = await callOnboardingModel(systemPrompt, message || 'Let\'s start');
+      const q0 = qList[0];
+      const initialFn = INITIAL_MESSAGES[safeLang] || INITIAL_MESSAGES.en;
+      const text = initialFn(q0);
+      onboardingState = { started: true, questionIndex: 0 };
       await db.update(userData).set({
         onboardingState,
         onboardingProgress,
@@ -371,27 +354,53 @@ app.post('/api/onboarding-chat', async (req, res) => {
     }
 
     // ── REGULAR EXCHANGE ─────────────────────────────────────────────────────
-    onboardingState.totalExchanges = (onboardingState.totalExchanges || 0) + 1;
+    // questionIndex = the question that was LAST ASKED (user just answered it)
+    const lastAskedIndex = onboardingState.questionIndex || 0;
+    const nextQuestionIndex = lastAskedIndex + 1;
 
     let responseText = '';
     let newOnboardingComplete = false;
     let responseChips = null;
 
-    if (shouldCompleteOnboarding(onboardingState.totalExchanges)) {
-      // Enough exchanges — complete onboarding
+    if (shouldCompleteOnboarding(nextQuestionIndex)) {
+      // User answered the last question (Q11, index 10) — complete onboarding
       newOnboardingComplete = true;
       onboardingState = {};
       responseText = COMPLETION_MESSAGES[safeLang] || COMPLETION_MESSAGES.en;
-      responseChips = { en: ["Let's start", "Ask me something"], th: ["เริ่มเลย", "ถามฉันสิ"] }[safeLang] || ["Let's start", "Ask me something"];
+
     } else {
-      // Free-flowing conversation covering all topics naturally
-      const systemPrompt = buildFreeFlowingOnboardingPrompt(safeLang, onboardingState.totalExchanges);
-      responseText = await callOnboardingModel(systemPrompt, message);
+      // Ask the next pre-written question
+      const nextQuestion = qList[nextQuestionIndex];
+
+      // Build prompt: acknowledge briefly + ask next question verbatim
+      const systemPrompt = buildAcknowledgmentPrompt(safeLang, nextQuestion);
+
+      const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 350,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: message || '...' }]
+        })
+      });
+      const data = await apiRes.json();
+      responseText = (data.content && data.content[0]) ? data.content[0].text.trim() : nextQuestion;
+
+      // If this is Q11 (index 10), return choice chips
+      if (nextQuestionIndex === 10) {
+        responseChips = (Q11_CHIPS[safeLang] || Q11_CHIPS.en);
+      }
+
+      onboardingState = { started: true, questionIndex: nextQuestionIndex };
     }
 
-    // Memory seeding happens on onboarding completion — see below
-
-    // Save updated onboarding state
+    // Save state
     const updateFields = {
       onboardingState,
       onboardingProgress,

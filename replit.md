@@ -31,7 +31,7 @@ The **PostgreSQL database**, managed with Drizzle ORM, stores:
 
 The **Frontend** (`public/index.html`) features:
 - An authentication screen with login, signup, and guest modes.
-- A conversational onboarding experience: Clarus guides new users through 8 topic categories (who they are, what drives them, insecurities, goals, obstacles, resources, lifestyle, decision-making) via natural dialogue instead of a form. Users can skip or pause and resume at any time. Mode tabs are hidden until onboarding completes.
+- A sequential onboarding experience: 11 pre-written questions asked one by one (no AI question generation). Q1 is sent as a hardcoded initial message. For Q2-Q11 Claude writes a 1-sentence acknowledgment then asks the next question verbatim. Q11 includes tappable choice chips (ครอบครัว, การงาน, ค่านิยม, etc.). State tracks `questionIndex` (0-10). Max tokens 350. No history stored — repetition is structurally impossible. Users can skip at any time.
 - A persistent chat interface with streaming AI responses, conversation threads, quick-action buttons, and a daily check-in banner.
 - Voice input (Web Speech API) and voice output (TTS) for AI responses.
 - A user tier system (Guest, Free, Subscriber) with corresponding message limits.
