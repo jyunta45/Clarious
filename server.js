@@ -1395,14 +1395,25 @@ app.post('/api/deep-summary', async (req, res) => {
     ? 'สรุปการสนทนาต่อไปนี้เป็น 2-3 ประโยค เน้นหัวข้อหลักและข้อสรุปสำคัญที่เกิดขึ้น ตอบเป็นภาษาไทย'
     : 'Summarize this deep thinking conversation in 2-3 concise sentences. Focus on the core topic explored and any key insight or clarity reached. Be direct and specific.';
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 120,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: conversation }]
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 120,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: conversation }]
+      })
     });
-    res.json({ summary: response.content[0].text });
+    const data = await apiRes.json();
+    const text = data.content && data.content[0] ? data.content[0].text : '';
+    res.json({ summary: text });
   } catch (e) {
+    console.error('[DEEP SUMMARY ERROR]', e.message || e);
     res.json({ summary: '' });
   }
 });
