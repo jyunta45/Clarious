@@ -3197,7 +3197,13 @@ function showDeepConfirm() {
   document.body.appendChild(overlay);
   overlay.querySelector('.deep-confirm-yes').onclick = function() {
     document.body.removeChild(overlay);
-    ST.deepSessionId = (ST.deepSessionId || 0) + 1;
+    var prevId = ST.deepSessionId || 0;
+    var prevMsgs = getAllMsgs().filter(function(m) { return m.mode === 'deep' && m.deepSessionId === prevId; });
+    var alreadySummarized = (ST.deepSessionSummaries || []).some(function(s) { return s.id === prevId; });
+    if (!alreadySummarized && prevMsgs.filter(function(m){ return m.role === 'user'; }).length > 0) {
+      summarizeDeepSession(prevMsgs, prevId);
+    }
+    ST.deepSessionId = prevId + 1;
     currentMode = 'deep';
     pendingModeShift = false;
     modeShiftSuppressCount = 0;
@@ -3446,7 +3452,13 @@ function renderChat(root) {
   if (modeShiftSwitch) modeShiftSwitch.onclick = function() {
     pendingModeShift = false;
     modeShiftSuppressCount = 0;
-    ST.deepSessionId = (ST.deepSessionId || 0) + 1;
+    var prevId2 = ST.deepSessionId || 0;
+    var prevMsgs2 = getAllMsgs().filter(function(m) { return m.mode === 'deep' && m.deepSessionId === prevId2; });
+    var alreadySummarized2 = (ST.deepSessionSummaries || []).some(function(s) { return s.id === prevId2; });
+    if (!alreadySummarized2 && prevMsgs2.filter(function(m){ return m.role === 'user'; }).length > 0) {
+      summarizeDeepSession(prevMsgs2, prevId2);
+    }
+    ST.deepSessionId = prevId2 + 1;
     currentMode = 'deep';
     openingChips = null;
     openingNudge = null;
