@@ -38,7 +38,7 @@ const T = {
 
   guidance: {
     en: {
-      1: { text: "This is your thinking space.\n\nNo right answers. No performance.\n\nWhat's one thing on your mind right now — big or small?", chips: ["Something at work", "A personal decision", "How I'm feeling", "Just thinking out loud"] },
+      1: { text: "This space is yours now.\n\nWhenever something's on your mind — a question, a problem, something you want to think through — just say it.\n\nClarus is here.", chips: ["I have something to share", "I have a question", "Want to think something through", "Just looking around"] },
       2: { text: "You've started using this space.\n\nNow the habit builds.\n\nWhat's the one move that matters most today?", chips: ["My top priority today", "Something I keep avoiding", "A goal I'm working on", "Not sure yet"] },
       3: { text: "You're building a habit of checking in.\n\nThat alone is more than most people do.\n\nWhat's feeling clearer — and what still feels foggy?", chips: ["Starting to get clearer on something", "Still foggy about something", "Both honestly", "Let's explore it"] },
       4: { text: "Four days in.\n\nI've been paying attention.\n\nWhat pattern are you starting to notice about yourself?", chips: ["I notice I keep...", "I tend to avoid...", "I'm strongest when...", "I'm not sure yet"] },
@@ -68,7 +68,7 @@ const T = {
       8: { text: "Ya no necesitas indicaciones guiadas.\n\nHas construido un verdadero hábito de reflexión aquí.\n\nEste espacio ahora se adapta completamente a ti.\n\n¿Qué tienes en mente hoy?", chips: ["Algo que quiero explorar", "Una decisión pendiente", "Cómo me siento hoy", "Solo hablemos"] }
     },
     th: {
-      1: { text: "นี่คือพื้นที่คิดของคุณ\n\nไม่มีคำตอบที่ถูกหรือผิด ไม่มีการตัดสิน\n\nตอนนี้มีอะไรอยู่ในใจสักอย่าง — เล็กหรือใหญ่ก็ได้?", chips: ["เรื่องงาน", "การตัดสินใจส่วนตัว", "ความรู้สึกตอนนี้", "แค่คิดเล่นๆ"] },
+      1: { text: "พื้นที่นี้เป็นของคุณแล้วครับ\n\nมีอะไรอยากถามหรืออยากแชร์ บอกได้เลย\n\nClarus คอยอยู่ตรงนี้เสมอครับ", chips: ["มีเรื่องอยากเล่า", "มีคำถาม", "อยากคิดอะไรสักอย่าง", "แค่แวะมา"] },
       2: { text: "คุณเริ่มใช้พื้นที่นี้แล้ว\n\nนิสัยกำลังก่อตัว\n\nวันนี้สิ่งที่สำคัญที่สุดที่ต้องทำคืออะไร?", chips: ["สิ่งสำคัญที่สุดวันนี้", "สิ่งที่หลีกเลี่ยงมาตลอด", "เป้าหมายที่กำลังทำอยู่", "ยังไม่แน่ใจ"] },
       3: { text: "คุณกำลังสร้างนิสัยการเช็คอิน\n\nแค่นั้นก็มากกว่าที่คนส่วนใหญ่ทำแล้ว\n\nอะไรเริ่มชัดขึ้น — และอะไรยังมัว?", chips: ["บางอย่างเริ่มชัดขึ้น", "ยังมัวอยู่เรื่องหนึ่ง", "ทั้งสองอย่างเลย", "ลองสำรวจดู"] },
       4: { text: "สี่วันแล้ว\n\nผมสังเกตมาตลอด\n\nคุณเริ่มเห็นรูปแบบอะไรของตัวเองบ้าง?", chips: ["สังเกตว่าตัวเองชอบ...", "มักจะหลีกเลี่ยง...", "แข็งแกร่งที่สุดตอน...", "ยังไม่แน่ใจ"] },
