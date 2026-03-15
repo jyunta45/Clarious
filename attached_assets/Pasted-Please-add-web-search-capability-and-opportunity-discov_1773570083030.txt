@@ -1,0 +1,343 @@
+Please add web search capability and opportunity discovery intelligence to my AI system.
+
+Read ALL project files before making any changes.
+
+Understand how the current Anthropic API call, streaming system, message pipeline, and memory architecture work before modifying anything.
+
+Do NOT refactor unrelated code.  
+Do NOT change existing behavior.  
+Only implement the changes described below.
+
+---
+
+PROJECT CONTEXT
+
+My application generates AI responses using the Anthropic Claude API.
+
+The AI identity is Clarious.
+
+If the AI identity name appears in system prompts or assistant-facing text content, update "Clarus" to "Clarious".
+
+Do NOT rename or modify:
+
+• database fields  
+• environment variables  
+• table names  
+• migration files  
+• analytics labels  
+• internal code identifiers  
+
+Only update user-facing or prompt-facing references.
+
+Clarious already has:
+
+• memory extraction  
+• onboarding system  
+• guidance system  
+• tab system (Daily / Deep Thinking)  
+• streaming responses  
+
+I want to extend Clarious with two capabilities:
+
+1) Real-time web search when current information is required  
+2) Opportunity intelligence — the ability to discover relevant opportunities for the user
+
+These changes must NOT break:
+
+• streaming  
+• memory systems  
+• onboarding system  
+• guidance system  
+• tab system  
+• authentication  
+• UI components  
+
+The existing architecture must remain intact.
+
+---
+
+PART 1 — Add Web Search Tool to API Call
+
+Locate the file where the Anthropic API request is created (commonly server.js or the AI response handler).
+
+Do NOT rewrite the entire request.
+
+Modify only the existing request by adding the web search tool.
+
+If a tools array already exists, append this tool.
+
+If no tools array exists, create one.
+
+Add:
+
+tools: [
+  {
+    type: "web_search_20250305",
+    name: "web_search"
+  }
+]
+
+Example pattern (do NOT overwrite existing parameters):
+
+const response = await anthropic.messages.create({
+  model: "...",
+  system: systemPrompt,
+  messages: messages,
+  tools: [
+    {
+      type: "web_search_20250305",
+      name: "web_search"
+    }
+  ],
+  stream: true
+})
+
+Important rules:
+
+Preserve all existing parameters exactly as they currently function.
+
+Do NOT remove or alter:
+
+• model  
+• temperature  
+• max_tokens  
+• system prompt  
+• message structure  
+• streaming configuration  
+• existing tools  
+
+If other tools exist, append the web search tool instead of replacing them.
+
+---
+
+PART 2 — Smart Web Search Behavior
+
+Open capabilityLayer.js.
+
+At the END of the existing system prompt content, append the following instruction.
+
+Do NOT remove or modify existing prompt text.
+
+Append:
+
+WEB SEARCH RULE
+
+You have access to real-time web search.
+
+Use web search intelligently when the user needs current real-world information.
+
+Examples where searching IS appropriate:
+
+• current platforms or tools  
+• live market or financial data  
+• current news affecting a decision  
+• current prices or availability  
+• government programs or legal requirements  
+• verifying whether something currently exists  
+• discovering opportunities such as jobs, scholarships, grants, fellowships, accelerators, or services  
+
+Do NOT search for:
+
+• reflection or philosophical thinking  
+• emotional support conversations  
+• personal life analysis  
+• questions answerable with general knowledge  
+• questions about the user's feelings  
+• normal conversation  
+
+When performing a search:
+
+• create a focused search query  
+• use results to inform your reasoning  
+• integrate findings naturally into your response  
+• do not explicitly announce that you searched unless citing a source improves clarity  
+
+The user should only see the final synthesized response.
+
+Never expose raw search results or internal search queries.
+
+---
+
+PART 3 — Tab-Based Search Behavior
+
+Clarify search behavior based on tab context.
+
+Daily Tab
+
+Search ONLY when the user explicitly asks for current information.
+
+Examples:
+
+"What is the weather today?" → search  
+"What are the best laptops?" → do NOT search (general knowledge)
+
+Deep Thinking Tab
+
+Search when the user's decision requires real-world information.
+
+Examples:
+
+"Find online jobs I could apply to"  
+"Are there grants for students in Thailand?"
+
+Do NOT search for reflection-only questions.
+
+---
+
+PART 4 — Streaming + Tool Handling Safety
+
+The Anthropic API may return tool usage blocks when web search is triggered.
+
+Streaming responses may include events such as:
+
+content_block_start (tool_use)  
+content_block_delta  
+content_block_stop  
+content_block_start (text)  
+content_block_delta  
+content_block_stop  
+
+Ensure the server processes streaming responses safely.
+
+Rules:
+
+• Ignore content blocks of type "tool_use"  
+• Ignore any tool_result messages  
+• Only stream text content blocks to the UI  
+
+The assistant's text response always follows after tool use completes.
+
+The UI must receive only the final assistant text.
+
+Do NOT expose:
+
+• raw tool responses  
+• internal search queries  
+• tool_use JSON blocks  
+
+Streaming must continue working exactly as it currently does.
+
+---
+
+PART 5 — Opportunity Intelligence (Non-Intrusive Layer)
+
+Clarious should also support opportunity discovery.
+
+This is NOT a separate system.
+
+It is a behavior enhancement using:
+
+• web search  
+• user memory  
+• reasoning  
+
+TRIGGER CONDITIONS:
+
+Opportunity discovery activates when:
+
+→ The user explicitly asks about jobs, income, funding, or opportunities
+
+→ The user is in the Deep Thinking tab AND the conversation touches on career, finances, or life direction AND relevant goals exist in memory
+
+→ The user expresses being stuck on a practical life problem that an opportunity could help solve
+
+Opportunity discovery does NOT activate:
+
+→ In Daily tab conversations  
+→ During emotional processing  
+→ During onboarding  
+→ When the user has not yet built a memory profile  
+
+When relevant opportunities exist, Clarious surfaces them naturally.
+
+Example conversational pattern:
+
+"I remember you mentioned wanting more location-independent work.
+
+I came across a few opportunities that might be worth looking into.
+
+Want me to walk through the ones that might actually fit your situation?"
+
+Rules:
+
+• Do NOT surface opportunities randomly  
+• Only when relevant to user goals stored in memory  
+• Present conversationally — not as a list of search results  
+• Never spam opportunities  
+• Do not trigger opportunity discovery more than once within the same conversation thread unless the user asks for additional opportunities  
+
+Opportunity discovery should feel like a helpful insight — not a notification system.
+
+---
+
+PART 6 — Memory Integration
+
+Opportunity discovery may use existing memory fields to guide searches.
+
+These fields already exist and must not be modified:
+
+• goals  
+• recurringStruggles  
+• strengths  
+• decisionPatterns  
+• identityDirection  
+• insecurities  
+• lifestyle  
+• resources  
+
+Do NOT add new memory fields.
+
+Only use existing data to contextualize search queries.
+
+Example:
+
+User goal: remote career  
+Search query: remote work platforms hiring internationally
+
+---
+
+PART 7 — Critical Safety Rules
+
+Before making changes:
+
+1. Read ALL project files  
+2. Identify the exact AI request location  
+3. Modify only the minimum necessary code  
+
+Do NOT modify:
+
+• authentication system  
+• onboarding system  
+• memory extraction system  
+• guidance system  
+• tab routing  
+• database schema  
+• UI components  
+• streaming architecture  
+
+Only modify:
+
+• the Anthropic API request  
+• capabilityLayer.js system prompt  
+• streaming handler if necessary for tool filtering  
+
+Existing exports must remain unchanged.
+
+Backward compatibility is required.
+
+---
+
+VERIFICATION CHECKLIST
+
+After implementation confirm:
+
+✓ Server starts successfully  
+✓ Streaming responses still work  
+✓ Web search triggers for real-time questions  
+✓ Web search does NOT trigger for reflection conversations  
+✓ Opportunity discovery appears naturally when trigger conditions are met  
+✓ Opportunity discovery does NOT appear in Daily tab or emotional conversations  
+✓ UI receives only final assistant text  
+✓ No tool JSON or raw search results appear in UI  
+✓ User-facing references to "Clarus" updated to "Clarious"  
+✓ All existing features remain unchanged

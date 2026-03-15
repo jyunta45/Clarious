@@ -974,14 +974,16 @@ app.post('/api/chat', async (req, res) => {
           headers: {
             'Content-Type': 'application/json',
             'x-api-key': process.env.ANTHROPIC_API_KEY,
-            'anthropic-version': '2023-06-01'
+            'anthropic-version': '2023-06-01',
+            'anthropic-beta': 'web-search-2025-03-05'
           },
           body: JSON.stringify({
             model: modelName,
             max_tokens: tokenLimit,
             stream: true,
             system: systemContent,
-            messages: chatMessages
+            messages: chatMessages,
+            tools: [{ type: 'web_search_20250305', name: 'web_search' }]
           })
         });
       }
@@ -1179,17 +1181,20 @@ app.post('/api/chat', async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01'
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'web-search-2025-03-05'
         },
         body: JSON.stringify({
           model: modelName,
           max_tokens: tokenLimit,
           system: systemContent,
-          messages: chatMessages
+          messages: chatMessages,
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }]
         })
       });
       const data = await response.json();
-      let assistantReply = data.content && data.content[0] ? data.content[0].text || '' : '';
+      const textBlock = data.content && data.content.find(b => b.type === 'text');
+      let assistantReply = textBlock ? textBlock.text || '' : (data.content && data.content[0] ? data.content[0].text || '' : '');
       assistantReply = enforceQuestionLimit(assistantReply);
 
       const detectedMode2 = detectResponseMode(assistantReply);
