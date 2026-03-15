@@ -3330,7 +3330,14 @@ function renderChat(root) {
 
   var quickHtml = '';
   if (showQuickActions && !openingChipsHtml) {
-    var actions = ui('quickActions') || [];
+    var hasProfile = ST.ans && ST.ans.name;
+    var discoveryActions = {
+      th: ['Clarus ช่วยอะไรได้บ้าง?', 'มีเรื่องอยากเล่า', 'ขอถามอะไรหน่อย', 'แค่อยากลองดู'],
+      en: ['What can Clarus do?', 'I have something on my mind', 'Ask you something', 'Just exploring']
+    };
+    var actions = hasProfile
+      ? (ui('quickActions') || [])
+      : (discoveryActions[ST.lang] || discoveryActions.en);
     if (actions.length > 0) {
       quickHtml = '<div class="quick-actions" data-testid="quick-actions">';
       for (var qi = 0; qi < actions.length; qi++) {
