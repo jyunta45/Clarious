@@ -1318,7 +1318,7 @@ app.post('/api/deep-summary', async (req, res) => {
   const { messages, lang } = req.body;
   if (!messages || messages.length === 0) return res.json({ summary: '' });
   const msgs = messages.slice(-20);
-  const conversation = msgs.map(m => `${m.role === 'user' ? 'User' : 'Clarus'}: ${m.content}`).join('\n\n');
+  const conversation = msgs.map(m => `${m.role === 'user' ? 'User' : 'Clarious'}: ${m.content}`).join('\n\n');
   const systemPrompt = lang === 'th'
     ? 'สรุปการสนทนาต่อไปนี้เป็น 2-3 ประโยค เน้นหัวข้อหลักและข้อสรุปสำคัญที่เกิดขึ้น ตอบเป็นภาษาไทย'
     : 'Summarize this deep thinking conversation in 2-3 concise sentences. Focus on the core topic explored and any key insight or clarity reached. Be direct and specific.';

@@ -1,8 +1,8 @@
-# Clarus
+# Clarious
 
 ## Overview
 
-This project is "Clarus", a Jarvis-style personal AI coach built on Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a conversational onboarding experience (replacing the old form), user accounts with database persistence, and multi-language support (English, Japanese, Spanish, Thai, Korean). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
+This project is "Clarious", a Jarvis-style personal AI coach built on Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a conversational onboarding experience (replacing the old form), user accounts with database persistence, and multi-language support (English, Japanese, Spanish, Thai, Korean). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
 
 ## User Preferences
 
