@@ -900,15 +900,18 @@ app.post('/api/chat', async (req, res) => {
     const phase = detectConversationPhase(conversation, userMsg);
 
     if (!efficiencyMode) {
-      // Sonnet only: deep mode + decision phase + HIGH complexity
-      modelName = (chatMode === 'deep' && phase === 'decision' && complexity === 'HIGH')
+      // Sonnet: deep mode + (high complexity OR decision phase)
+      // HIGH complexity alone is enough — heavy messages don't need keyword signals
+      modelName = (chatMode === 'deep' && (complexity === 'HIGH' || phase === 'decision'))
         ? 'claude-sonnet-4-20250514'
         : 'claude-haiku-4-5-20251001';
     }
 
+    // HIGH complexity in deep mode always gets decision-level token budget (900)
+    const effectivePhase = (chatMode === 'deep' && complexity === 'HIGH') ? 'decision' : phase;
     const tokenLimit = efficiencyMode
       ? getMaxTokens(complexity, true, userLang)
-      : phaseTokenLimit(phase, chatMode, userLang);
+      : phaseTokenLimit(effectivePhase, chatMode, userLang);
 
     let userMemoryData = null;
     let userOpenLoops = [];
@@ -970,7 +973,8 @@ app.post('/api/chat', async (req, res) => {
       patterns: userPatterns,
       mode: chatMode,
       deepSignal,
-      memoryDigest: userMemoryDigest
+      memoryDigest: userMemoryDigest,
+      phaseOverride: effectivePhase
     });
     const systemContent = builtMessages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
     const chatMessages = builtMessages.filter(m => m.role !== 'system');

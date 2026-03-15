@@ -400,7 +400,8 @@ function buildContext({
   openLoops,
   mode,
   deepSignal,
-  memoryDigest
+  memoryDigest,
+  phaseOverride
 }) {
   const TURN_THRESHOLD = 6;
   const RECENT_LIMIT = 4;
@@ -419,8 +420,8 @@ function buildContext({
   const lastUserMsg = [...conversation].reverse().find(m => m.role === 'user');
   const userMessage = lastUserMsg ? lastUserMsg.content : '';
 
-  // Phase and intent detection
-  const phase = detectConversationPhase(conversation, userMessage);
+  // Phase detection — server may override when HIGH complexity is detected
+  const phase = phaseOverride || detectConversationPhase(conversation, userMessage);
   const activeIntents = detectIntent(userMessage);
   const isOpening = phase === 'opening';
   const isExploration = phase === 'exploration';
