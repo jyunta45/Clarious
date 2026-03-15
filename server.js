@@ -485,7 +485,28 @@ app.get('/api/opening-message', async (req, res) => {
       }
     }
 
+    // If user was redirected from Daily with a topic, open with a direct question about it
+    const shiftContext = req.query.context ? decodeURIComponent(req.query.context) : null;
+    let contextualOpeningText = null;
+    if (shiftContext && openingMode === 'deep') {
+      const lang = (uData && uData.lang) || 'en';
+      const isThai = lang === 'th';
+      const contextPrompt = isThai
+        ? `คุณคือ Clarious — thinking partner ที่เงียบสงบและฉลาด\n\nผู้ใช้เพิ่งย้ายจาก Daily tab มาที่ Deep Thinking tab เพราะสิ่งที่พูดถึง:\n"${shiftContext}"\n\nเขียนประโยคเปิดบทสนทนา Deep Thinking 1-2 ประโยคเท่านั้น\nรับรู้สิ่งที่เขาพูด แล้วถามคำถามที่ตรงจุดและลึกที่สุดเพื่อเริ่มต้น\nอย่าทำซ้ำสิ่งที่เขาพูด ถามในสิ่งที่สำคัญกว่า\nใช้ภาษาไทยธรรมชาติ ไม่ใช้ markdown`
+        : `You are Clarious — a calm, intelligent thinking partner.\n\nThe user just moved from Daily tab into Deep Thinking because of what they said:\n"${shiftContext}"\n\nWrite a 1-2 sentence opening for this Deep Thinking session only.\nAcknowledge what brought them here, then ask the single most important question to get started.\nDo not repeat back what they said. Ask what matters most.\nPlain text, no markdown.`;
+      try {
+        const ctxRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 150, messages: [{ role: 'user', content: contextPrompt }] })
+        });
+        const ctxData = await ctxRes.json();
+        contextualOpeningText = ctxData?.content?.[0]?.text?.trim() || null;
+      } catch(e) { /* fallback to generic */ }
+    }
+
     const opening = buildOpeningMessage(params);
+    if (contextualOpeningText) opening.text = contextualOpeningText;
 
     let stallNudge = null;
     if (uData && uData.guidanceMode) {

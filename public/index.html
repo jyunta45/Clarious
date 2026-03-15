@@ -1085,6 +1085,7 @@ var checkinDismissed = false;
 var currentMode = 'daily';
 var modeShiftSuppressCount = 0;
 var pendingModeShift = false;
+var pendingModeShiftContext = null;
 var voiceRecognition = null;
 var voiceIsRecording = false;
 var currentSpeech = null;
@@ -1502,7 +1503,7 @@ var openingChips = null;
 var openingNudge = null;
 
 var openingLoadedFor = {};
-async function loadOpeningMessage() {
+async function loadOpeningMessage(context) {
   var activeMsgs = getActiveMsgs();
   if (activeMsgs.length > 1) return;
   var openingKey = currentMode === 'deep' ? 'deep_' + ST.deepSessionId : currentMode;
@@ -1511,7 +1512,9 @@ async function loadOpeningMessage() {
   openingLoadedFor[openingKey] = true;
   try {
     var localHour = new Date().getHours();
-    var res = await fetch('/api/opening-message?mode=' + currentMode + '&localHour=' + localHour, {
+    var url = '/api/opening-message?mode=' + currentMode + '&localHour=' + localHour;
+    if (context) url += '&context=' + encodeURIComponent(context);
+    var res = await fetch(url, {
       method: 'GET',
       credentials: 'include'
     });
@@ -2510,6 +2513,8 @@ async function sendMsg(userText) {
           } else if (evt.type === 'meta' && evt.suggestModeShift) {
             if (modeShiftSuppressCount <= 0) {
               pendingModeShift = true;
+              var ctxMsgs = getActiveMsgs().filter(function(m) { return m.role === 'user'; });
+              pendingModeShiftContext = ctxMsgs.length ? ctxMsgs[ctxMsgs.length - 1].content : null;
             }
           } else if (evt.text) {
             var curMsgs = getAllMsgs();
@@ -2548,7 +2553,11 @@ async function sendMsg(userText) {
               try {
                 var rEvt = JSON.parse(rData);
                 if (rEvt.type === 'meta' && rEvt.suggestModeShift) {
-                  if (modeShiftSuppressCount <= 0) pendingModeShift = true;
+                  if (modeShiftSuppressCount <= 0) {
+                    pendingModeShift = true;
+                    var rCtxMsgs = getActiveMsgs().filter(function(m) { return m.role === 'user'; });
+                    pendingModeShiftContext = rCtxMsgs.length ? rCtxMsgs[rCtxMsgs.length - 1].content : null;
+                  }
                 } else if (rEvt.text) {
                   var rMsgs = getAllMsgs();
                   rMsgs[rMsgs.length - 1].content += rEvt.text;
@@ -2575,6 +2584,17 @@ async function sendMsg(userText) {
   var userMsg = finalMsgs.length >= 2 ? finalMsgs[finalMsgs.length - 2] : null;
   if (userMsg && userMsg.role === 'user' && lastMsg && lastMsg.role === 'assistant') {
     extractMemories(userMsg.content, lastMsg.content);
+  }
+  // If AI response mentions Deep Thinking mode, show the chip — regardless of backend keywords.
+  // This lets Claude's own semantic analysis drive the suggestion, not just keyword matching.
+  if (currentMode === 'daily' && lastMsg && lastMsg.role === 'assistant' && !pendingModeShift && modeShiftSuppressCount <= 0) {
+    var respLower = (lastMsg.content || '').toLowerCase();
+    var shiftPhrases = ['deep thinking mode', 'deep thinking tab', 'into deep thinking', 'move to deep thinking',
+      'explore in deep thinking', 'explore it in deep thinking', 'คิดแบบเชิงลึก', 'คิดเชิงลึก', 'โหมดเชิงลึก'];
+    if (shiftPhrases.some(function(p) { return respLower.includes(p); })) {
+      pendingModeShift = true;
+      if (userMsg && userMsg.role === 'user') pendingModeShiftContext = userMsg.content;
+    }
   }
   ST.lastActiveDate = new Date().toISOString().slice(0, 10);
   save();
@@ -3183,7 +3203,7 @@ function renderMirror(root) {
   bindLangSwitcher();
 }
 
-function showDeepConfirm() {
+function showDeepConfirm(context) {
   var overlay = document.createElement('div');
   overlay.className = 'deep-confirm-overlay';
   overlay.innerHTML = '<div class="deep-confirm-box">' +
@@ -3206,13 +3226,14 @@ function showDeepConfirm() {
     ST.deepSessionId = prevId + 1;
     currentMode = 'deep';
     pendingModeShift = false;
+    pendingModeShiftContext = null;
     modeShiftSuppressCount = 0;
     openingChips = null;
     openingNudge = null;
     save();
     playDeepAura();
     render();
-    loadOpeningMessage();
+    loadOpeningMessage(context || null);
   };
   overlay.querySelector('.deep-confirm-no').onclick = function() {
     overlay.style.animation = 'fadeOut 0.2s ease forwards';
@@ -3400,9 +3421,23 @@ function renderChat(root) {
   cm.scrollTop = cm.scrollHeight;
   var ci = document.getElementById('ci');
   var cs = document.getElementById('cs');
+  function isAffirmativeResponse(text) {
+    var t = text.toLowerCase().trim();
+    if (t.length > 40) return false;
+    var aff = ['yes', 'sure', 'ok', 'okay', "let's go", "let's do it", 'go ahead', 'go', 'yeah', 'yep',
+      'definitely', 'absolutely', 'of course', 'do it', 'switch', 'sounds good', 'good idea',
+      'ใช่', 'ได้', 'ได้เลย', 'ไปเลย', 'ตกลง', 'โอเค', 'โอเคร', 'เข้าสู่', 'ไปได้เลย', 'ลองดู'];
+    return aff.some(function(a) { return t === a || t === a + '.' || t === a + '!'; });
+  }
+
   function doSend() {
     var txt = ci.value.trim();
     if (!txt || isBusy) return;
+    if (pendingModeShift && currentMode === 'daily' && isAffirmativeResponse(txt)) {
+      ci.value = '';
+      showDeepConfirm(pendingModeShiftContext);
+      return;
+    }
     ci.value = '';
     if (!ST.autoSpeak) ST.autoSpeak = false;
     ST.loading = true;
@@ -3450,7 +3485,9 @@ function renderChat(root) {
 
   var modeShiftSwitch = document.getElementById('mode-shift-switch');
   if (modeShiftSwitch) modeShiftSwitch.onclick = function() {
+    var ctx = pendingModeShiftContext || null;
     pendingModeShift = false;
+    pendingModeShiftContext = null;
     modeShiftSuppressCount = 0;
     var prevId2 = ST.deepSessionId || 0;
     var prevMsgs2 = getAllMsgs().filter(function(m) { return m.mode === 'deep' && m.deepSessionId === prevId2; });
@@ -3465,7 +3502,7 @@ function renderChat(root) {
     save();
     playDeepAura();
     render();
-    loadOpeningMessage();
+    loadOpeningMessage(ctx);
   };
   var modeShiftStay = document.getElementById('mode-shift-stay');
   if (modeShiftStay) modeShiftStay.onclick = function() {
