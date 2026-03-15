@@ -224,6 +224,13 @@ function _buildOpeningMessage({
   const isMorning = hour >= 5 && hour <= 11;
   const isDaily = mode === "daily";
 
+  // Day 1 (just finished onboarding) — open invitation regardless of mode or time
+  if (guidanceDay === 1) {
+    const gLang = T.guidance[L] || T.guidance.en;
+    const message = gLang[1];
+    return { text: message.text, type: "guidance", day: 1, chips: message.chips };
+  }
+
   if (isDaily) {
     if (hour >= 0 && hour < 5) {
       const ln = T.latenight[L] || T.latenight.en;
