@@ -1407,7 +1407,8 @@ function getActiveMsgs() {
     });
   }
   return all.filter(function(m) {
-    return (m.mode || 'daily') === 'daily';
+    if ((m.mode || 'daily') !== 'daily') return false;
+    return m.isOpening === true || (m.ts && m.ts >= dailyViewSince);
   });
 }
 
@@ -1503,6 +1504,8 @@ var openingChips = null;
 var openingNudge = null;
 
 var openingLoadedFor = {};
+var dailyViewSince = Date.now();
+
 async function loadOpeningMessage(context) {
   var activeMsgs = getActiveMsgs();
   if (activeMsgs.length > 1) return;
@@ -1520,23 +1523,19 @@ async function loadOpeningMessage(context) {
     });
     var data = await res.json();
     if (data && data.text) {
-      if (currentMode === 'deep') {
-        openingChips = data.chips || null;
-        openingNudge = data.nudge || null;
-      } else {
-        openingChips = null;
-        openingNudge = null;
-      }
+      openingChips = data.chips || null;
+      openingNudge = data.nudge || null;
       var allMsgs = getAllMsgs();
       var modeMsg = allMsgs.find(function(m) {
         if (m.role !== 'assistant') return false;
         if (currentMode === 'deep') return m.mode === 'deep' && m.deepSessionId === ST.deepSessionId;
-        return (m.mode || 'daily') === 'daily';
+        return m.isOpening === true;
       });
       if (modeMsg) {
         modeMsg.content = data.text;
+        modeMsg.isOpening = true;
       } else {
-        var newMsg = { role: 'assistant', content: data.text, mode: currentMode };
+        var newMsg = { role: 'assistant', content: data.text, mode: currentMode, isOpening: true };
         if (currentMode === 'deep') newMsg.deepSessionId = ST.deepSessionId;
         allMsgs.push(newMsg);
       }
@@ -2448,8 +2447,8 @@ async function sendMsg(userText) {
   pendingModeShift = false;
   if (currentMode === 'daily' && modeShiftSuppressCount > 0) modeShiftSuppressCount--;
   var allMsgs = getAllMsgs();
-  var userMsg = { role: 'user', content: userText, mode: currentMode };
-  var assistMsg = { role: 'assistant', content: '', mode: currentMode };
+  var userMsg = { role: 'user', content: userText, mode: currentMode, ts: Date.now() };
+  var assistMsg = { role: 'assistant', content: '', mode: currentMode, ts: Date.now() };
   if (currentMode === 'deep') { userMsg.deepSessionId = ST.deepSessionId; assistMsg.deepSessionId = ST.deepSessionId; }
   allMsgs.push(userMsg);
   allMsgs.push(assistMsg);
@@ -3471,6 +3470,10 @@ function renderChat(root) {
         modeShiftSuppressCount = 0;
         openingChips = null;
         openingNudge = null;
+        if (newMode === 'daily') {
+          dailyViewSince = Date.now();
+          delete openingLoadedFor['daily'];
+        }
         render();
         loadOpeningMessage();
         if (prevMode === 'deep' && prevSessionMsgs.length > 1) {
