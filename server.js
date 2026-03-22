@@ -38,15 +38,14 @@ function detectThai(message) {
 const CJK_LANGS = ['th', 'ja', 'ko'];
 
 function phaseTokenLimit(phase, chatMode, userLang) {
-  // Thai tokenizes far less efficiently than English — needs a higher multiplier.
-  // Japanese/Korean use 1.8x. All others (English etc) use 1x.
-  const mult = userLang === 'th' ? 2.5 : (['ja', 'ko'].includes(userLang) ? 1.8 : 1);
+  const isThai = userLang === 'th';
+  const isJaKo = ['ja', 'ko'].includes(userLang);
 
-  // Base limits are set generously enough to never cut a sentence mid-thought.
-  if (chatMode === 'daily') return Math.round(500 * mult);
-  if (phase === 'opening')     return Math.round(500 * mult);
-  if (phase === 'exploration') return Math.round(700 * mult);
-  return Math.round(1200 * mult); // decision
+  // EN base | TH explicit | JA/KO at 1.8x EN base
+  if (chatMode === 'daily')      return isThai ? 800  : isJaKo ? 720  : 400;
+  if (phase === 'opening')       return isThai ? 800  : isJaKo ? 720  : 400;
+  if (phase === 'exploration')   return isThai ? 1000 : isJaKo ? 1080 : 600;
+  return                                isThai ? 1400 : isJaKo ? 1620 : 900; // decision
 }
 
 var __app_dirname;
@@ -925,11 +924,19 @@ app.post('/api/chat', async (req, res) => {
     const phase = detectConversationPhase(conversation, userMsg);
 
     if (!efficiencyMode) {
-      // Sonnet: deep mode + (high complexity OR decision phase)
-      // HIGH complexity alone is enough — heavy messages don't need keyword signals
-      modelName = (chatMode === 'deep' && (complexity === 'HIGH' || phase === 'decision'))
-        ? 'claude-sonnet-4-20250514'
-        : 'claude-haiku-4-5-20251001';
+      const wordCount = userMsg.trim().split(/\s+/).filter(Boolean).length;
+      const isThaiDeep = chatMode === 'deep' && userLang === 'th';
+      if (isThaiDeep) {
+        // Thai Deep: Sonnet only when ALL THREE conditions are true
+        modelName = (phase === 'decision' && complexity === 'HIGH' && wordCount >= 20)
+          ? 'claude-sonnet-4-20250514'
+          : 'claude-haiku-4-5-20251001';
+      } else {
+        // EN and others: Sonnet on deep mode + (high complexity OR decision phase)
+        modelName = (chatMode === 'deep' && (complexity === 'HIGH' || phase === 'decision'))
+          ? 'claude-sonnet-4-20250514'
+          : 'claude-haiku-4-5-20251001';
+      }
     }
 
     // HIGH complexity in deep mode always gets decision-level token budget (900)
