@@ -1467,22 +1467,46 @@ process.on('unhandledRejection', (reason) => {
 export { app };
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
-const server = app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
 
-function gracefulShutdown(signal) {
-  console.log(`[SHUTDOWN] ${signal} received — closing server...`);
-  server.close(() => {
-    console.log('[SHUTDOWN] HTTP server closed');
-    pool.end(() => {
-      console.log('[SHUTDOWN] Database pool closed');
-      process.exit(0);
-    });
-  });
-  setTimeout(() => {
-    console.error('[SHUTDOWN] Forced exit after timeout');
-    process.exit(1);
-  }, 10000);
+async function ensureSessionTable() {
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "session" (
+        "sid" varchar NOT NULL COLLATE "default",
+        "sess" json NOT NULL,
+        "expire" timestamp(6) NOT NULL,
+        CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");`);
+    console.log('[SESSION] Table ready');
+  } catch(e) {
+    console.error('[SESSION TABLE ERROR]', e.message);
+  } finally {
+    if (client) client.release();
+  }
 }
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+ensureSessionTable().then(() => {
+  const server = app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
+
+  function gracefulShutdown(signal) {
+    console.log(`[SHUTDOWN] ${signal} received — closing server...`);
+    server.close(() => {
+      console.log('[SHUTDOWN] HTTP server closed');
+      pool.end(() => {
+        console.log('[SHUTDOWN] Database pool closed');
+        process.exit(0);
+      });
+    });
+    setTimeout(() => {
+      console.error('[SHUTDOWN] Forced exit after timeout');
+      process.exit(1);
+    }, 10000);
+  }
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+});
