@@ -2,10 +2,8 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
-import session from 'express-session';
 import bcrypt from 'bcrypt';
 import pg from 'pg';
-import connectPgSimple from 'connect-pg-simple';
 import { db } from './db/index.js';
 import { users, userData } from './shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
@@ -62,29 +60,74 @@ app.use(express.static(path.join(__app_dirname, 'public')));
 const runtimeUsers = new Map();
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000, keepAlive: true, keepAliveInitialDelayMillis: 10000 });
-pool.on('error', (err) => { console.error('[SESSION DB] Pool error:', err.message); });
-const PgSession = connectPgSimple(session);
+pool.on('error', (err) => { console.error('[DB] Pool error:', err.message); });
 
 const isProduction = process.env.NODE_ENV === 'production';
 app.set('trust proxy', 1);
 
-const sessionMiddleware = session({
-  store: new PgSession({ pool, createTableIfMissing: true }),
-  secret: process.env.SESSION_SECRET || 'clarus-dev-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: isProduction
-  }
-});
+const SESSION_SECRET = process.env.SESSION_SECRET || 'clarus-dev-secret';
+const AUTH_COOKIE = 'clarious_uid';
+const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // seconds
+
+function signUid(uid) {
+  const val = String(uid);
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(val).digest('hex');
+  return val + '.' + sig;
+}
+
+function verifyUid(signed) {
+  if (!signed || typeof signed !== 'string') return null;
+  const idx = signed.lastIndexOf('.');
+  if (idx === -1) return null;
+  const val = signed.slice(0, idx);
+  const sig = signed.slice(idx + 1);
+  let expected;
+  try {
+    expected = Buffer.from(crypto.createHmac('sha256', SESSION_SECRET).update(val).digest('hex'));
+    const provided = Buffer.from(sig);
+    if (expected.length !== provided.length) return null;
+    if (!crypto.timingSafeEqual(expected, provided)) return null;
+  } catch(e) { return null; }
+  const id = parseInt(val, 10);
+  return isNaN(id) ? null : id;
+}
+
+function parseCookieHeader(header) {
+  const out = {};
+  if (!header) return out;
+  header.split(';').forEach(part => {
+    const idx = part.indexOf('=');
+    if (idx < 0) return;
+    out[part.slice(0, idx).trim()] = decodeURIComponent(part.slice(idx + 1).trim());
+  });
+  return out;
+}
+
+function setAuthCookie(res, uid) {
+  const signed = signUid(uid);
+  res.setHeader('Set-Cookie',
+    `${AUTH_COOKIE}=${encodeURIComponent(signed)}; Max-Age=${COOKIE_MAX_AGE}; Path=/; HttpOnly; SameSite=Lax${isProduction ? '; Secure' : ''}`
+  );
+}
+
+function clearAuthCookie(res) {
+  res.setHeader('Set-Cookie', `${AUTH_COOKIE}=; Max-Age=0; Path=/; HttpOnly`);
+}
 
 app.use(function(req, res, next) {
-  if (req.path.startsWith('/api')) {
-    return sessionMiddleware(req, res, next);
-  }
+  if (!req.path.startsWith('/api')) return next();
+  const cookies = parseCookieHeader(req.headers.cookie);
+  const raw = cookies[AUTH_COOKIE];
+  const uid = verifyUid(raw);
+  req.session = {
+    userId: uid,
+    guestMsgCount: 0,
+    lastActive: null,
+    openLoopCreatedThisSession: false,
+    save: function(cb) { if (cb) cb(null); },
+    destroy: function(cb) { clearAuthCookie(res); if (cb) cb(); },
+  };
+  req.sessionID = raw ? raw.slice(0, 16) : 'guest_' + Math.random().toString(36).slice(2);
   next();
 });
 
@@ -106,8 +149,10 @@ app.post('/api/auth/signup', async (req, res) => {
     await db.insert(userData).values({ userId: user.id });
 
     req.session.userId = user.id;
+    setAuthCookie(res, user.id);
     res.json({ ok: true, email: user.email });
   } catch(e) {
+    console.error('[SIGNUP ERROR]', e.message || e);
     res.status(500).json({ error: 'Something went wrong' });
   }
 });
@@ -124,23 +169,19 @@ app.post('/api/auth/login', async (req, res) => {
     if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
 
     req.session.userId = user.id;
-    req.session.save((saveErr) => {
-      if (saveErr) {
-        console.error('[SESSION SAVE ERROR]', saveErr.message);
-        return res.status(500).json({ error: '[DEBUG] Session save failed: ' + saveErr.message });
-      }
-      res.json({ ok: true, email: user.email });
-    });
+    setAuthCookie(res, user.id);
+    res.json({ ok: true, email: user.email });
   } catch(e) {
     console.error('[LOGIN ERROR]', e.message || e);
-    res.status(500).json({ error: '[DEBUG] Login error: ' + (e.message || String(e)) });
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
 app.post('/api/auth/logout', (req, res) => {
   const userId = req.session.userId ? String(req.session.userId) : null;
   if (userId) finalizeSession(userId);
-  req.session.destroy(() => res.json({ ok: true }));
+  clearAuthCookie(res);
+  res.json({ ok: true });
 });
 
 app.post('/api/auth/forgot-password', async (req, res) => {
@@ -1474,45 +1515,22 @@ export { app };
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
 
-async function ensureSessionTable() {
-  let client;
-  try {
-    client = await pool.connect();
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "session" (
-        "sid" varchar NOT NULL COLLATE "default",
-        "sess" json NOT NULL,
-        "expire" timestamp(6) NOT NULL,
-        CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE
-      );
-    `);
-    await client.query(`CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");`);
-    console.log('[SESSION] Table ready');
-  } catch(e) {
-    console.error('[SESSION TABLE ERROR]', e.message);
-  } finally {
-    if (client) client.release();
-  }
+const server = app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
+
+function gracefulShutdown(signal) {
+  console.log(`[SHUTDOWN] ${signal} received — closing server...`);
+  server.close(() => {
+    console.log('[SHUTDOWN] HTTP server closed');
+    pool.end(() => {
+      console.log('[SHUTDOWN] Database pool closed');
+      process.exit(0);
+    });
+  });
+  setTimeout(() => {
+    console.error('[SHUTDOWN] Forced exit after timeout');
+    process.exit(1);
+  }, 10000);
 }
 
-ensureSessionTable().then(() => {
-  const server = app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
-
-  function gracefulShutdown(signal) {
-    console.log(`[SHUTDOWN] ${signal} received — closing server...`);
-    server.close(() => {
-      console.log('[SHUTDOWN] HTTP server closed');
-      pool.end(() => {
-        console.log('[SHUTDOWN] Database pool closed');
-        process.exit(0);
-      });
-    });
-    setTimeout(() => {
-      console.error('[SHUTDOWN] Forced exit after timeout');
-      process.exit(1);
-    }, 10000);
-  }
-
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
