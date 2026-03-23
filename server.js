@@ -124,10 +124,16 @@ app.post('/api/auth/login', async (req, res) => {
     if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
 
     req.session.userId = user.id;
-    res.json({ ok: true, email: user.email });
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error('[SESSION SAVE ERROR]', saveErr.message);
+        return res.status(500).json({ error: '[DEBUG] Session save failed: ' + saveErr.message });
+      }
+      res.json({ ok: true, email: user.email });
+    });
   } catch(e) {
     console.error('[LOGIN ERROR]', e.message || e);
-    res.status(500).json({ error: 'Something went wrong' });
+    res.status(500).json({ error: '[DEBUG] Login error: ' + (e.message || String(e)) });
   }
 });
 
