@@ -126,6 +126,7 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.userId = user.id;
     res.json({ ok: true, email: user.email });
   } catch(e) {
+    console.error('[LOGIN ERROR]', e.message || e);
     res.status(500).json({ error: 'Something went wrong' });
   }
 });
