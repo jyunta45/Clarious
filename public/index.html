@@ -1515,7 +1515,7 @@ async function loadOpeningMessage(context) {
   openingLoadedFor[openingKey] = true;
   try {
     var localHour = new Date().getHours();
-    var url = '/api/opening-message?mode=' + currentMode + '&localHour=' + localHour;
+    var url = '/api/opening-message?mode=' + currentMode + '&localHour=' + localHour + '&lang=' + (ST.lang || 'en');
     if (context) url += '&context=' + encodeURIComponent(context);
     var res = await fetch(url, {
       method: 'GET',

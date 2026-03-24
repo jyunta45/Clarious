@@ -501,7 +501,8 @@ app.get('/api/opening-message', async (req, res) => {
     const openingMode = req.query.mode || 'deep';
     const rawLocalHour = parseInt(req.query.localHour, 10);
     const localHour = (!isNaN(rawLocalHour) && rawLocalHour >= 0 && rawLocalHour <= 23) ? rawLocalHour : new Date().getHours();
-    let params = { userData: {}, mode: openingMode, localHour };
+    const queryLang = ['en', 'th'].includes(req.query.lang) ? req.query.lang : null;
+    let params = { userData: {}, mode: openingMode, localHour, lang: queryLang || 'en' };
     let uData = null;
     if (req.session.userId) {
       const [row] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
@@ -514,7 +515,7 @@ app.get('/api/opening-message', async (req, res) => {
           habits: habits,
           lastActiveAt: uData.lastActiveAt || uData.lastActiveDate || null,
           guidanceDay: uData.guidanceDay || 1,
-          lang: uData.lang || 'en',
+          lang: queryLang || uData.lang || 'en',
           userData: { lastOpeningMessage: uData.lastOpeningMessage },
           openLoops: uData.openLoops || [],
           mode: openingMode,
