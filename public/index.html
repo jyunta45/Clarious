@@ -89,6 +89,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .guest-link{text-align:center;color:var(--muted);font-size:0.85rem;margin-top:8px;cursor:pointer;}
 .guest-link:hover{color:var(--accent);}
 .guidance-nudge{padding:4px 20px 10px;text-align:center;font-size:0.82rem;color:rgba(255,255,255,0.5);font-style:italic;font-family:'DM Sans',sans-serif;}
+.response-nudge{padding:4px 0 0 4px;font-size:0.78rem;color:rgba(255,200,100,0.65);font-style:italic;font-family:'DM Sans',sans-serif;}
 .quick-actions{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 12px;justify-content:center;}
 .quick-btn{padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:0.82rem;background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.25);border-radius:100px;color:var(--accent);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
 .quick-btn:hover{background:rgba(155,109,255,0.2);border-color:var(--accent);transform:translateY(-1px);}
@@ -1086,6 +1087,7 @@ var currentMode = 'daily';
 var modeShiftSuppressCount = 0;
 var pendingModeShift = false;
 var pendingModeShiftContext = null;
+var responseNudge = null;
 var voiceRecognition = null;
 var voiceIsRecording = false;
 var currentSpeech = null;
@@ -2453,6 +2455,7 @@ async function sendMsg(userText) {
   allMsgs.push(userMsg);
   allMsgs.push(assistMsg);
   setActiveMsgs(allMsgs);
+  responseNudge = null;
   ST.streaming = true;
   var threads = getThreads();
   var activeMsgs = getActiveMsgs();
@@ -2515,6 +2518,8 @@ async function sendMsg(userText) {
               var ctxMsgs = getActiveMsgs().filter(function(m) { return m.role === 'user'; });
               pendingModeShiftContext = ctxMsgs.length ? ctxMsgs[ctxMsgs.length - 1].content : null;
             }
+          } else if (evt.type === 'meta' && evt.nudge) {
+            responseNudge = evt.nudgeMessage || null;
           } else if (evt.text) {
             var curMsgs = getAllMsgs();
             curMsgs[curMsgs.length - 1].content += evt.text;
@@ -3230,6 +3235,7 @@ function showDeepConfirm(context) {
     modeShiftSuppressCount = 0;
     openingChips = null;
     openingNudge = null;
+    responseNudge = null;
     save();
     playDeepAura();
     render();
@@ -3320,6 +3326,7 @@ function renderChat(root) {
 
   var msgsHtml = activeMsgs.map(function(m, idx) {
     var isLastAssistant = ST.streaming && idx === activeMsgs.length - 1 && m.role === 'assistant';
+    var isLastDoneAssistant = !ST.streaming && idx === activeMsgs.length - 1 && m.role === 'assistant';
     var bubbleId = isLastAssistant ? ' id="stream-bubble"' : '';
     var content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
     if (isLastAssistant && !content) content = '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
@@ -3327,7 +3334,10 @@ function renderChat(root) {
     if (m.role === 'assistant' && m.content && !isLastAssistant && hasVoiceOutput()) {
       ttsBtn = '<button class="voice-play" data-vidx="' + idx + '" data-testid="voice-play-' + idx + '">' + ui('voicePlay') + '</button>';
     }
-    return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '"' + bubbleId + '>' + content + ttsBtn + '</div></div>';
+    var nudgeBelow = (isLastDoneAssistant && responseNudge)
+      ? '<div class="response-nudge" data-testid="response-nudge">' + esc(responseNudge) + '</div>'
+      : '';
+    return '<div class="msg ' + m.role + '"><div class="bubble ' + m.role + '"' + bubbleId + '>' + content + ttsBtn + '</div>' + nudgeBelow + '</div>';
   }).join('');
 
   var tabSubs = getPersonalizedTabSubs();
@@ -3478,6 +3488,7 @@ function renderChat(root) {
         modeShiftSuppressCount = 0;
         openingChips = null;
         openingNudge = null;
+        responseNudge = null;
         if (newMode === 'daily') {
           dailyViewSince = Date.now();
           delete openingLoadedFor['daily'];
@@ -3510,6 +3521,7 @@ function renderChat(root) {
     currentMode = 'deep';
     openingChips = null;
     openingNudge = null;
+    responseNudge = null;
     save();
     playDeepAura();
     render();

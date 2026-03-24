@@ -556,6 +556,34 @@ app.get('/api/opening-message', async (req, res) => {
     const opening = buildOpeningMessage(params);
     if (contextualOpeningText) opening.text = contextualOpeningText;
 
+    // Part 5 — Free tier personalized Haiku greeting (post-onboarding)
+    if (
+      uData &&
+      (uData.tier === 'free' || !uData.tier) &&
+      uData.onboardingComplete === true &&
+      uData.lastActiveAt &&
+      !contextualOpeningText
+    ) {
+      try {
+        const freeLang = queryLang || uData.lang || 'en';
+        const isThai = freeLang === 'th';
+        const userName = uData.answers?.name || '';
+        const userGoal = uData.answers?.goal || uData.answers?.['0'] || '';
+        const userFocus = uData.identityProfile?.currentFocus || uData.answers?.focus || '';
+        const freeGreetPrompt = isThai
+          ? `สร้างคำทักทายอบอุ่น 1-2 ประโยค\n\nชื่อ: ${userName || 'ผู้ใช้'}\nเป้าหมาย: ${userGoal}\nโฟกัส: ${userFocus}\n\nทำให้รู้สึกเหมือนกลับมาพบกันอีกครั้ง เชิญชวนให้แชร์สิ่งที่อยู่ในใจ อย่าพูดถึงความจำหรือการสมัครสมาชิก ตอบเป็นภาษาไทยเท่านั้น`
+          : `Generate a warm 1-2 sentence greeting.\n\nName: ${userName || 'there'}\nGoal: ${userGoal}\nFocus: ${userFocus}\n\nMake it feel like reconnecting. Invite them to share what is on their mind. Do not mention memory or subscription. Plain text only.`;
+        const greetRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 100, messages: [{ role: 'user', content: freeGreetPrompt }] })
+        });
+        const greetData = await greetRes.json();
+        const greetText = greetData?.content?.[0]?.text?.trim();
+        if (greetText) opening.text = greetText;
+      } catch(e) { /* fallback to static opening */ }
+    }
+
     let stallNudge = null;
     if (uData && uData.guidanceMode) {
       const openedMultiple = (uData.guidanceDayOpenCount || 0) >= 2;
@@ -822,24 +850,59 @@ async function updateGuidanceDay(userId) {
 app.post('/api/chat', async (req, res) => {
   try {
     let tier = 'guest';
+    let shouldNudge = false;
+    let newMsgCount = 0;
     if (req.session.userId) {
       try {
         const [data] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
-        tier = data ? data.tier : 'free';
+        tier = data ? (data.tier || 'free') : 'free';
         const today = new Date().toISOString().slice(0, 10);
-        const currentCount = (data && data.msgCountDate === today) ? data.msgCount : 0;
-        const limit = tier === 'subscriber' ? 200 : 50;
-        if (currentCount >= limit) {
-          return res.status(429).json({ error: 'limit', limit: limit });
+        const isNewDay = !data || data.msgCountDate !== today;
+        const currentCount = isNewDay ? 0 : (data.msgCount || 0);
+        const dailyLimit = tier === 'partner' ? 20 : 10;
+
+        if (currentCount >= dailyLimit) {
+          const limitMsg = tier === 'partner'
+            ? 'You have reached your 20 messages for today. Come back tomorrow.'
+            : 'You have reached your limit for today. Upgrade to Partner to get 20 messages per day and keep your conversations building over time.';
+          return res.status(429).json({ error: 'limit', limit: dailyLimit, limitReached: true, tier, message: limitMsg });
         }
-        await db.update(userData).set({
-          msgCount: data && data.msgCountDate === today ? currentCount + 1 : 1,
-          msgCountDate: today,
-          userSentMessageToday: true,
-          guidanceDayOpenCount: 0,
-          lastActiveAt: new Date().toISOString(),
-          updatedAt: new Date()
-        }).where(eq(userData.userId, req.session.userId));
+
+        newMsgCount = currentCount + 1;
+
+        // Free tier: clear conversation history on new day
+        if (isNewDay && tier === 'free') {
+          const freeResetUserId = String(req.session.userId);
+          if (sessionStore.has(freeResetUserId)) {
+            const sess = sessionStore.get(freeResetUserId);
+            sess.rollingSummary = '';
+            sess.turns = [];
+          }
+          await db.update(userData).set({
+            messages: [],
+            threadSummaries: {},
+            msgCount: newMsgCount,
+            msgCountDate: today,
+            userSentMessageToday: true,
+            guidanceDayOpenCount: 0,
+            lastActiveAt: new Date().toISOString(),
+            updatedAt: new Date()
+          }).where(eq(userData.userId, req.session.userId));
+        } else {
+          await db.update(userData).set({
+            msgCount: newMsgCount,
+            msgCountDate: today,
+            userSentMessageToday: true,
+            guidanceDayOpenCount: 0,
+            lastActiveAt: new Date().toISOString(),
+            updatedAt: new Date()
+          }).where(eq(userData.userId, req.session.userId));
+        }
+
+        // Nudge when free user is close to limit
+        if (tier === 'free' && newMsgCount >= 8 && newMsgCount < dailyLimit) {
+          shouldNudge = true;
+        }
       } catch(dbErr) {
         console.error('[TIER FETCH ERROR]', dbErr.message || dbErr);
         tier = 'free';
@@ -847,7 +910,7 @@ app.post('/api/chat', async (req, res) => {
     } else {
       if (!req.session.guestMsgCount) req.session.guestMsgCount = 0;
       if (req.session.guestMsgCount >= 10) {
-        return res.status(429).json({ error: 'limit', limit: 10 });
+        return res.status(429).json({ error: 'limit', limit: 10, limitReached: true, tier: 'guest', message: 'You have reached your limit. Create an account to continue.' });
       }
       req.session.guestMsgCount++;
     }
@@ -990,9 +1053,18 @@ app.post('/api/chat', async (req, res) => {
 
     // HIGH complexity in deep mode always gets decision-level token budget (900)
     const effectivePhase = (chatMode === 'deep' && complexity === 'HIGH') ? 'decision' : phase;
-    const tokenLimit = efficiencyMode
+    let tokenLimit = efficiencyMode
       ? getMaxTokens(complexity, true, userLang)
       : phaseTokenLimit(effectivePhase, chatMode, userLang);
+
+    // Part 7 — Token budget protection for free users
+    if (tier === 'free' && runtimeUser.dailyTokens > 40000) {
+      modelName = 'claude-haiku-4-5-20251001';
+      tokenLimit = Math.min(tokenLimit, 150);
+    } else if (tier === 'free' && runtimeUser.dailyTokens > 32000) {
+      modelName = 'claude-haiku-4-5-20251001';
+      tokenLimit = Math.min(tokenLimit, 300);
+    }
 
     let userMemoryData = null;
     let userOpenLoops = [];
@@ -1297,6 +1369,13 @@ app.post('/api/chat', async (req, res) => {
         res.write('data: ' + JSON.stringify({ type: 'meta', suggestModeShift: true }) + '\n\n');
       }
 
+      if (shouldNudge) {
+        const nudgeMsg = userLang === 'th'
+          ? 'คุณใกล้ถึงขีดจำกัดวันนี้แล้ว อัปเกรดเป็น Partner เพื่อรับ 20 ข้อความและบริบทต่อเนื่อง'
+          : "You're close to today's limit. Upgrade to Partner for 20 messages and continuous context.";
+        res.write('data: ' + JSON.stringify({ type: 'meta', nudge: true, nudgeMessage: nudgeMsg }) + '\n\n');
+      }
+
       if (chatMode !== 'daily' && needsGroundingQuestion(userMsg) && shouldAskGrounding(userId) && !replyAlreadyHasQuestion(fullReply)) {
         const gq = groundingQuestion(userLang);
         const groundingText = '\n\n' + gq;
@@ -1445,6 +1524,14 @@ app.post('/api/chat', async (req, res) => {
 
       if (deepSignal) {
         data.suggestModeShift = true;
+      }
+
+      if (shouldNudge) {
+        const nudgeMsg = userLang === 'th'
+          ? 'คุณใกล้ถึงขีดจำกัดวันนี้แล้ว อัปเกรดเป็น Partner เพื่อรับ 20 ข้อความและบริบทต่อเนื่อง'
+          : "You're close to today's limit. Upgrade to Partner for 20 messages and continuous context.";
+        data.nudge = true;
+        data.nudgeMessage = nudgeMsg;
       }
 
       if (chatMode !== 'daily' && needsGroundingQuestion(userMsg) && shouldAskGrounding(userId) && !replyAlreadyHasQuestion(assistantReply)) {

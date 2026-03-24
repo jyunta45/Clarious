@@ -46,6 +46,9 @@ export const userData = pgTable("user_data", {
   deepSessionSummaries: jsonb("deep_session_summaries").default([]),
   memoryDigest: text("memory_digest"),
   memoryDigestUpdatedAt: text("memory_digest_updated_at"),
+  tierUpdatedAt: text("tier_updated_at").default(""),
+  stripeCustomerId: text("stripe_customer_id").default(""),
+  stripeSubscriptionId: text("stripe_subscription_id").default(""),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 

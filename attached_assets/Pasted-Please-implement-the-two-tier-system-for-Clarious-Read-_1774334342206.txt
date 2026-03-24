@@ -1,0 +1,227 @@
+Please implement the two-tier system for Clarious.
+
+Read ALL files before making changes.
+Do not break any existing functionality.
+
+---
+
+PROJECT CONTEXT:
+
+Clarious has two tiers:
+
+FREE:
+→ 10 messages per day
+→ Both tabs accessible
+→ No persistent memory
+→ Conversation resets daily
+→ Onboarding profile persists
+
+PARTNER:
+→ 20 messages per day
+→ Both tabs accessible
+→ Full persistent memory
+→ Nothing resets
+
+---
+
+PART 1 — Database Fields
+
+Using Drizzle ORM, extend user table.
+
+DO NOT modify existing columns.
+
+Add:
+
+tier: text default "free"
+
+tierUpdatedAt: text default null
+
+stripeCustomerId: text default null
+
+stripeSubscriptionId: text default null
+
+dailyMessageCount: integer default 0
+
+dailyMessageResetAt: text default null
+
+lastActiveAt: text default null
+
+---
+
+PART 2 — Daily Reset Logic
+
+Use UTC date string format: YYYY-MM-DD
+
+On every message request:
+
+1. Get today's UTC date string.
+
+2. If user.dailyMessageResetAt !== today:
+   → reset dailyMessageCount = 0
+   → set dailyMessageResetAt = today
+
+3. Update lastActiveAt = now
+
+---
+
+PART 3 — Message Limit Enforcement
+
+Set:
+
+if (user.tier === "free") {
+  dailyLimit = 10
+} else {
+  dailyLimit = 20
+}
+
+If dailyMessageCount >= dailyLimit:
+
+Return:
+{
+  limitReached: true,
+  tier: user.tier,
+  message: user.tier === "free"
+    ? "You have reached your limit for today. Upgrade to Partner to get 20 messages per day and keep your conversations building over time."
+    : "You have reached your 20 messages for today. Come back tomorrow."
+}
+
+DO NOT process AI call.
+
+---
+
+If under limit:
+
+→ increment dailyMessageCount by 1
+→ save to database
+→ continue normal processing
+
+---
+
+PART 4 — Free Tier Memory Reset
+
+On same daily reset condition:
+
+If user.tier === "free":
+
+→ clear conversation history
+→ clear rolling session summary
+
+DO NOT clear:
+→ onboardingComplete
+→ onboardingProgress
+→ goals
+→ identity profile
+→ name
+
+If user.tier === "partner":
+→ DO NOTHING
+
+---
+
+PART 5 — Opening Message Engine
+
+In openingMessageEngine.js:
+
+At top:
+
+If user.tier === "free"
+AND onboardingComplete === true
+AND user.lastActiveAt exists:
+
+Call Haiku:
+
+prompt:
+
+"Generate a warm one to two sentence greeting.
+
+Name: [name]
+Goal: [goal]
+Focus: [focus]
+
+Make it feel like reconnecting.
+Invite them to share what is on their mind.
+Do not mention memory or subscription."
+
+model: claude-haiku-4-5-20251001
+max_tokens: 100
+
+Else if user.tier === "partner":
+→ keep existing logic unchanged
+
+---
+
+PART 6 — Upgrade Nudge
+
+In server response:
+
+If user.tier === "free"
+AND dailyMessageCount >= 8
+AND dailyMessageCount < dailyLimit:
+
+Add:
+{
+  nudge: true,
+  nudgeMessage: "You're close to today's limit. Upgrade to Partner for 20 messages and continuous context."
+}
+
+---
+
+In index.html:
+
+Display nudge as:
+→ small text below response
+→ no popup
+
+---
+
+PART 7 — Token Budget Protection
+
+Track per session:
+
+freeUserDailyTokens = 0
+
+On each request (free users only):
+
+→ add estimated tokens used
+
+If freeUserDailyTokens > 32000:
+→ force Haiku
+→ max_tokens = 300
+
+If freeUserDailyTokens > 40000:
+→ force Haiku
+→ max_tokens = 150
+
+Reset when dailyMessageCount resets
+
+---
+
+CRITICAL RULES:
+
+Do NOT modify:
+→ authentication
+→ onboarding
+→ memory extraction
+→ capability layer
+→ streaming pipeline
+
+Maintain backward compatibility.
+
+All existing users default to "free".
+
+---
+
+VERIFICATION:
+
+✓ server runs
+✓ streaming works
+✓ free = 10 messages
+✓ partner = 20 messages
+✓ reset works daily (UTC)
+✓ free memory clears daily
+✓ partner memory persists
+✓ onboarding never deleted
+✓ opening message correct per tier
+✓ nudge appears at 8+
+✓ token protection works
+✓ no regressions
