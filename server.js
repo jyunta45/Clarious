@@ -226,6 +226,29 @@ app.post('/api/dev/downgrade', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+app.post('/api/dev/reset-count', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Forbidden in production' });
+  }
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    await db.update(userData).set({
+      msgCount: 0,
+      msgCountDate: yesterday.toISOString().slice(0, 10),
+      updatedAt: new Date()
+    }).where(eq(userData.userId, req.session.userId));
+    console.log('[DEV] User', req.session.userId, 'daily count reset');
+    res.json({ success: true, msgCount: 0 });
+  } catch (e) {
+    console.error('[DEV RESET ERROR]', e.message || e);
+    res.status(500).json({ error: e.message });
+  }
+});
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.post('/api/auth/forgot-password', async (req, res) => {
