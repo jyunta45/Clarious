@@ -905,13 +905,18 @@ app.post('/api/chat', async (req, res) => {
         const currentCount = isNewDay ? 0 : (data.msgCount || 0);
         const dailyLimit = tier === 'partner' ? 20 : 10;
 
+        // ── LIMIT CHECK — must return before any AI processing ──
         if (currentCount >= dailyLimit) {
-          const limitMsg = tier === 'partner'
-            ? 'You have reached your 20 messages for today. Come back tomorrow.'
-            : 'You have reached your limit for today. Upgrade to Partner to get 20 messages per day and keep your conversations building over time.';
-          return res.status(429).json({ error: 'limit', limit: dailyLimit, limitReached: true, tier, message: limitMsg });
+          return res.status(429).json({
+            limitReached: true,
+            tier,
+            message: tier === 'free'
+              ? 'You have reached your limit for today. Upgrade to Partner to get 20 messages per day and persistent memory.'
+              : 'You have reached your 20 messages for today. Come back tomorrow.'
+          });
         }
 
+        // ── ONLY reached if under limit ──
         newMsgCount = currentCount + 1;
 
         // Free tier: clear conversation history on new day
