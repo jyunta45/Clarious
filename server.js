@@ -184,6 +184,50 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+// ── DEV TIER TESTING (non-production only) ────────────────────────────────────
+app.post('/api/dev/upgrade', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Forbidden in production' });
+  }
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  try {
+    await db.update(userData).set({
+      tier: 'partner',
+      tierUpdatedAt: new Date().toISOString(),
+      updatedAt: new Date()
+    }).where(eq(userData.userId, req.session.userId));
+    console.log('[DEV] User', req.session.userId, 'upgraded to PARTNER');
+    res.json({ success: true, tier: 'partner' });
+  } catch (e) {
+    console.error('[DEV UPGRADE ERROR]', e.message || e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/dev/downgrade', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Forbidden in production' });
+  }
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  try {
+    await db.update(userData).set({
+      tier: 'free',
+      tierUpdatedAt: new Date().toISOString(),
+      updatedAt: new Date()
+    }).where(eq(userData.userId, req.session.userId));
+    console.log('[DEV] User', req.session.userId, 'downgraded to FREE');
+    res.json({ success: true, tier: 'free' });
+  } catch (e) {
+    console.error('[DEV DOWNGRADE ERROR]', e.message || e);
+    res.status(500).json({ error: e.message });
+  }
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
