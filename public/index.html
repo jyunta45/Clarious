@@ -1227,6 +1227,12 @@ function load() {
   // Always reset transient in-flight flags — they must never survive a page reload
   ST.loading = false;
   ST.streaming = false;
+  ST.limitReached = false;
+  try {
+    localStorage.removeItem('loading');
+    localStorage.removeItem('streaming');
+    localStorage.removeItem('limitReached');
+  } catch(e) {}
 }
 
 async function checkAuth() {
