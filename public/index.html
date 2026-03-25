@@ -3672,6 +3672,29 @@ function renderChat(root) {
   }
 }
 
+// ── Stripe success redirect handler ──────────────────────────────────────────
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('success') === 'true') {
+    // Clear any cached limit state
+    try { localStorage.removeItem('limitReached'); } catch(e) {}
+    // Clear stuck loading flags from the persisted ST object
+    try {
+      var d = localStorage.getItem('la');
+      if (d) {
+        var saved = JSON.parse(d);
+        saved.loading = false;
+        saved.streaming = false;
+        localStorage.setItem('la', JSON.stringify(saved));
+      }
+    } catch(e) {}
+    // Strip the query param so reload doesn't loop
+    history.replaceState(null, '', window.location.pathname);
+    window.location.reload();
+    return; // stop further execution until reload completes
+  }
+})();
+
 load();
 checkAuth();
 
