@@ -264,6 +264,30 @@ async function isAdminSession(req) {
   } catch { return false; }
 }
 
+// ── ADMIN SELF-RESTORE (works in all environments, admin email only) ──────────
+app.post('/api/restore', async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  try {
+    const [user] = await db.select().from(users).where(eq(users.id, req.session.userId));
+    if (!user || user.email !== ADMIN_EMAIL) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    await db.insert(userData)
+      .values({ userId: req.session.userId, tier: 'partner', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: userData.userId,
+        set: { tier: 'partner', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() }
+      });
+    console.log('[RESTORE] Admin', user.email, 'restored to PARTNER');
+    res.json({ success: true, tier: 'partner' });
+  } catch (e) {
+    console.error('[RESTORE ERROR]', e.message || e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── DEV TIER TESTING (non-production, or admin in production) ─────────────────
 app.post('/api/dev/upgrade', async (req, res) => {
   const admin = await isAdminSession(req);
