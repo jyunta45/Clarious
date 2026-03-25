@@ -1224,6 +1224,9 @@ function load() {
     if (d) ST = JSON.parse(d);
     if (!ST.lang) ST.lang = '';
   } catch(e) {}
+  // Always reset transient in-flight flags — they must never survive a page reload
+  ST.loading = false;
+  ST.streaming = false;
 }
 
 async function checkAuth() {
@@ -1551,8 +1554,8 @@ function doCheckin() {
   var today = new Date().toDateString();
   ST.lastCheckin = today;
   checkinDismissed = true;
+  save(); // save before setting loading so transient flag isn't persisted
   ST.loading = true;
-  save();
   render();
   sendMsg(getCheckinMessage());
 }
@@ -3407,7 +3410,7 @@ function renderChat(root) {
     '<button class="growth-btn" id="open-growth" data-testid="button-open-growth">' + ui('growthBtn') + '</button>' +
     '<button class="patterns-btn" id="open-patterns" data-testid="button-open-patterns">Patterns</button>' +
     '<span class="tier-badge ' + getTierClass() + '">' + getTierLabel() + '</span>' +
-    (AUTH.loggedIn && ST.tier !== 'partner' ? '<button id="real-upgrade-btn" data-testid="button-real-upgrade" style="font-size:0.7rem;padding:3px 10px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:100px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600">Upgrade to Partner</button>' : '') +
+    (AUTH.loggedIn && AUTH.tier !== 'partner' ? '<button id="real-upgrade-btn" data-testid="button-real-upgrade" style="font-size:0.7rem;padding:3px 10px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:100px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600">Upgrade to Partner</button>' : '') +
     (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span><button class="logout-btn" id="chat-logout-btn" data-testid="button-chat-logout" style="font-size:0.7rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;text-decoration:underline">' + ui('logOut') + '</button>' : '') +
     Object.keys(LANGS).map(function(k) {
       var active = (ST.lang || 'en') === k ? ' active' : '';
