@@ -78,14 +78,27 @@ app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (re
 
       const userId = Number(session.metadata?.userId);
       if (userId) {
-        await db.update(userData).set({
-          tier: 'partner',
-          tierUpdatedAt: new Date().toISOString(),
-          stripeCustomerId: session.customer || '',
-          stripeSubscriptionId: session.subscription || '',
-          updatedAt: new Date()
-        }).where(eq(userData.userId, Number(userId)));
-        console.log('[STRIPE] User', userId, 'upgraded to PARTNER');
+        // Upsert: creates the row if missing, updates tier if it exists
+        await db.insert(userData)
+          .values({
+            userId: userId,
+            tier: 'partner',
+            tierUpdatedAt: new Date().toISOString(),
+            stripeCustomerId: session.customer || '',
+            stripeSubscriptionId: session.subscription || '',
+            updatedAt: new Date()
+          })
+          .onConflictDoUpdate({
+            target: userData.userId,
+            set: {
+              tier: 'partner',
+              tierUpdatedAt: new Date().toISOString(),
+              stripeCustomerId: session.customer || '',
+              stripeSubscriptionId: session.subscription || '',
+              updatedAt: new Date()
+            }
+          });
+        console.log('[STRIPE] User', userId, 'upgraded to PARTNER (upsert)');
       }
     } else if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object;
@@ -307,6 +320,33 @@ app.post('/api/dev/reset-count', async (req, res) => {
   }
 });
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── ADMIN: manual tier fix (protected by ADMIN_SECRET env var) ────────────────
+app.post('/api/admin/set-tier', async (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (!secret || secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const { email, tier } = req.body;
+  if (!email || !['free', 'partner'].includes(tier)) {
+    return res.status(400).json({ error: 'email and tier (free|partner) required' });
+  }
+  try {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    await db.insert(userData)
+      .values({ userId: user.id, tier, tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: userData.userId,
+        set: { tier, tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() }
+      });
+    console.log('[ADMIN] Set tier for', email, '→', tier);
+    res.json({ success: true, email, tier });
+  } catch (e) {
+    console.error('[ADMIN SET-TIER ERROR]', e.message || e);
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ── STRIPE CHECKOUT ───────────────────────────────────────────────────────────
 app.post('/api/stripe/create-checkout-session', async (req, res) => {
