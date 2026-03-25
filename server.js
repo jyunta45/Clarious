@@ -70,6 +70,12 @@ app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (re
   try {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
+
+      console.log("WEBHOOK RECEIVED");
+      console.log("SESSION:", session);
+      console.log("METADATA:", session.metadata);
+      console.log("USER ID FROM METADATA:", session.metadata?.userId);
+
       const userId = session.metadata?.userId;
       if (userId) {
         await db.update(userData).set({
