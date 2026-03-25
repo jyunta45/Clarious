@@ -312,6 +312,10 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       return res.status(503).json({ error: 'Stripe not configured' });
     }
 
+    console.log("Creating checkout session...");
+    console.log("User ID:", req.session.userId);
+    console.log("Price ID:", process.env.STRIPE_FOUNDING_PRICE);
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -328,8 +332,11 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       },
     });
 
+    console.log("Stripe session:", session);
+
     res.json({ url: session.url });
   } catch (error) {
+    console.error("Stripe error:", error);
     console.error('[STRIPE CHECKOUT ERROR]', error.message || error);
     res.status(500).json({ error: 'Internal server error' });
   }
