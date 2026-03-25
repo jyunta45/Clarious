@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
+import Stripe from 'stripe';
 import pg from 'pg';
 import { db } from './db/index.js';
 import { users, userData } from './shared/schema.js';
@@ -49,9 +50,59 @@ function phaseTokenLimit(phase, chatMode, userLang) {
 var __app_dirname;
 try { __app_dirname = path.dirname(fileURLToPath(import.meta.url)); } catch(e) { __app_dirname = __dirname || process.cwd(); }
 
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+
 const app = express();
 
 app.get('/health', (req, res) => { res.status(200).send('ok'); });
+
+// ── STRIPE WEBHOOK — must be before express.json() ───────────────────────────
+app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Stripe not configured' });
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error('[STRIPE WEBHOOK] Signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  try {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const userId = session.metadata?.userId;
+      if (userId) {
+        await db.update(userData).set({
+          tier: 'partner',
+          tierUpdatedAt: new Date().toISOString(),
+          stripeCustomerId: session.customer || '',
+          stripeSubscriptionId: session.subscription || '',
+          updatedAt: new Date()
+        }).where(eq(userData.userId, Number(userId)));
+        console.log('[STRIPE] User', userId, 'upgraded to PARTNER');
+      }
+    } else if (event.type === 'customer.subscription.deleted') {
+      const subscription = event.data.object;
+      const [existing] = await db.select().from(userData)
+        .where(eq(userData.stripeSubscriptionId, subscription.id));
+      if (existing) {
+        await db.update(userData).set({
+          tier: 'free',
+          tierUpdatedAt: new Date().toISOString(),
+          updatedAt: new Date()
+        }).where(eq(userData.stripeSubscriptionId, subscription.id));
+        console.log('[STRIPE] Subscription cancelled, user downgraded to FREE');
+      }
+    } else {
+      console.log('[STRIPE] Unhandled event type:', event.type);
+    }
+    res.json({ received: true });
+  } catch (err) {
+    console.error('[STRIPE WEBHOOK ERROR]', err.message || err);
+    res.status(500).json({ error: 'Webhook handler failed' });
+  }
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 app.use(express.json({ limit: '2mb' }));
 

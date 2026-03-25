@@ -1,0 +1,141 @@
+Please implement Stripe webhook handling in server.js.
+
+Read the entire server.js file first.
+Do not break any existing functionality.
+Do not modify unrelated code.
+
+---
+
+GOAL:
+Handle Stripe webhook events to upgrade/downgrade user tier.
+
+---
+
+STEP 1 — Import Stripe
+
+If not already present, add:
+
+import Stripe from "stripe";
+
+Initialize Stripe using:
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+Do not duplicate if already exists.
+
+---
+
+STEP 2 — Add Webhook Route
+
+Add a new POST route:
+
+/webhook/stripe
+
+CRITICAL:
+This route MUST use raw body parsing.
+
+Use:
+express.raw({ type: "application/json" })
+
+This route must be defined BEFORE any global
+express.json() middleware OR handled in a way
+that does not break Stripe signature verification.
+
+---
+
+STEP 3 — Implement Webhook Logic
+
+Inside the route:
+
+1. Get signature from headers:
+const sig = req.headers["stripe-signature"];
+
+2. Verify event:
+
+const event = stripe.webhooks.constructEvent(
+  req.body,
+  sig,
+  process.env.STRIPE_WEBHOOK_SECRET
+);
+
+Handle error properly:
+→ return 400 if signature fails
+
+---
+
+STEP 4 — Handle Events
+
+Implement the following cases:
+
+CASE 1 — checkout.session.completed
+
+- Get session:
+  const session = event.data.object;
+
+- Extract userId from:
+  session.metadata.userId
+
+- If userId exists:
+  Update user in database:
+
+  tier = "partner"
+  tierUpdatedAt = current ISO string
+  stripeCustomerId = session.customer
+  stripeSubscriptionId = session.subscription
+
+Use existing db + users schema
+Do not change schema structure
+
+---
+
+CASE 2 — customer.subscription.deleted
+
+- Get subscription:
+  const subscription = event.data.object;
+
+- Find user where:
+  stripeSubscriptionId === subscription.id
+
+- Update:
+  tier = "free"
+  tierUpdatedAt = current ISO string
+
+---
+
+DEFAULT:
+Log unhandled event types
+
+---
+
+STEP 5 — Response
+
+Return:
+
+res.json({ received: true });
+
+Handle errors with 500 status
+
+---
+
+CONSTRAINTS:
+
+Do NOT:
+- break authentication
+- modify message system
+- modify tier logic already built
+- modify onboarding
+- modify streaming
+
+Only ADD this webhook functionality
+
+---
+
+VERIFICATION:
+
+After implementation confirm:
+
+✓ Server starts successfully
+✓ No crash on webhook route
+✓ Existing routes still work
+✓ Stripe signature verification works
+✓ Database updates correctly
