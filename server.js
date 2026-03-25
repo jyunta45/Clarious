@@ -254,20 +254,32 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-// ── DEV TIER TESTING (non-production only) ────────────────────────────────────
+const ADMIN_EMAIL = 'jyunta45@gmail.com';
+
+async function isAdminSession(req) {
+  if (!req.session || !req.session.userId) return false;
+  try {
+    const [user] = await db.select().from(users).where(eq(users.id, req.session.userId));
+    return user && user.email === ADMIN_EMAIL;
+  } catch { return false; }
+}
+
+// ── DEV TIER TESTING (non-production, or admin in production) ─────────────────
 app.post('/api/dev/upgrade', async (req, res) => {
-  if (process.env.NODE_ENV === 'production') {
+  const admin = await isAdminSession(req);
+  if (process.env.NODE_ENV === 'production' && !admin) {
     return res.status(403).json({ error: 'Forbidden in production' });
   }
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
   try {
-    await db.update(userData).set({
-      tier: 'partner',
-      tierUpdatedAt: new Date().toISOString(),
-      updatedAt: new Date()
-    }).where(eq(userData.userId, req.session.userId));
+    await db.insert(userData)
+      .values({ userId: req.session.userId, tier: 'partner', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: userData.userId,
+        set: { tier: 'partner', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() }
+      });
     console.log('[DEV] User', req.session.userId, 'upgraded to PARTNER');
     res.json({ success: true, tier: 'partner' });
   } catch (e) {
@@ -277,18 +289,20 @@ app.post('/api/dev/upgrade', async (req, res) => {
 });
 
 app.post('/api/dev/downgrade', async (req, res) => {
-  if (process.env.NODE_ENV === 'production') {
+  const admin = await isAdminSession(req);
+  if (process.env.NODE_ENV === 'production' && !admin) {
     return res.status(403).json({ error: 'Forbidden in production' });
   }
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
   try {
-    await db.update(userData).set({
-      tier: 'free',
-      tierUpdatedAt: new Date().toISOString(),
-      updatedAt: new Date()
-    }).where(eq(userData.userId, req.session.userId));
+    await db.insert(userData)
+      .values({ userId: req.session.userId, tier: 'free', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: userData.userId,
+        set: { tier: 'free', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() }
+      });
     console.log('[DEV] User', req.session.userId, 'downgraded to FREE');
     res.json({ success: true, tier: 'free' });
   } catch (e) {
