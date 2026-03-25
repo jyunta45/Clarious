@@ -316,12 +316,21 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     console.log("User ID:", req.session.userId);
     console.log("Price ID:", process.env.STRIPE_FOUNDING_PRICE);
 
+    const priceId = process.env.STRIPE_FOUNDING_PRICE;
+
+    console.log("DEBUG PRICE VALUE:", priceId);
+
+    if (!priceId) {
+      console.error("ERROR: STRIPE_FOUNDING_PRICE is missing");
+      return res.status(500).json({ error: "Missing Stripe price ID" });
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
         {
-          price: process.env.STRIPE_FOUNDING_PRICE,
+          price: priceId,
           quantity: 1,
         },
       ],
