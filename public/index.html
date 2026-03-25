@@ -3407,6 +3407,7 @@ function renderChat(root) {
     '<button class="growth-btn" id="open-growth" data-testid="button-open-growth">' + ui('growthBtn') + '</button>' +
     '<button class="patterns-btn" id="open-patterns" data-testid="button-open-patterns">Patterns</button>' +
     '<span class="tier-badge ' + getTierClass() + '">' + getTierLabel() + '</span>' +
+    (AUTH.loggedIn && ST.tier !== 'partner' ? '<button id="real-upgrade-btn" data-testid="button-real-upgrade" style="font-size:0.7rem;padding:3px 10px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:100px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600">Upgrade to Partner</button>' : '') +
     (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span><button class="logout-btn" id="chat-logout-btn" data-testid="button-chat-logout" style="font-size:0.7rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;text-decoration:underline">' + ui('logOut') + '</button>' : '') +
     Object.keys(LANGS).map(function(k) {
       var active = (ST.lang || 'en') === k ? ' active' : '';
@@ -3568,6 +3569,19 @@ function renderChat(root) {
 
   var chatLogoutBtn = document.getElementById('chat-logout-btn');
   if (chatLogoutBtn) chatLogoutBtn.onclick = doLogout;
+
+  var realUpgradeBtn = document.getElementById('real-upgrade-btn');
+  if (realUpgradeBtn) realUpgradeBtn.onclick = async function() {
+    try {
+      var res = await fetch('/api/stripe/create-checkout-session', { method: 'POST', credentials: 'include' });
+      var data = await res.json();
+      if (data.url) { window.location.href = data.url; }
+      else { alert('No checkout URL returned'); }
+    } catch (err) {
+      console.error(err);
+      alert('Error starting checkout');
+    }
+  };
 
   var testUpgradeBtn = document.getElementById('test-upgrade-btn');
   if (testUpgradeBtn) testUpgradeBtn.onclick = async function() {
