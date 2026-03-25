@@ -131,6 +131,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tier-guest{background:rgba(255,255,255,0.08);color:var(--muted);}
 .tier-free{background:rgba(155,109,255,0.15);color:var(--accent);}
 .tier-subscriber{background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(255,109,181,0.2));color:var(--gold);}
+.tier-partner{background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(255,109,181,0.2));color:var(--gold);}
 .msg-limit{text-align:center;padding:6px;font-size:0.7rem;color:var(--muted);}
 .patterns-btn{background:rgba(155,109,255,0.12);border:1px solid rgba(155,109,255,0.3);color:var(--accent);font-size:0.72rem;padding:4px 10px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;white-space:nowrap;}
 .patterns-btn:hover{background:rgba(155,109,255,0.25);border-color:var(--accent);}
@@ -419,6 +420,7 @@ const UI = {
     tierGuest: 'Guest',
     tierFree: 'Free',
     tierSubscriber: 'Pro',
+    tierPartner: 'Partner',
     msgLimit: 'messages today',
     limitReached: 'Message limit reached. Create an account or upgrade for more!',
     sections: {
@@ -527,6 +529,7 @@ const UI = {
     tierGuest: 'ゲスト',
     tierFree: '無料',
     tierSubscriber: 'プロ',
+    tierPartner: 'Partner',
     msgLimit: '今日のメッセージ',
     limitReached: 'メッセージ制限に達しました。アカウントを作成するかアップグレードしてください！',
     sections: {
@@ -635,6 +638,7 @@ const UI = {
     tierGuest: 'Invitado',
     tierFree: 'Gratis',
     tierSubscriber: 'Pro',
+    tierPartner: 'Partner',
     msgLimit: 'mensajes hoy',
     limitReached: 'Limite de mensajes alcanzado. Crea una cuenta o mejora tu plan!',
     sections: {
@@ -750,6 +754,7 @@ const UI = {
     tierGuest: 'ผู้เยี่ยมชม',
     tierFree: 'ฟรี',
     tierSubscriber: 'โปร',
+    tierPartner: 'Partner',
     msgLimit: 'ข้อความวันนี้',
     limitReached: 'ถึงขีดจำกัดข้อความแล้ว สร้างบัญชีหรืออัปเกรดเพื่อใช้งานต่อ!',
     sections: {
@@ -858,6 +863,7 @@ const UI = {
     tierGuest: '게스트',
     tierFree: '무료',
     tierSubscriber: '프로',
+    tierPartner: 'Partner',
     msgLimit: '오늘 메시지',
     limitReached: '메시지 한도에 도달했습니다. 계정을 만들거나 업그레이드하세요!',
     sections: {
@@ -1168,15 +1174,15 @@ function speakText(text, btnEl) {
 
 function getTierLabel() {
   var t = AUTH.tier || 'guest';
-  if (t === 'subscriber') return ui('tierSubscriber');
-  if (t === 'free' || AUTH.loggedIn) return ui('tierFree');
+  if (t === 'partner' || t === 'subscriber') return ui('tierPartner');
+  if (t === 'free') return ui('tierFree');
   return ui('tierGuest');
 }
 
 function getTierClass() {
   var t = AUTH.tier || 'guest';
-  if (t === 'subscriber') return 'tier-subscriber';
-  if (t === 'free' || AUTH.loggedIn) return 'tier-free';
+  if (t === 'partner' || t === 'subscriber') return 'tier-partner';
+  if (t === 'free') return 'tier-free';
   return 'tier-guest';
 }
 
