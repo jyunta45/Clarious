@@ -302,6 +302,40 @@ app.post('/api/dev/reset-count', async (req, res) => {
 });
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── STRIPE CHECKOUT ───────────────────────────────────────────────────────────
+app.post('/api/stripe/create-checkout-session', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    if (!stripe) {
+      return res.status(503).json({ error: 'Stripe not configured' });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: process.env.STRIPE_FOUNDING_PRICE,
+          quantity: 1,
+        },
+      ],
+      success_url: 'https://clarious.org?success=true',
+      cancel_url: 'https://clarious.org?canceled=true',
+      metadata: {
+        userId: req.session.userId.toString(),
+      },
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('[STRIPE CHECKOUT ERROR]', error.message || error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
