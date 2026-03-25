@@ -3707,6 +3707,36 @@ function renderChat(root) {
 load();
 checkAuth();
 
+// ── Overlay blocker diagnostic & fix ─────────────────────────────────────────
+setTimeout(function() {
+  // Step 1 — Detect what's sitting over the input area
+  var elements = document.elementsFromPoint(
+    window.innerWidth / 2,
+    window.innerHeight - 50
+  );
+  console.log("Elements at input area:", elements);
+
+  // Step 2 — Disable pointer-events on fixed high-z-index overlays
+  var blockers = document.querySelectorAll('*');
+  blockers.forEach(function(el) {
+    var style = window.getComputedStyle(el);
+    if (
+      style.position === 'fixed' &&
+      parseInt(style.zIndex) > 10 &&
+      el !== document.body
+    ) {
+      el.style.pointerEvents = 'none';
+    }
+  });
+
+  // Step 3 — Ensure the input itself is always clickable
+  var input = document.querySelector('textarea, input');
+  if (input) {
+    input.style.pointerEvents = 'auto';
+    input.style.zIndex = '9999';
+  }
+}, 1000);
+
 } catch(e) {
   console.error('App error:', e);
   document.getElementById('root').innerHTML = '<div class="page"><div class="card"><div class="brand">Clarious</div><p class="tagline">Something went wrong. Please refresh.</p></div></div>';
