@@ -76,7 +76,7 @@ app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (re
       console.log("METADATA:", session.metadata);
       console.log("USER ID FROM METADATA:", session.metadata?.userId);
 
-      const userId = session.metadata?.userId;
+      const userId = Number(session.metadata?.userId);
       if (userId) {
         await db.update(userData).set({
           tier: 'partner',
