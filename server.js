@@ -1117,7 +1117,7 @@ app.post('/api/chat', async (req, res) => {
         const today = new Date().toISOString().slice(0, 10);
         const isNewDay = !data || data.msgCountDate !== today;
         const currentCount = isNewDay ? 0 : (data.msgCount || 0);
-        const dailyLimit = tier === 'partner' ? 20 : 10;
+        const dailyLimit = tier === 'partner' ? 30 : 10;
 
         // ── LIMIT CHECK — must return before any AI processing ──
         if (currentCount >= dailyLimit) {
@@ -1125,8 +1125,8 @@ app.post('/api/chat', async (req, res) => {
             limitReached: true,
             tier,
             message: tier === 'free'
-              ? 'You have reached your limit for today. Upgrade to Partner to get 20 messages per day and persistent memory.'
-              : 'You have reached your 20 messages for today. Come back tomorrow.'
+              ? 'You have reached your limit for today. Upgrade to Partner to get 30 messages per day and persistent memory.'
+              : 'You have reached your 30 messages for today. Come back tomorrow.'
           });
         }
 
@@ -1634,8 +1634,8 @@ app.post('/api/chat', async (req, res) => {
 
       if (shouldNudge) {
         const nudgeMsg = userLang === 'th'
-          ? 'คุณใกล้ถึงขีดจำกัดวันนี้แล้ว อัปเกรดเป็น Partner เพื่อรับ 20 ข้อความและบริบทต่อเนื่อง'
-          : "You're close to today's limit. Upgrade to Partner for 20 messages and continuous context.";
+          ? 'คุณใกล้ถึงขีดจำกัดวันนี้แล้ว อัปเกรดเป็น Partner เพื่อรับ 30 ข้อความและบริบทต่อเนื่อง'
+          : "You're close to today's limit. Upgrade to Partner for 30 messages and continuous context.";
         res.write('data: ' + JSON.stringify({ type: 'meta', nudge: true, nudgeMessage: nudgeMsg }) + '\n\n');
       }
 
@@ -1791,8 +1791,8 @@ app.post('/api/chat', async (req, res) => {
 
       if (shouldNudge) {
         const nudgeMsg = userLang === 'th'
-          ? 'คุณใกล้ถึงขีดจำกัดวันนี้แล้ว อัปเกรดเป็น Partner เพื่อรับ 20 ข้อความและบริบทต่อเนื่อง'
-          : "You're close to today's limit. Upgrade to Partner for 20 messages and continuous context.";
+          ? 'คุณใกล้ถึงขีดจำกัดวันนี้แล้ว อัปเกรดเป็น Partner เพื่อรับ 30 ข้อความและบริบทต่อเนื่อง'
+          : "You're close to today's limit. Upgrade to Partner for 30 messages and continuous context.";
         data.nudge = true;
         data.nudgeMessage = nudgeMsg;
       }

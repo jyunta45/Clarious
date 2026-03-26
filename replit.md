@@ -23,7 +23,7 @@ The **Express.js server** (`server.js`) handles:
 - Smart token management (300-800 tokens) and automatic chat history trimming to the last 16 messages for cost efficiency.
 - AI model routing based on complexity: Claude Haiku for low complexity, Claude Sonnet for high complexity.
 - Advanced AI memory systems including structured identity profiles, memory extraction, mood tracking, and behavioral triggers.
-- Two-tier system: **Free** (10 msgs/day, daily memory reset, Haiku personalized greeting) and **Partner** (20 msgs/day, full persistent memory). Upgrade nudge shown at 8+ messages. Token budget protection at 32k/40k daily tokens for free users.
+- Two-tier system: **Free** (10 msgs/day, daily memory reset, Haiku personalized greeting) and **Partner** (30 msgs/day, full persistent memory). Upgrade nudge shown at 8+ messages. Token budget protection at 32k/40k daily tokens for free users.
 
 The **PostgreSQL database**, managed with Drizzle ORM, stores:
 - User accounts (`users` table).
@@ -35,7 +35,7 @@ The **Frontend** (`public/index.html`) features:
 - A sequential onboarding experience: 11 pre-written questions asked one by one (no AI question generation). Q1 is sent as a hardcoded initial message. For Q2-Q11 Claude writes a 1-sentence acknowledgment then asks the next question verbatim. Q11 includes tappable choice chips (ครอบครัว, การงาน, ค่านิยม, etc.). State tracks `questionIndex` (0-10). Max tokens 350. No history stored — repetition is structurally impossible. Users can skip at any time.
 - A persistent chat interface with streaming AI responses, conversation threads, quick-action buttons, and a daily check-in banner.
 - Voice input (Web Speech API) and voice output (TTS) for AI responses.
-- A user tier system (Guest, Free, Partner) with corresponding message limits. Free=10/day, Partner=20/day. Nudge shown at 8+ messages for free users.
+- A user tier system (Guest, Free, Partner) with corresponding message limits. Free=10/day, Partner=30/day. Nudge shown at 8+ messages for free users.
 - A dark theme with purple/pink accents, using Playfair Display and DM Sans fonts.
 - Multi-language support with a persistent language switcher.
 - Dual data storage: `localStorage` for offline access and server sync for logged-in users.
