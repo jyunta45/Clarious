@@ -808,9 +808,10 @@ app.get('/api/opening-message', async (req, res) => {
     }
 
     const opening = buildOpeningMessage(params);
-    if (contextualOpeningText) {
-      opening.text = contextualOpeningText;
-      opening.chips = null; // user already has something on their mind
+    if (shiftContext && openingMode === 'deep') {
+      // Always clear chips when user arrived with context — they already know what they want to discuss
+      opening.chips = null;
+      if (contextualOpeningText) opening.text = contextualOpeningText;
     }
 
     // Part 5 — Free tier personalized Haiku greeting (post-onboarding)
