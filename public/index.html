@@ -1523,6 +1523,7 @@ var openingNudge = null;
 
 var openingLoadedFor = {};
 var _dvs = new Date(); _dvs.setHours(0,0,0,0); var dailyViewSince = _dvs.getTime();
+var deepEnteredWithContext = false;
 
 async function loadOpeningMessage(context) {
   var activeMsgs = getActiveMsgs();
@@ -3257,6 +3258,7 @@ function showDeepConfirm(context) {
     openingChips = null;
     openingNudge = null;
     responseNudge = null;
+    deepEnteredWithContext = !!(context);
     save();
     playDeepAura();
     render();
@@ -3343,7 +3345,7 @@ function renderChat(root) {
   var activeMsgs = getActiveMsgs();
   var threads = getThreads();
   var showCheckin = currentMode === 'deep' && shouldCheckin();
-  var showQuickActions = !isBusy && activeMsgs.length <= 2;
+  var showQuickActions = !isBusy && activeMsgs.length <= 2 && !deepEnteredWithContext;
 
   var msgsHtml = activeMsgs.map(function(m, idx) {
     var isLastAssistant = ST.streaming && idx === activeMsgs.length - 1 && m.role === 'assistant';
@@ -3506,7 +3508,7 @@ function renderChat(root) {
       var newMode = btn.dataset.mode;
       if (newMode === currentMode) return;
       if (newMode === 'deep') {
-        showDeepConfirm();
+        showDeepConfirm(pendingModeShiftContext || null);
       } else {
         var prevMode = currentMode;
         var prevSessionId = ST.deepSessionId;
@@ -3517,6 +3519,7 @@ function renderChat(root) {
         openingChips = null;
         openingNudge = null;
         responseNudge = null;
+        deepEnteredWithContext = false;
         if (newMode === 'daily') {
           var _dvs2 = new Date(); _dvs2.setHours(0,0,0,0); dailyViewSince = _dvs2.getTime();
           delete openingLoadedFor['daily'];
@@ -3550,6 +3553,7 @@ function renderChat(root) {
     openingChips = null;
     openingNudge = null;
     responseNudge = null;
+    deepEnteredWithContext = !!(ctx);
     save();
     playDeepAura();
     render();

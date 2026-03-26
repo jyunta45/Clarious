@@ -808,7 +808,10 @@ app.get('/api/opening-message', async (req, res) => {
     }
 
     const opening = buildOpeningMessage(params);
-    if (contextualOpeningText) opening.text = contextualOpeningText;
+    if (contextualOpeningText) {
+      opening.text = contextualOpeningText;
+      opening.chips = null; // user already has something on their mind
+    }
 
     // Part 5 — Free tier personalized Haiku greeting (post-onboarding)
     if (
