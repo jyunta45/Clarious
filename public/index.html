@@ -1316,6 +1316,7 @@ async function doAuth(mode) {
     if (!res.ok) { errEl.textContent = data.error || 'Something went wrong'; errEl.style.display = 'block'; return; }
     AUTH.loggedIn = true;
     AUTH.email = data.email;
+    AUTH.tier = data.tier || 'free';
     AUTH.guest = false;
     await loadServerData();
     if (ST.ans && Object.keys(ST.ans).length > 0) save();
@@ -1521,7 +1522,7 @@ var openingChips = null;
 var openingNudge = null;
 
 var openingLoadedFor = {};
-var dailyViewSince = Date.now();
+var _dvs = new Date(); _dvs.setHours(0,0,0,0); var dailyViewSince = _dvs.getTime();
 
 async function loadOpeningMessage(context) {
   var activeMsgs = getActiveMsgs();
@@ -3517,7 +3518,7 @@ function renderChat(root) {
         openingNudge = null;
         responseNudge = null;
         if (newMode === 'daily') {
-          dailyViewSince = Date.now();
+          var _dvs2 = new Date(); _dvs2.setHours(0,0,0,0); dailyViewSince = _dvs2.getTime();
           delete openingLoadedFor['daily'];
         }
         render();
