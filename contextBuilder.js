@@ -459,8 +459,8 @@ function buildContext({
   const isDecisionPhase = phase === 'decision';
 
   // ── Memory block (digest if available) ──────────────────
-  // Include in all modes (including daily) so Clarious can reference previous conversations
-  const memoryBlock = (!isOpening && memoryDigest)
+  // Always include — blocking at opening phase means "do you remember?" never works
+  const memoryBlock = memoryDigest
     ? `ABOUT THIS USER (from previous conversations):\n${memoryDigest}`
     : "";
 
