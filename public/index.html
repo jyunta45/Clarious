@@ -1390,10 +1390,18 @@ async function doLogout() {
   try { await fetch('/api/auth/logout', { method: 'POST' }); } catch(e) {}
   AUTH.loggedIn = false;
   AUTH.email = '';
+  AUTH.tier = 'guest';
+  AUTH.guest = false;
+  var keepLang = ST.lang || '';
+  try { localStorage.removeItem('la'); } catch(e) {}
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [] };
   render();
 }
 
 function enterGuest() {
+  var keepLang = ST.lang || '';
+  try { localStorage.removeItem('la'); } catch(e) {}
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [] };
   AUTH.guest = true;
   render();
 }
