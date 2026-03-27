@@ -34,17 +34,16 @@ function detectThai(message) {
   return /[\u0E00-\u0E7F]/.test(message);
 }
 
-const CJK_LANGS = ['th', 'ja', 'ko'];
+const CJK_LANGS = ['th'];
 
 function phaseTokenLimit(phase, chatMode, userLang) {
   const isThai = userLang === 'th';
-  const isJaKo = ['ja', 'ko'].includes(userLang);
 
-  // EN base | TH explicit | JA/KO at 1.8x EN base
-  if (chatMode === 'daily')      return isThai ? 800  : isJaKo ? 720  : 400;
-  if (phase === 'opening')       return isThai ? 800  : isJaKo ? 720  : 400;
-  if (phase === 'exploration')   return isThai ? 1000 : isJaKo ? 1080 : 600;
-  return                                isThai ? 1400 : isJaKo ? 1620 : 900; // decision
+  // EN base | TH explicit
+  if (chatMode === 'daily')    return isThai ? 800  : 400;
+  if (phase === 'opening')     return isThai ? 800  : 400;
+  if (phase === 'exploration') return isThai ? 1000 : 600;
+  return                              isThai ? 1400 : 900; // decision
 }
 
 var __app_dirname;
@@ -617,7 +616,7 @@ app.post('/api/onboarding-chat', async (req, res) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
   try {
     const { message, lang } = req.body;
-    const safeLang = ['en', 'ja', 'es', 'th', 'ko'].includes(lang) ? lang : 'en';
+    const safeLang = ['en', 'th'].includes(lang) ? lang : 'en';
     // Questions: use TH if available, fall back to EN
     const qList = QUESTIONS[safeLang] || QUESTIONS.en;
 
@@ -853,10 +852,7 @@ app.get('/api/opening-message', async (req, res) => {
       if (openedMultiple && notEngaged) {
         const nudges = {
           en: "A quick message today keeps your progress moving.",
-          ja: "今日ひとことメッセージを送るだけで、前に進み続けられます。",
-          es: "Un mensaje rápido hoy mantiene tu progreso en marcha.",
-          th: "ส่งข้อความสั้นๆ วันนี้ เพื่อให้ความก้าวหน้าของคุณไม่หยุด",
-          ko: "오늘 짧은 메시지 하나가 당신의 성장을 이어갑니다."
+          th: "ส่งข้อความสั้นๆ วันนี้ เพื่อให้ความก้าวหน้าของคุณไม่หยุด"
         };
         const lang = uData.lang || 'en';
         stallNudge = nudges[lang] || nudges.en;
@@ -1008,30 +1004,12 @@ const GROUNDING_QUESTIONS = {
     "What are you trying to move forward on?",
     "Where do you feel stuck recently?"
   ],
-  ja: [
-    "今、どんな決断に直面していますか？",
-    "今日、一番はっきりしないことは何ですか？",
-    "今、何を前に進めようとしていますか？",
-    "最近、どこで行き詰まっていますか？"
-  ],
-  es: [
-    "¿Qué decisión estás enfrentando ahora mismo?",
-    "¿Qué es lo que se siente más confuso hoy?",
-    "¿Qué estás tratando de avanzar?",
-    "¿Dónde te sientes atascado últimamente?"
-  ],
   th: [
     "ตอนนี้คุณกำลังเผชิญกับการตัดสินใจอะไรอยู่?",
     "วันนี้อะไรที่รู้สึกไม่ชัดเจนที่สุด?",
     "คุณกำลังพยายามผลักดันเรื่องอะไรให้ก้าวหน้า?",
     "ช่วงนี้คุณรู้สึกติดอยู่ตรงไหน?"
   ],
-  ko: [
-    "지금 어떤 결정을 앞두고 있나요?",
-    "오늘 가장 불분명하게 느껴지는 것은 무엇인가요?",
-    "지금 무엇을 앞으로 나아가게 하려고 하고 있나요?",
-    "최근에 어디서 막혀 있다고 느끼나요?"
-  ]
 };
 
 function needsGroundingQuestion(userMessage) {

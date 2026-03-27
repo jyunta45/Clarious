@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is "Clarious", a Jarvis-style personal AI coach built on Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a conversational onboarding experience (replacing the old form), user accounts with database persistence, and multi-language support (English, Japanese, Spanish, Thai, Korean). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
+This project is "Clarious", a Jarvis-style personal AI coach built on Anthropic's Claude API. Its core purpose is to provide AI-powered coaching through a personalized, persistent chat interface. Key features include a conversational onboarding experience (replacing the old form), user accounts with database persistence, and multi-language support (English and Thai). The application aims to be a supportive and intelligent partner for users navigating various aspects of their lives.
 
 ## User Preferences
 
@@ -37,7 +37,7 @@ The **Frontend** (`public/index.html`) features:
 - Voice input (Web Speech API) and voice output (TTS) for AI responses.
 - A user tier system (Guest, Free, Partner) with corresponding message limits. Free=10/day, Partner=30/day. Nudge shown at 8+ messages for free users.
 - A dark theme with purple/pink accents, using Playfair Display and DM Sans fonts.
-- Multi-language support with a persistent language switcher.
+- Multi-language support with a persistent language switcher (English and Thai only).
 - Dual data storage: `localStorage` for offline access and server sync for logged-in users.
 - Two-tab conversation mode ("Daily" for personal life, "Deep Thinking" for life direction) with mode-aware backend processing and mode-shift detection.
 - A 7-day guided onboarding system with adaptive guidance based on user engagement.

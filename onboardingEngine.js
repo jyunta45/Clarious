@@ -55,10 +55,7 @@ export const CATEGORY_INFO = {
 
 export const LANG_NAMES = {
   en: 'English',
-  ja: 'Japanese',
-  es: 'Spanish',
   th: 'Thai',
-  ko: 'Korean'
 };
 
 // ── 11 pre-written questions ──────────────────────────────────────────────────
@@ -101,42 +98,27 @@ export const Q11_CHIPS = {
 export const INITIAL_MESSAGES = {
   en: (q, name) => name ? `Nice to meet you, ${name}.\n\n${q}` : `Good to meet you.\n\n${q}`,
   th: (q, name) => name ? `ยินดีที่ได้รู้จัก ${name} ครับ\n\n${q}` : `ยินดีที่ได้คุยด้วยครับ\n\n${q}`,
-  ja: (q, name) => name ? `${name}さん、よろしくお願いします。\n\n${q}` : `はじめまして。\n\n${q}`,
-  es: (q, name) => name ? `Encantado de conocerte, ${name}.\n\n${q}` : `Encantado de conocerte.\n\n${q}`,
-  ko: (q, name) => name ? `${name}님, 반갑습니다.\n\n${q}` : `반갑습니다.\n\n${q}`
 };
 
 export const START_MESSAGES = {
   en: "Good to meet you.\n\nBefore we dive into anything serious, I'd like to understand a little about your world.\n\nIt won't take long, and you can pause whenever you want.",
-  ja: "はじめまして。\n\n本格的な話に入る前に、あなたのことを少し理解したいと思います。\n\n時間はかかりません。いつでも止められます。",
-  es: "Mucho gusto.\n\nAntes de entrar en cosas serias, me gustaría entender un poco tu mundo.\n\nNo llevará mucho tiempo, y puedes pausar cuando quieras.",
   th: "ยินดีที่ได้รู้จัก\n\nก่อนจะเข้าเรื่องจริงจัง อยากทำความรู้จักคุณสักนิดก่อน\n\nไม่นานหรอก และหยุดพักเมื่อไหร่ก็ได้",
-  ko: "반갑습니다.\n\n본격적인 이야기 전에, 먼저 당신에 대해 조금 알고 싶어요.\n\n오래 걸리지 않고, 언제든지 멈출 수 있어요."
 };
 
 export const SKIP_MESSAGES = {
   en: "No problem. You can always come back to this later.\n\nThis space is yours — use it however feels right.",
-  ja: "了解です。いつでも戻れますよ。\n\nこのスペースはあなたのもの — 好きなように使ってください。",
-  es: "Sin problema. Siempre puedes volver a esto más tarde.\n\nEste espacio es tuyo — úsalo como te parezca.",
   th: "ไม่เป็นไร กลับมาทีหลังได้เสมอ\n\nพื้นที่นี้เป็นของคุณ — ใช้ยังไงก็ได้ที่รู้สึกดี",
-  ko: "괜찮아요. 언제든지 나중에 돌아올 수 있어요.\n\n이 공간은 당신의 것 — 편한 방식으로 사용하세요."
 };
 
 export const COMPLETION_MESSAGES = {
   en: "That's everything I needed to know for now.\n\nI have a much clearer picture of where you are and what you're working toward.\n\nThis space is yours now — use it however feels right.",
-  ja: "今必要なことはこれで全部です。\n\nあなたが今どこにいて、何を目指しているかがずっとよくわかりました。\n\nこのスペースはもうあなたのもの — 好きなように使ってください。",
-  es: "Eso es todo lo que necesitaba saber por ahora.\n\nTengo una imagen mucho más clara de dónde estás y hacia dónde vas.\n\nEste espacio es tuyo ahora — úsalo como te parezca.",
   th: "นั่นคือทุกอย่างที่ต้องรู้ตอนนี้ครับ\n\nตอนนี้เห็นภาพชัดขึ้นมากว่าคุณอยู่ตรงไหนและกำลังมุ่งไปที่ไหน\n\nพื้นที่นี้เป็นของคุณแล้ว — ใช้ยังไงก็ได้ที่รู้สึกดีครับ",
-  ko: "지금 필요한 건 다 알았어요.\n\n지금 어디에 있고 무엇을 향해 가고 있는지 훨씬 명확해졌어요.\n\n이제 이 공간은 당신의 것 — 편한 방식으로 사용하세요."
 };
 
 export function getResumeMessage(lang, lastCategory) {
   const msgs = {
     en: `Welcome back.\n\nWould you like to continue where we left off, or start using the app now?`,
     th: `ยินดีต้อนรับกลับมาครับ\n\nอยากคุยต่อ หรือเริ่มใช้แอปเลยดี?`,
-    ja: `おかえりなさい。\n\n続けますか？それともアプリを使い始めますか？`,
-    es: `Bienvenido/a de vuelta.\n\n¿Te gustaría continuar, o empezar a usar la app ahora?`,
-    ko: `다시 오셨군요.\n\n계속하시겠어요, 아니면 지금 앱을 사용하시겠어요?`
   };
   return msgs[lang] || msgs.en;
 }
