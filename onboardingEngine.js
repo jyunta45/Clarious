@@ -99,11 +99,11 @@ export const Q11_CHIPS = {
 
 // ── Hardcoded initial message (no Claude call — 100% reliable) ────────────────
 export const INITIAL_MESSAGES = {
-  en: (q) => `Good to meet you.\n\n${q}`,
-  th: (q) => `ยินดีที่ได้คุยด้วยครับ\n\n${q}`,
-  ja: (q) => `はじめまして。\n\n${q}`,
-  es: (q) => `Encantado de conocerte.\n\n${q}`,
-  ko: (q) => `반갑습니다.\n\n${q}`
+  en: (q, name) => name ? `Nice to meet you, ${name}.\n\n${q}` : `Good to meet you.\n\n${q}`,
+  th: (q, name) => name ? `ยินดีที่ได้รู้จัก ${name} ครับ\n\n${q}` : `ยินดีที่ได้คุยด้วยครับ\n\n${q}`,
+  ja: (q, name) => name ? `${name}さん、よろしくお願いします。\n\n${q}` : `はじめまして。\n\n${q}`,
+  es: (q, name) => name ? `Encantado de conocerte, ${name}.\n\n${q}` : `Encantado de conocerte.\n\n${q}`,
+  ko: (q, name) => name ? `${name}님, 반갑습니다.\n\n${q}` : `반갑습니다.\n\n${q}`
 };
 
 export const START_MESSAGES = {

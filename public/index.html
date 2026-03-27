@@ -2714,18 +2714,18 @@ function render() {
 var OB_SENDING = false;
 
 var OB_START_MSGS = {
-  en: "Good to meet you.\n\nBefore we dive into anything serious, I'd like to understand a little about your world.\n\nIt won't take long, and you can pause whenever you want.",
-  ja: "はじめまして。\n\n本格的な話に入る前に、あなたのことを少し理解したいと思います。\n\n時間はかかりません。いつでも止められます。",
-  es: "Mucho gusto.\n\nAntes de entrar en cosas serias, me gustaría entender un poco tu mundo.\n\nNo llevará mucho tiempo, y puedes pausar cuando quieras.",
-  th: "ยินดีที่ได้รู้จัก\n\nก่อนจะเข้าเรื่องจริงจัง อยากทำความรู้จักคุณสักนิดก่อน\n\nไม่นานหรอก และหยุดพักเมื่อไหร่ก็ได้",
-  ko: "반갑습니다.\n\n본격적인 이야기 전에, 먼저 당신에 대해 조금 알고 싶어요.\n\n오래 걸리지 않고, 언제든지 멈출 수 있어요."
+  en: "Good to meet you.\n\nWhat should I call you?",
+  ja: "はじめまして。\n\n何とお呼びすればよいですか？",
+  es: "Mucho gusto.\n\n¿Cómo debería llamarte?",
+  th: "ยินดีที่ได้รู้จักครับ\n\nเรียกคุณว่าอะไรดีครับ?",
+  ko: "반갑습니다.\n\n어떻게 불러드릴까요?"
 };
 var OB_START_CHIPS = {
-  en: ["Let's do this", "Skip for now"],
-  ja: ["始めましょう", "後で"],
-  es: ["Vamos", "Por ahora, saltar"],
-  th: ["เริ่มเลย", "ข้ามก่อน"],
-  ko: ["시작해요", "나중에 할게요"]
+  en: ["Skip for now"],
+  ja: ["後で"],
+  es: ["Por ahora, saltar"],
+  th: ["ข้ามก่อน"],
+  ko: ["나중에 할게요"]
 };
 var OB_RESUME_CHIPS = {
   en: ["Continue", "Start using the app"],
@@ -2790,8 +2790,7 @@ function renderOnboardingChat(root) {
     if (msgs.length === 0 && isFirstOpen) {
       var chips = OB_START_CHIPS[lang] || OB_START_CHIPS.en;
       chipsHtml = '<div class="ob-chips" data-testid="ob-start-chips">' +
-        '<button class="ob-chip" data-testid="ob-chip-start" data-obaction="start">' + esc(chips[0]) + '</button>' +
-        '<button class="ob-chip skip" data-testid="ob-chip-skip" data-obaction="skip">' + esc(chips[1]) + '</button>' +
+        '<button class="ob-chip skip" data-testid="ob-chip-skip" data-obaction="skip">' + esc(chips[0]) + '</button>' +
         '</div>';
     } else if (msgs.length === 0 && isResuming) {
       var rChips = OB_RESUME_CHIPS[lang] || OB_RESUME_CHIPS.en;

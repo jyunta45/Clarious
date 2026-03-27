@@ -661,11 +661,14 @@ app.post('/api/onboarding-chat', async (req, res) => {
     }
 
     // ── START (first interaction) ────────────────────────────────────────────
-    // Send Q0 as a hardcoded initial message — no Claude call, 100% reliable
+    // User's first message is their name — save it, then ask Q0 personally
     if (!onboardingState.started) {
       const q0 = qList[0];
+      const isSystemAction = message === '__start__' || message === '__continue__';
+      const preferredName = isSystemAction ? null : message.trim().split(/\s+/)[0]; // first word only
+      if (preferredName) onboardingProgress.preferredName = preferredName;
       const initialFn = INITIAL_MESSAGES[safeLang] || INITIAL_MESSAGES.en;
-      const text = initialFn(q0);
+      const text = initialFn(q0, preferredName);
       onboardingState = { started: true, questionIndex: 0 };
       await db.update(userData).set({
         onboardingState,
@@ -773,7 +776,8 @@ app.get('/api/opening-message', async (req, res) => {
           userData: { lastOpeningMessage: uData.lastOpeningMessage },
           openLoops: uData.openLoops || [],
           mode: openingMode,
-          localHour
+          localHour,
+          name: uData.onboardingProgress?.preferredName || null
         };
       }
     }

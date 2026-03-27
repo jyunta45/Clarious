@@ -213,7 +213,8 @@ function _buildOpeningMessage({
   userData,
   openLoops,
   mode,
-  localHour
+  localHour,
+  name
 }) {
   const L = lang || 'en';
   const now = new Date();
@@ -228,7 +229,16 @@ function _buildOpeningMessage({
   if (guidanceDay === 1) {
     const gLang = T.guidance[L] || T.guidance.en;
     const message = gLang[1];
-    return { text: message.text, type: "guidance", day: 1, chips: message.chips };
+    let text = message.text;
+    if (name) {
+      // Inject name into the opening line
+      if (L === 'th') {
+        text = text.replace('พื้นที่นี้เป็นของคุณแล้วครับ', `พื้นที่นี้เป็นของคุณแล้วครับ ${name}`);
+      } else {
+        text = text.replace('This space is yours now.', `This space is yours now, ${name}.`);
+      }
+    }
+    return { text, type: "guidance", day: 1, chips: message.chips };
   }
 
   if (isDaily) {
@@ -251,11 +261,15 @@ function _buildOpeningMessage({
   if (daysAway >= 2) {
     const days = Math.floor(daysAway);
     const ret = T.returning[L] || T.returning.en;
-    if (sessionSummary?.focus) {
-      const msg = ret.withFocus(days, sessionSummary.focus);
-      return { ...msg, type: "returning" };
+    let msg = sessionSummary?.focus
+      ? ret.withFocus(days, sessionSummary.focus)
+      : ret.generic(days);
+    if (name) {
+      const greet = L === 'th'
+        ? `สวัสดีครับ ${name}\n\n`
+        : `Good to have you back, ${name}.\n\n`;
+      msg = { ...msg, text: greet + msg.text };
     }
-    const msg = ret.generic(days);
     return { ...msg, type: "returning" };
   }
 
