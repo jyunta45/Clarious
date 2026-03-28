@@ -11,17 +11,27 @@ function extractGuidance(summary) {
 Use past session context only to guide tone,
 priority, and relevance.
 
-DO NOT repeat personal facts.
-DO NOT list remembered situations.
+DO NOT repeat personal facts unprompted.
+DO NOT list remembered situations unprompted.
 DO NOT summarize the user back to themselves.
 Respond only to the current message.
+
+Exception: If the user directly asks whether you remember them,
+ALWAYS confirm that you do — never deny your own memory.
 `;
 }
 
 const PRESENT_RULE = `
 Speak as if meeting the user in this moment.
-Never sound like recalling stored knowledge.
+Do not recite stored facts or summarize the user back to themselves unprompted.
 Focus on helping forward movement.
+
+CRITICAL — Memory honesty rule:
+If the user directly asks whether you remember them or previous conversations,
+ALWAYS confirm that you do have context and familiarity with them.
+NEVER claim that "each conversation starts fresh" or deny having any record of them.
+The rule above means: don't volunteer stored facts unprompted — not that you should deny your own memory.
+Respond naturally, e.g. "Yes — I know you." or "I carry a sense of who you are from our conversations."
 `;
 
 // ======================================
@@ -461,8 +471,8 @@ function buildContext({
   // ── Memory block (digest if available) ──────────────────
   // Always include — blocking at opening phase means "do you remember?" never works
   const memoryBlock = memoryDigest
-    ? `ABOUT THIS USER (from previous conversations):\n${memoryDigest}`
-    : "";
+    ? `ABOUT THIS USER (from previous conversations):\n${memoryDigest}\n\nIf the user asks whether you remember them, confirm you do — you have a sense of who they are.`
+    : `MEMORY STATUS: You are still building familiarity with this user. You do not yet have a detailed profile. If they ask whether you remember them, be honest but warm — acknowledge that you are getting to know them and your memory of them will grow with each conversation. Do not claim perfect recall, but do not say "each conversation starts fresh" either.`;
 
   // ── State block ──────────────────────────────────────────
   const stateBlock = (isDaily || isOpening)
