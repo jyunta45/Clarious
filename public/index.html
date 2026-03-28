@@ -131,8 +131,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tier-guest{background:rgba(255,255,255,0.08);color:var(--muted);}
 .tier-free{background:rgba(155,109,255,0.15);color:var(--accent);}
 .tier-subscriber{background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(255,109,181,0.2));color:var(--gold);}
-.tier-partner{background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(255,109,181,0.2));color:var(--gold);}
+.tier-partner{background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(255,109,181,0.2));color:var(--gold);box-shadow:0 0 8px rgba(212,175,55,0.3);cursor:pointer;}
 .msg-limit{text-align:center;padding:6px;font-size:0.7rem;color:var(--muted);}
+.usage-counter{text-align:center;font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(160,140,200,0.42);padding:4px 0 2px;letter-spacing:0.01em;}
+.clr-modal-overlay{position:fixed;inset:0;z-index:9200;background:rgba(2,2,10,0.88);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);animation:fadeIn 0.2s ease;}
+.clr-modal-panel{background:linear-gradient(180deg,rgba(13,7,27,0.99),rgba(5,2,12,0.99));border:1px solid rgba(120,90,200,0.22);border-radius:20px;width:90%;max-width:360px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;}
+.clr-modal-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:rgba(225,215,245,0.95);font-weight:700;}
+.clr-modal-body{font-family:'DM Sans',sans-serif;font-size:0.88rem;color:rgba(200,188,228,0.78);line-height:1.68;}
+.clr-modal-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;}
+.clr-modal-list li{font-family:'DM Sans',sans-serif;font-size:0.85rem;color:rgba(200,188,228,0.78);padding-left:16px;position:relative;line-height:1.55;}
+.clr-modal-list li::before{content:'→';position:absolute;left:0;color:rgba(196,170,255,0.5);}
+.clr-modal-list li strong{color:rgba(225,215,245,0.9);}
+.clr-modal-cta{background:rgba(120,90,200,0.18);border:1px solid rgba(120,90,200,0.32);color:rgba(196,170,255,0.9);border-radius:100px;padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-align:center;width:100%;}
+.clr-modal-cta:hover{background:rgba(120,90,200,0.3);}
 .patterns-btn{background:rgba(155,109,255,0.12);border:1px solid rgba(155,109,255,0.3);color:var(--accent);font-size:0.72rem;padding:4px 10px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;white-space:nowrap;}
 .patterns-btn:hover{background:rgba(155,109,255,0.25);border-color:var(--accent);}
 .patterns-panel{position:absolute;top:0;right:0;width:340px;max-width:90vw;height:100%;background:rgba(13,13,20,0.98);border-left:1px solid var(--border);overflow-y:auto;z-index:100;animation:slideIn 0.25s ease;}
@@ -751,7 +762,7 @@ function speakText(text, btnEl) {
 
 function getTierLabel() {
   var t = AUTH.tier || 'guest';
-  if (t === 'partner' || t === 'subscriber') return ui('tierPartner');
+  if (t === 'partner' || t === 'subscriber') return 'PARTNER \u2022 Deep Access';
   if (t === 'free') return ui('tierFree');
   return ui('tierGuest');
 }
@@ -768,6 +779,71 @@ function checkMsgLimit() {
     if (ST.guestMsgCount >= TIER_LIMITS.guest) return false;
   }
   return true;
+}
+
+function getDailyLimit() {
+  if (AUTH.tier === 'partner' || AUTH.tier === 'subscriber') return 30;
+  return 10;
+}
+
+function getDailyMsgCount() {
+  if (AUTH.guest) return ST.guestMsgCount || 0;
+  var count = 0;
+  var threads = ST.threads && ST.threads.length > 0 ? ST.threads : (ST.msgs && ST.msgs.length > 0 ? [{ msgs: ST.msgs }] : []);
+  threads.forEach(function(t) {
+    (t.msgs || []).forEach(function(m) {
+      if (m.role === 'user' && m.ts && m.ts >= dailyViewSince) count++;
+    });
+  });
+  return count;
+}
+
+function showPartnerLimitModal() {
+  var overlay = document.createElement('div');
+  overlay.className = 'clr-modal-overlay';
+  var isThai = (ST.lang || 'en') === 'th';
+  overlay.innerHTML =
+    '<div class="clr-modal-panel">' +
+    '<div class="clr-modal-title">' + (isThai ? 'ถึงขีดจำกัดรายวัน' : 'Daily limit reached') + '</div>' +
+    '<div class="clr-modal-body">' +
+      (isThai
+        ? 'คุณใช้ครบ 30 บทสนทนาสำหรับวันนี้แล้ว ระบบจะรีเซ็ตในเช้าวันพรุ่งนี้<br><br>ใช้แต่ละครั้งอย่างมีเจตนา — นั่นคือที่ที่คุณค่าที่แท้จริงอยู่'
+        : 'You have used all 30 conversations for today. Your access resets tomorrow morning.<br><br>Use each session with intention — that is where the real value lives.') +
+    '</div>' +
+    '<button class="clr-modal-cta">' + (isThai ? 'รับทราบ — พบกันพรุ่งนี้' : 'Got it — see you tomorrow') + '</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  var close = function() {
+    overlay.style.animation = 'fadeOut 0.2s ease forwards';
+    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 200);
+  };
+  overlay.querySelector('.clr-modal-cta').onclick = close;
+  overlay.onclick = function(e) { if (e.target === overlay) close(); };
+}
+
+function showPartnerInfoModal() {
+  var overlay = document.createElement('div');
+  overlay.className = 'clr-modal-overlay';
+  var isThai = (ST.lang || 'en') === 'th';
+  overlay.innerHTML =
+    '<div class="clr-modal-panel">' +
+    '<div class="clr-modal-title">' + (isThai ? 'Partner Access' : 'Partner Access') + '</div>' +
+    '<ul class="clr-modal-list">' +
+    '<li><strong>' + (isThai ? '30 บทสนทนาต่อวัน' : '30 conversations per day') + '</strong></li>' +
+    '<li><strong>' + (isThai ? 'ความทรงจำถาวรเต็มรูปแบบ' : 'Full persistent memory') + '</strong><br>' +
+      (isThai ? 'Clarious จำทุกบทสนทนาที่คุณเคยมี' : 'Clarious remembers every conversation you have had') + '</li>' +
+    '<li>' + (isThai ? 'การจดจำรูปแบบตลอดเวลา' : 'Pattern recognition over time') + '</li>' +
+    '<li>' + (isThai ? 'คู่คิดที่รู้เรื่องราวของคุณ' : 'The thinking partner that knows your story') + '</li>' +
+    '</ul>' +
+    '<button class="clr-modal-cta" style="margin-top:4px">' + (isThai ? 'ปิด' : 'Close') + '</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  var close = function() {
+    overlay.style.animation = 'fadeOut 0.2s ease forwards';
+    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 200);
+  };
+  overlay.querySelector('.clr-modal-cta').onclick = close;
+  overlay.onclick = function(e) { if (e.target === overlay) close(); };
 }
 
 function save() {
@@ -2086,11 +2162,21 @@ async function sendMsg(userText) {
     clearTimeout(fetchTimeout);
     if (res.status === 429) {
       var curMsgs2 = getActiveMsgs();
-      curMsgs2[curMsgs2.length - 1].content = ui('limitReached');
-      setActiveMsgs(curMsgs2);
-      ST.loading = false;
-      ST.streaming = false;
-      render();
+      if (AUTH.tier === 'partner' || AUTH.tier === 'subscriber') {
+        curMsgs2.pop();
+        setActiveMsgs(curMsgs2);
+        ST.loading = false;
+        ST.streaming = false;
+        ST.limitReached = true;
+        render();
+        showPartnerLimitModal();
+      } else {
+        curMsgs2[curMsgs2.length - 1].content = ui('limitReached');
+        setActiveMsgs(curMsgs2);
+        ST.loading = false;
+        ST.streaming = false;
+        render();
+      }
       return;
     }
     if (!res.ok) {
@@ -2925,7 +3011,7 @@ function showDailyHistory() {
 }
 
 function renderChat(root) {
-  var isBusy = ST.loading || ST.streaming;
+  var isBusy = ST.loading || ST.streaming || ST.limitReached;
   var activeMsgs = getActiveMsgs();
   var threads = getThreads();
   var showCheckin = currentMode === 'deep' && shouldCheckin();
@@ -3013,7 +3099,7 @@ function renderChat(root) {
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
     '<button class="growth-btn" id="open-growth" data-testid="button-open-growth">' + ui('growthBtn') + '</button>' +
     '<button class="patterns-btn" id="open-patterns" data-testid="button-open-patterns">Patterns</button>' +
-    '<span class="tier-badge ' + getTierClass() + '">' + getTierLabel() + '</span>' +
+    '<span id="tier-badge" class="tier-badge ' + getTierClass() + '" data-testid="badge-tier">' + getTierLabel() + '</span>' +
     (AUTH.loggedIn && AUTH.tier !== 'partner' ? '<button id="real-upgrade-btn" data-testid="button-real-upgrade" style="font-size:0.7rem;padding:3px 10px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:100px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600">Upgrade to Partner</button>' : '') +
     (AUTH.loggedIn ? '<span style="font-size:0.7rem;color:var(--accent)">' + esc(AUTH.email) + '</span><button class="logout-btn" id="chat-logout-btn" data-testid="button-chat-logout" style="font-size:0.7rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;text-decoration:underline">' + ui('logOut') + '</button>' : '') +
     Object.keys(LANGS).map(function(k) {
@@ -3039,7 +3125,9 @@ function renderChat(root) {
     (hasVoiceInput() ? '<button class="voice-mic' + (voiceIsRecording ? ' recording' : '') + '" id="voice-mic" data-testid="button-voice-mic">' + (voiceIsRecording ? '...' : 'MIC') + '</button>' : '') +
     '<input class="chat-input" id="ci" placeholder="' + ui('askAnything') + '" ' + (isBusy ? 'disabled' : '') + ' data-testid="input-chat">' +
     '<button class="chat-send" id="cs" ' + (isBusy ? 'disabled' : '') + ' data-testid="button-send">' + ui('send') + '</button>' +
-    '</div></div></div>';
+    '</div>' +
+    (AUTH.loggedIn || AUTH.guest ? '<div class="usage-counter" data-testid="usage-counter">' + getDailyMsgCount() + ' / ' + getDailyLimit() + ' ' + ((ST.lang || 'en') === 'th' ? 'บทสนทนาวันนี้' : 'conversations today') + '</div>' : '') +
+    '</div></div>';
 
   var cm = document.getElementById('cm');
   cm.scrollTop = cm.scrollHeight;
@@ -3078,6 +3166,11 @@ function renderChat(root) {
   };
   cs.onclick = function() { ST.autoSpeak = false; doSend(); };
   document.getElementById('rb').onclick = reset;
+
+  var tierBadgeEl = document.getElementById('tier-badge');
+  if (tierBadgeEl && (AUTH.tier === 'partner' || AUTH.tier === 'subscriber')) {
+    tierBadgeEl.onclick = function(e) { e.stopPropagation(); showPartnerInfoModal(); };
+  }
 
   document.querySelectorAll('.lang-mini').forEach(function(btn) {
     btn.onclick = function() {

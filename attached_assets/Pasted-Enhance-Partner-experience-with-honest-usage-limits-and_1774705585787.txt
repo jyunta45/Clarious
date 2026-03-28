@@ -1,0 +1,141 @@
+Enhance Partner experience with
+honest usage limits and
+premium positioning.
+
+Do not break existing UI or backend.
+Do not change any backend logic.
+Only add frontend display elements.
+
+---
+
+STEP 0 — Limit modal for Partner
+
+When Partner user reaches 30 messages:
+
+1. Disable input field
+2. Show modal:
+
+Title:
+"Daily limit reached"
+
+Content:
+"You have used all 30 conversations
+for today. Your access resets
+tomorrow morning.
+
+Use each session with intention —
+that is where the real value lives."
+
+CTA button:
+"Got it — see you tomorrow"
+
+Do not include "coming soon" CTAs.
+Keep it clean and confident.
+
+---
+
+STEP 1 — Update Partner badge
+
+Change badge text from:
+"PARTNER"
+
+To:
+"PARTNER • Deep Access"
+
+Add subtle gold styling:
+box-shadow: 0 0 8px rgba(212, 175, 55, 0.4)
+or a soft gold border.
+
+Match existing dark theme.
+Do not make it flashy.
+Subtle premium feel only.
+
+---
+
+STEP 2 — Usage counter
+
+Display near the input area:
+
+"X / 30 conversations today"
+
+Update dynamically after
+each message is sent.
+
+Style it subtly —
+small text, muted color.
+Not distracting.
+Just present.
+
+For free users show:
+"X / 10 conversations today"
+
+---
+
+STEP 3 — Badge clickable
+
+When Partner badge is clicked
+show a small tooltip or modal:
+
+Title: "Partner Access"
+
+Content:
+→ 30 conversations per day
+→ Full persistent memory
+   Clarious remembers every
+   conversation you have had
+→ Pattern recognition over time
+→ The thinking partner that
+   knows your story
+
+Keep it factual.
+Only list things that are
+genuinely true and built.
+
+---
+
+STEP 4 — Clean UX rules
+
+Do NOT:
+→ Mention "unlimited" anywhere
+→ Mention "priority processing"
+→ Add cluttered UI elements
+→ Change any backend logic
+→ Change message limit numbers
+   (those stay in server.js)
+
+---
+
+CRITICAL RULES:
+
+Read ALL files before changes.
+
+Only modify frontend files:
+→ index.html or equivalent
+→ CSS if separate file
+
+Do NOT modify:
+→ server.js
+→ Any backend files
+→ Authentication
+→ Streaming
+→ Memory systems
+→ Database schema
+
+---
+
+VERIFICATION:
+
+✓ Server starts successfully
+✓ Streaming still works
+✓ Limit modal appears at 30 messages
+   for Partner users
+✓ Input disabled only at limit
+✓ Usage counter visible and accurate
+✓ Counter updates after each message
+✓ Free users see X/10
+✓ Partner users see X/30
+✓ Badge shows "PARTNER • Deep Access"
+✓ Badge click shows accurate info
+✓ No false claims in UI
+✓ Dark theme maintained
+✓ No existing functionality broken
