@@ -817,32 +817,44 @@ app.get('/api/opening-message', async (req, res) => {
       if (contextualOpeningText) opening.text = contextualOpeningText;
     }
 
-    // Part 5 — Free tier personalized Haiku greeting (post-onboarding)
-    if (
-      uData &&
-      (uData.tier === 'free' || !uData.tier) &&
-      uData.onboardingComplete === true &&
-      uData.lastActiveAt &&
-      !contextualOpeningText
-    ) {
-      try {
-        const freeLang = queryLang || uData.lang || 'en';
-        const isThai = freeLang === 'th';
-        const userName = uData.answers?.name || '';
+    // Part 5 — Personalized Haiku greeting (post-onboarding)
+    // Day 9+: all tiers get memory-aware greeting. Days 2-8: free tier gets simple name/goal greeting.
+    if (uData && uData.onboardingComplete === true && !contextualOpeningText) {
+      const greetLang = queryLang || uData.lang || 'en';
+      const isThai = greetLang === 'th';
+      const guidanceComplete = (uData.guidanceDay || 0) > 8;
+      const digest = uData.memoryDigest || '';
+      const userName = uData.onboardingProgress?.preferredName || uData.answers?.name || '';
+      let greetPrompt = '';
+
+      if (guidanceComplete && digest) {
+        // Established user — personalized greeting using memory digest
+        const hourNote = localHour >= 5 && localHour <= 11 ? 'morning'
+          : localHour >= 12 && localHour <= 17 ? 'afternoon' : 'evening';
+        greetPrompt = isThai
+          ? `คุณคือ Clarious\n\nรู้เกี่ยวกับผู้ใช้:\n${digest}\n\nชื่อ: ${userName || 'ผู้ใช้'}\nช่วงเวลา: ${hourNote}\n\n1-2 ประโยค อบอุ่น อ้างอิงสิ่งที่รู้จริงเกี่ยวกับเขา จบด้วยการเชิญแบบเปิดกว้าง ไม่ถามคำถามชัดเจน ภาษาไทยธรรมชาติ ไม่ใช้ markdown`
+          : `You are Clarious.\n\nWhat you know about this user:\n${digest}\n\nName: ${userName || 'there'}\nTime of day: ${hourNote}\n\n1-2 sentences. Warm. Reference something real from their context. End with a soft open invitation — no pointed question. Plain text only.`;
+      } else if ((uData.tier === 'free' || !uData.tier) && uData.lastActiveAt && !guidanceComplete) {
+        // Free tier, still in guidance phase — simple name/goal greeting
         const userGoal = uData.answers?.goal || uData.answers?.['0'] || '';
         const userFocus = uData.identityProfile?.currentFocus || uData.answers?.focus || '';
-        const freeGreetPrompt = isThai
-          ? `สร้างคำทักทายอบอุ่น 1-2 ประโยค\n\nชื่อ: ${userName || 'ผู้ใช้'}\nเป้าหมาย: ${userGoal}\nโฟกัส: ${userFocus}\n\nทำให้รู้สึกเหมือนกลับมาพบกันอีกครั้ง เชิญชวนให้แชร์สิ่งที่อยู่ในใจ อย่าพูดถึงความจำหรือการสมัครสมาชิก ตอบเป็นภาษาไทยเท่านั้น`
-          : `Generate a warm 1-2 sentence greeting.\n\nName: ${userName || 'there'}\nGoal: ${userGoal}\nFocus: ${userFocus}\n\nMake it feel like reconnecting. Invite them to share what is on their mind. Do not mention memory or subscription. Plain text only.`;
-        const greetRes = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 100, messages: [{ role: 'user', content: freeGreetPrompt }] })
-        });
-        const greetData = await greetRes.json();
-        const greetText = greetData?.content?.[0]?.text?.trim();
-        if (greetText) opening.text = greetText;
-      } catch(e) { /* fallback to static opening */ }
+        greetPrompt = isThai
+          ? `สร้างคำทักทายอบอุ่น 1-2 ประโยค\n\nชื่อ: ${userName || 'ผู้ใช้'}\nเป้าหมาย: ${userGoal}\nโฟกัส: ${userFocus}\n\nทำให้รู้สึกเหมือนกลับมาพบกันอีกครั้ง เชิญชวนให้แชร์สิ่งที่อยู่ในใจ ตอบเป็นภาษาไทยเท่านั้น`
+          : `Generate a warm 1-2 sentence greeting.\n\nName: ${userName || 'there'}\nGoal: ${userGoal}\nFocus: ${userFocus}\n\nMake it feel like reconnecting. Invite them to share what is on their mind. Plain text only.`;
+      }
+
+      if (greetPrompt) {
+        try {
+          const greetRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+            body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 100, messages: [{ role: 'user', content: greetPrompt }] })
+          });
+          const greetData = await greetRes.json();
+          const greetText = greetData?.content?.[0]?.text?.trim();
+          if (greetText) opening.text = greetText;
+        } catch(e) { /* fallback to static opening */ }
+      }
     }
 
     let stallNudge = null;
