@@ -1506,10 +1506,14 @@ function trackPatterns(userText) {
   }
   if (p.activityLog.length > 200) p.activityLog = p.activityLog.slice(-200);
 
-  var goalRe = /(?:my goal|i want to|i plan to|i'm working on|i'm trying to|progress on)\s+(.{10,60})/i;
+  var goalRe = /(?:my goal(?:\s+is)?|i want to|i plan to|i(?:'m| am) working on|i(?:'m| am) trying to|progress on)\s+(.+?)(?=[.!?\n]|$)/im;
   var goalMatch = userText.match(goalRe);
   if (goalMatch) {
-    var goalText = goalMatch[1].substring(0, 60).trim();
+    var goalText = goalMatch[1].trim();
+    goalText = goalText.replace(/\s+(and|but|or|so|because|that|which|when|if)[\s,]*$/i, '').trim();
+    if (goalText.length > 80) goalText = goalText.substring(0, 80).replace(/\s+\S*$/, '').trim();
+    if (goalText.length < 8) goalText = null;
+    if (!goalText) { return; }
     var existingGoal = p.goalProgress.find(function(gp) { return gp.goal.toLowerCase() === goalText.toLowerCase(); });
     if (existingGoal) {
       existingGoal.mentions++;
@@ -2002,7 +2006,8 @@ function renderPatternsPanel() {
     html += '<div class="patterns-section"><div class="patterns-label">Goal Tracking</div>';
     for (var gi = 0; gi < Math.min(p.goalProgress.length, 5); gi++) {
       var gp = p.goalProgress[gi];
-      html += '<div class="goal-row"><span class="goal-text">' + esc(gp.goal) + '</span><span class="goal-meta">' + gp.mentions + 'x \u00b7 last: ' + gp.lastMentioned + '</span></div>';
+      var goalDisplay = gp.goal.length > 80 ? gp.goal.substring(0, 80).replace(/\s+\S*$/, '') + '\u2026' : gp.goal;
+      html += '<div class="goal-row"><span class="goal-text">' + esc(goalDisplay) + '</span><span class="goal-meta">' + gp.mentions + 'x \u00b7 last: ' + gp.lastMentioned + '</span></div>';
     }
     html += '</div>';
   }
