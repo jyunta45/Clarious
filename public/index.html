@@ -1509,10 +1509,7 @@ function trackPatterns(userText) {
   var goalRe = /(?:my goal(?:\s+is)?|i want to|i plan to|i(?:'m| am) working on|i(?:'m| am) trying to|progress on)\s+(.+?)(?=[.!?\n]|$)/im;
   var goalMatch = userText.match(goalRe);
   if (goalMatch) {
-    var goalText = goalMatch[1].trim();
-    goalText = goalText.replace(/\s+(and|but|or|so|because|that|which|when|if)[\s,]*$/i, '').trim();
-    if (goalText.length > 80) goalText = goalText.substring(0, 80).replace(/\s+\S*$/, '').trim();
-    if (goalText.length < 8) goalText = null;
+    var goalText = cleanGoalText(goalMatch[1]);
     if (!goalText) { return; }
     var existingGoal = p.goalProgress.find(function(gp) { return gp.goal.toLowerCase() === goalText.toLowerCase(); });
     if (existingGoal) {
@@ -1525,10 +1522,42 @@ function trackPatterns(userText) {
   }
 }
 
+function cleanGoalText(raw) {
+  if (!raw) return null;
+  var s = raw.trim();
+  // Try to cut at a sentence boundary (must have >= 10 meaningful chars before it)
+  var sentenceMatch = s.match(/^(.{10,}?)[.!?]/);
+  var foundSentence = false;
+  if (sentenceMatch) { s = sentenceMatch[1].trim(); foundSentence = true; }
+  // Only strip last word if no sentence boundary was found and text looks cut off (near old 60-char limit)
+  if (!foundSentence && raw.trim().length >= 55) {
+    s = s.replace(/\s+\S+$/, '').trim();
+  }
+  // Strip trailing hanging conjunctions / articles
+  s = s.replace(/\s+(and|but|or|so|because|that|which|when|if|an|a|to)[\s,]*$/i, '').trim();
+  // Hard cap at word boundary
+  if (s.length > 80) s = s.substring(0, 80).replace(/\s+\S*$/, '').trim();
+  return s.length >= 8 ? s : null;
+}
+
+function sanitizeGoalProgress() {
+  var gp = ST.patterns && ST.patterns.goalProgress;
+  if (!gp || !gp.length) return;
+  var changed = false;
+  ST.patterns.goalProgress = gp.map(function(entry) {
+    var cleaned = cleanGoalText(entry.goal);
+    if (!cleaned) return null;
+    if (cleaned !== entry.goal) { entry.goal = cleaned; changed = true; }
+    return entry;
+  }).filter(Boolean);
+  if (changed) save();
+}
+
 function initHabits() {
   if (!ST.patterns) ST.patterns = { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} };
   if (!ST.patterns.habits) ST.patterns.habits = [];
   if (!ST.patterns.habitLog) ST.patterns.habitLog = {};
+  sanitizeGoalProgress();
 }
 
 function addHabit(name, goalLink) {
