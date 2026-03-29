@@ -1187,6 +1187,7 @@ var openingNudge = null;
 var openingLoadedFor = {};
 var _dvs = new Date(); _dvs.setHours(0,0,0,0); var dailyViewSince = _dvs.getTime();
 var deepEnteredWithContext = false;
+var pendingOpeningContext = null;
 
 async function loadOpeningMessage(context) {
   var activeMsgs = getActiveMsgs();
@@ -2965,10 +2966,10 @@ function showDeepConfirm(context) {
     openingNudge = null;
     responseNudge = null;
     deepEnteredWithContext = !!(context);
+    pendingOpeningContext = context || null;
     save();
     playDeepAura();
     render();
-    loadOpeningMessage(context || null);
   };
   overlay.querySelector('.deep-confirm-no').onclick = function() {
     overlay.style.animation = 'fadeOut 0.2s ease forwards';
@@ -3233,6 +3234,7 @@ function renderChat(root) {
         openingNudge = null;
         responseNudge = null;
         deepEnteredWithContext = false;
+        pendingOpeningContext = null;
         if (newMode === 'daily') {
           var _dvs2 = new Date(); _dvs2.setHours(0,0,0,0); dailyViewSince = _dvs2.getTime();
           delete openingLoadedFor['daily'];
@@ -3267,10 +3269,10 @@ function renderChat(root) {
     openingNudge = null;
     responseNudge = null;
     deepEnteredWithContext = !!(ctx);
+    pendingOpeningContext = ctx || null;
     save();
     playDeepAura();
     render();
-    loadOpeningMessage(ctx);
   };
   var modeShiftStay = document.getElementById('mode-shift-stay');
   if (modeShiftStay) modeShiftStay.onclick = function() {
@@ -3406,7 +3408,9 @@ function renderChat(root) {
   }
 
   if (activeMsgs.length <= 1 && !isBusy) {
-    loadOpeningMessage();
+    var _poc = pendingOpeningContext;
+    pendingOpeningContext = null;
+    loadOpeningMessage(_poc || undefined);
   }
 }
 
