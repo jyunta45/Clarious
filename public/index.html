@@ -3050,7 +3050,7 @@ function renderChat(root) {
   var isBusy = ST.loading || ST.streaming || ST.limitReached;
   var activeMsgs = getActiveMsgs();
   var threads = getThreads();
-  var showCheckin = currentMode === 'daily' && shouldCheckin();
+  var showCheckin = false;
   var showQuickActions = !isBusy && activeMsgs.length <= 2 && !deepEnteredWithContext;
 
   var msgsHtml = activeMsgs.map(function(m, idx) {
