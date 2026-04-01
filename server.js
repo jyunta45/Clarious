@@ -1348,7 +1348,7 @@ app.post('/api/chat', async (req, res) => {
     const identityLayer = buildIdentityPrompt(userId);
     const calmLayer = buildCalmAuthorityPrompt(userMsg);
     const adaptiveLayer = buildAdaptivePrompt(userId, userMsg);
-    const capabilityLayer = buildCapabilityLayer();
+    const capabilityLayer = buildCapabilityLayer(chatMode, conversation, userMsg);
     const thaiBlock = detectThai(userMsg)
       ? '\n\n' + (chatMode === 'deep' ? THAI_LANGUAGE_RULES : THAI_LANGUAGE_RULES_MINIMAL)
       : '';

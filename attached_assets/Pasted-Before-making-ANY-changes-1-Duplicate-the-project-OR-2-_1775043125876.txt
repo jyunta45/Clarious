@@ -1,0 +1,124 @@
+Before making ANY changes:
+
+1. Duplicate the project OR
+2. Copy capabilityLayer.js → save as capabilityLayer_backup.js
+
+---
+
+You are NOT rewriting the system.
+
+You are ONLY optimizing how it is loaded.
+
+Read the entire capabilityLayer.js carefully before making changes.
+
+---
+
+STRICT RULES:
+
+DO NOT delete, rewrite, or shorten ANY existing content.
+
+This includes:
+- Deep Thinking Protocol
+- Landing System
+- Challenge System
+- Core identity
+- Tone and behavior
+
+All existing logic and wording must remain EXACTLY the same.
+
+---
+
+GOAL:
+
+Reduce token usage WITHOUT changing behavior.
+
+Only modify HOW the system prompt is assembled, not WHAT it contains.
+
+---
+
+TASKS:
+
+1. Identify existing large prompt blocks in the file.
+
+2. Extract them into constants WITHOUT modifying content:
+
+- CORE_SYSTEM (identity, tone, base rules)
+- DEEP_MODULE (Deep Thinking Protocol)
+- CHALLENGE_MODULE (Challenge System)
+- LANDING_MODULE (Landing System)
+
+IMPORTANT:
+→ Copy content exactly as-is
+→ Do NOT edit or compress text
+
+---
+
+3. Replace the current single large system prompt assembly.
+
+Create dynamic assembly logic:
+
+finalPrompt =
+  CORE_SYSTEM +
+  (include DEEP_MODULE only when needed) +
+  (include CHALLENGE_MODULE only when needed) +
+  (include LANDING_MODULE only when needed)
+
+---
+
+4. Add SIMPLE, NON-DESTRUCTIVE trigger logic:
+
+- deepThinking = true if user asks:
+  "why", "how", "should I", "what should I do"
+  OR message is longer than 1–2 sentences
+
+- challenge = true if message shows:
+  strong certainty, bias, or narrow thinking
+
+- landing = true if:
+  conversation length ≥ 3 turns
+  OR user expresses clarity
+
+---
+
+5. DO NOT modify any logic inside modules.
+
+DO NOT rewrite conditions already implemented inside those systems.
+
+Only control whether they are INCLUDED.
+
+---
+
+6. Light optimization ONLY:
+
+- Limit chat history to last 3–5 messages
+- If memory system exists, ensure it stays under ~400 tokens
+- DO NOT rewrite memory logic
+
+---
+
+7. Safety fallback (IMPORTANT):
+
+If anything is unclear:
+→ DO NOT change that part
+→ Leave original code as-is
+
+---
+
+8. Verification after changes:
+
+✓ Server starts successfully  
+✓ No runtime errors  
+✓ Streaming still works  
+✓ Responses feel IDENTICAL in tone and intelligence  
+✓ No system behavior is lost  
+✓ Only token usage is reduced  
+
+---
+
+FINAL RULE:
+
+Preserve behavior at all costs.
+
+If optimization conflicts with behavior:
+→ choose behavior
+→ skip optimization

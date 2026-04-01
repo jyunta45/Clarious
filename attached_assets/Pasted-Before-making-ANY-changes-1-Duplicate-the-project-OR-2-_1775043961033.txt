@@ -1,0 +1,160 @@
+Before making ANY changes:
+
+1. Duplicate the project OR
+2. Copy capabilityLayer.js → save as capabilityLayer_backup.js
+
+---
+
+You are NOT rewriting, improving, or modifying Clarious.
+
+You are ONLY optimizing how the system prompt is LOADED.
+
+---
+
+STRICT NON-NEGOTIABLE RULES:
+
+DO NOT:
+- Rewrite ANY sentence
+- Change ANY wording
+- Modify ANY logic
+- Add ANY new system
+- Remove ANY existing system
+- Simplify, compress, or reinterpret content
+
+This includes:
+- Deep Thinking Protocol
+- Challenge System
+- Landing System
+- Memory behavior
+- Summary behavior
+- Tone, personality, identity
+
+Everything must remain EXACTLY the same.
+
+---
+
+GOAL:
+
+Reduce token usage by avoiding loading the full system prompt every request.
+
+ONLY change how prompt pieces are assembled.
+
+---
+
+TASK 1 — IDENTIFY EXISTING BLOCKS
+
+Locate the current full system prompt.
+
+WITHOUT modifying content, separate it into logical blocks:
+
+- CORE_SYSTEM  
+  (identity, tone, base behavior)
+
+- DEEP_SYSTEM  
+  (Deep Thinking Protocol section)
+
+- CHALLENGE_SYSTEM  
+  (Challenge System section)
+
+- LANDING_SYSTEM  
+  (Landing / completion logic)
+
+IMPORTANT:
+→ Copy text EXACTLY
+→ Do NOT edit or shorten anything
+
+---
+
+TASK 2 — STORE AS CONSTANTS
+
+Move each block into constants like:
+
+const CORE_SYSTEM = `...`
+const DEEP_SYSTEM = `...`
+const CHALLENGE_SYSTEM = `...`
+const LANDING_SYSTEM = `...`
+
+---
+
+TASK 3 — DYNAMIC ASSEMBLY (ONLY CHANGE)
+
+Replace the existing single prompt build with:
+
+let finalPrompt = CORE_SYSTEM;
+
+---
+
+Then ADD simple inclusion logic (non-destructive):
+
+IF user message indicates deeper thinking
+→ append DEEP_SYSTEM
+
+IF user message shows strong opinion / assumption
+→ append CHALLENGE_SYSTEM
+
+IF conversation already has multiple turns
+→ append LANDING_SYSTEM
+
+---
+
+IMPORTANT:
+
+→ If unsure about condition → DO NOT include module  
+→ Never include all modules by default  
+→ Never remove CORE_SYSTEM  
+
+---
+
+TASK 4 — DO NOT TOUCH THESE
+
+- Memory system (leave exactly as-is)
+- Conversation summary system
+- Stored user patterns
+- Any adaptive behavior already implemented
+
+---
+
+TASK 5 — CHAT HISTORY (SAFE MODE)
+
+DO NOT rewrite history system.
+
+Only ensure:
+
+- Avoid sending unnecessary full history if already handled
+- If system already summarizes → leave it untouched
+
+If unclear → DO NOTHING
+
+---
+
+TASK 6 — SAFETY FALLBACK
+
+If ANY part of implementation is unclear:
+
+→ DO NOT modify that section  
+→ Leave original code unchanged  
+
+---
+
+TASK 7 — VERIFICATION
+
+After changes confirm:
+
+✓ Server runs with no errors  
+✓ Streaming works  
+✓ Responses feel IDENTICAL to before  
+✓ Deep thinking behaves exactly the same  
+✓ Memory + summaries unchanged  
+✓ No behavior regression  
+
+---
+
+FINAL RULE:
+
+Preserve behavior at all costs.
+
+If any optimization risks changing output:
+
+→ skip that optimization
+
+Clarious must feel exactly the same — only lighter to run.
