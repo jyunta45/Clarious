@@ -444,7 +444,7 @@ function buildContext({
   memoryDigest,
   phaseOverride
 }) {
-  const TURN_THRESHOLD = 6;
+  const TURN_THRESHOLD = 5;
   const RECENT_LIMIT = 4;
   const isDaily = mode === "daily";
 
