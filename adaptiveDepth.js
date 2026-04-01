@@ -104,6 +104,15 @@ function detectComplexity(message) {
     "important choice", "no hope",
     "losing myself", "don't see the point",
     "feels pointless", "not sure who i am",
+    // Stuck / looping
+    "going in circles", "keep going back", "can't make up my mind",
+    "i can't decide", "back and forth", "can't move forward",
+    // Ambiguous multi-direction
+    "torn between", "not sure which", "two options", "multiple paths",
+    "don't know which direction", "which way to go",
+    // Synthesis / deep reasoning
+    "how does this connect", "make sense of all", "underlying reason",
+    "what's really going on", "root cause", "bigger picture",
   ];
 
   const mediumSignals = [
@@ -113,7 +122,13 @@ function detectComplexity(message) {
     "fear of", "pressure to",
     "getting worse", "keeps coming back",
     "career decision", "wrong direction",
-    "what if i", "my future", "stuck in"
+    "what if i", "my future", "stuck in",
+    // Multi-directional
+    "both options", "pros and cons", "on one hand",
+    "another part of me", "at the same time",
+    // Synthesis
+    "put this together", "how to reconcile", "conflicting",
+    "not sure if", "keep wondering",
   ];
 
   for (const s of strongSignals) {

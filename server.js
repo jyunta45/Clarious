@@ -1301,8 +1301,10 @@ app.post('/api/chat', async (req, res) => {
           ? 'claude-sonnet-4-20250514'
           : 'claude-haiku-4-5-20251001';
       } else {
-        // EN and others: Sonnet on deep mode + (high complexity OR decision phase)
-        modelName = (chatMode === 'deep' && (complexity === 'HIGH' || phase === 'decision'))
+        // EN and others: Sonnet only when deep mode AND message is genuinely HIGH complexity
+        // (stuck/looping, ambiguous multi-direction, synthesis, or deep reasoning required)
+        // Decision phase alone is NOT sufficient — simple decision-phase messages use Haiku
+        modelName = (chatMode === 'deep' && complexity === 'HIGH')
           ? 'claude-sonnet-4-20250514'
           : 'claude-haiku-4-5-20251001';
       }
