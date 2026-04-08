@@ -1,0 +1,146 @@
+Please improve the visual presentation
+of chat messages in the app.
+
+Read ALL files before making changes.
+Focus on index.html and any CSS files.
+
+Do NOT change:
+→ Any backend logic
+→ Streaming behavior
+→ Message content
+→ Authentication
+→ Any functionality
+
+Only improve visual presentation.
+
+---
+
+PART 1 — Typography
+
+Find where chat messages are styled.
+
+Update message text styles:
+
+Font: Keep existing font OR
+upgrade to Inter if available
+via Google Fonts
+
+Line height: 1.75 (was likely 1.4-1.5)
+This single change improves
+readability dramatically.
+
+Letter spacing: 0.01em
+Subtle. Just enough to breathe.
+
+Clarious response text color:
+Change from pure white #FFFFFF
+to soft white #E8E8E8 or #EFEFEF
+Less harsh. More readable.
+More premium feeling.
+
+Message bubble padding:
+Increase to 16px 20px minimum.
+Give text room to breathe.
+
+Max width of Clarious responses:
+Set to 85% of container.
+Not full width — that feels cheap.
+
+---
+
+PART 2 — Markdown Rendering
+
+Currently ** and * show as raw text.
+
+Add a markdown parser to render:
+
+**text** → bold text
+*text* → italic text
+— → em dash (—)
+\n\n → proper paragraph spacing
+
+Use the 'marked' library
+if not already installed:
+npm install marked
+
+In the message rendering function:
+Parse Clarious responses through
+marked() before displaying.
+
+User messages remain plain text.
+Only Clarious responses get
+markdown rendering.
+
+---
+
+PART 3 — Message Spacing
+
+Add more vertical space between
+message groups (user + response pairs).
+
+Between message groups: 24px minimum
+Between paragraphs in one response: 16px
+Between response and input area: 32px
+
+This creates breathing room
+that makes the conversation
+feel like it has weight.
+
+---
+
+PART 4 — Subtle Response Animation
+
+When Clarious response appears
+add a very subtle fade-in:
+
+opacity: 0 → opacity: 1
+Duration: 200ms
+Easing: ease-out
+
+Apply to each new message bubble.
+Not per character — per message.
+
+This makes responses feel like
+they arrive with intention
+not just append to a list.
+
+---
+
+PART 5 — Input Area Polish
+
+The input area should feel
+like a premium text field:
+
+→ Slightly rounded corners (12px)
+→ Subtle border (1px solid rgba(255,255,255,0.1))
+→ Soft inner glow on focus
+   box-shadow: 0 0 0 2px rgba(147,51,234,0.3)
+   (purple glow matching existing accent)
+→ Placeholder text softer:
+   rgba(255,255,255,0.35)
+
+---
+
+CRITICAL RULES:
+
+Read ALL files first.
+Only modify CSS and
+message rendering logic.
+
+Do NOT modify:
+→ server.js
+→ Any backend files
+→ Streaming pipeline
+→ Memory systems
+→ Authentication
+
+After changes verify:
+✓ Server starts successfully
+✓ Streaming still works
+✓ Messages render correctly
+✓ Markdown displays properly
+✓ Bold and italic work
+✓ Spacing feels better
+✓ Animation is subtle not distracting
+✓ Mobile view still works
+✓ Existing functionality unchanged

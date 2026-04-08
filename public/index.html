@@ -10,7 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Clarious"/>
 <meta name="theme-color" content="#0d0d14"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
 <style>
 :root{--bg:#0d0d14;--card:rgba(255,255,255,0.06);--border:rgba(255,255,255,0.12);--accent:#9b6dff;--accent2:#ff6db5;--gold:#f5c842;--text:#f0eaff;--muted:#9985c0;--radius:20px;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -52,16 +53,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .mirror-box{white-space:pre-wrap;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2);border-radius:var(--radius);padding:28px;margin:24px 0;font-size:0.95rem;line-height:1.8;color:var(--muted);}
 .chat-wrap{display:flex;flex-direction:column;height:100vh;height:100dvh;position:relative;overflow:hidden;}
 .chat-header{padding:16px 20px;background:rgba(13,13,20,0.95);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;padding-bottom:32px;display:flex;flex-direction:column;gap:24px;}
 .msg{display:flex;}
 .msg.user{justify-content:flex-end;}
-.bubble{max-width:80%;padding:14px 20px;border-radius:20px;font-size:0.95rem;line-height:1.6;white-space:pre-wrap;}
-.bubble.assistant{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:6px;}
+.bubble{max-width:80%;padding:16px 20px;border-radius:20px;font-size:0.95rem;line-height:1.75;letter-spacing:0.01em;white-space:pre-wrap;animation:bubbleFadeIn 200ms ease-out both;}
+.bubble.assistant{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:6px;color:#efefef;max-width:85%;white-space:normal;}
 .bubble.user{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-bottom-right-radius:6px;}
+.md{white-space:normal;}
+.md p{margin-bottom:14px;}
+.md p:last-child{margin-bottom:0;}
+.md strong{font-weight:600;}
+.md em{font-style:italic;opacity:0.9;}
+.md ul,.md ol{margin:8px 0 14px 20px;}
+.md li{margin-bottom:4px;}
+@keyframes bubbleFadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 .chat-input-bar{padding:16px 20px;background:rgba(13,13,20,0.95);border-top:1px solid var(--border);}
 .chat-input-inner{display:flex;gap:10px;}
-.chat-input{flex:1;padding:14px 18px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);outline:none;}
-.chat-input:focus{border-color:var(--accent);}
+.chat-input{flex:1;padding:14px 18px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(147,51,234,0.3);}
+.chat-input::placeholder{color:rgba(255,255,255,0.35);}
 .chat-send{padding:14px 24px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;border-radius:var(--radius);cursor:pointer;}
 .lang-picker{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:28px;}
 .lang-btn{padding:14px 24px;font-family:'DM Sans',sans-serif;font-size:1rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);cursor:pointer;transition:all 0.15s;min-width:140px;text-align:center;}
@@ -2370,6 +2380,16 @@ function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function renderMarkdown(text) {
+  if (!text) return '';
+  if (typeof marked === 'undefined') return esc(text);
+  try {
+    marked.use({ breaks: true, gfm: true });
+    var html = marked.parse(String(text));
+    return '<div class="md">' + html + '</div>';
+  } catch(e) { return esc(text); }
+}
+
 function langSwitcherHtml() {
   var html = '<div class="lang-switcher" data-testid="lang-switcher">';
   var keys = Object.keys(LANGS);
@@ -3058,8 +3078,13 @@ function renderChat(root) {
     var isLastAssistant = ST.streaming && idx === activeMsgs.length - 1 && m.role === 'assistant';
     var isLastDoneAssistant = !ST.streaming && idx === activeMsgs.length - 1 && m.role === 'assistant';
     var bubbleId = isLastAssistant ? ' id="stream-bubble"' : '';
-    var content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-    if (isLastAssistant && !content) content = '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
+    var content;
+    if (m.role === 'assistant' && !isLastAssistant && m.content) {
+      content = renderMarkdown(m.content);
+    } else {
+      content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+      if (isLastAssistant && !content) content = '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
+    }
     var ttsBtn = '';
     if (m.role === 'assistant' && m.content && !isLastAssistant && hasVoiceOutput()) {
       ttsBtn = '<button class="voice-play" data-vidx="' + idx + '" data-testid="voice-play-' + idx + '">' + ui('voicePlay') + '</button>';
