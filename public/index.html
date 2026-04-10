@@ -52,7 +52,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .reset-link:hover{color:var(--accent2);}
 .mirror-box{white-space:pre-wrap;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2);border-radius:var(--radius);padding:28px;margin:24px 0;font-size:0.95rem;line-height:1.8;color:var(--muted);}
 .chat-wrap{display:flex;flex-direction:column;height:100vh;height:100dvh;position:relative;overflow:hidden;}
-.chat-header{padding:10px 16px;background:rgba(13,13,20,0.95);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.chat-header{padding:10px 16px 8px;background:rgba(13,13,20,0.95);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:7px;}
 .chat-messages{flex:1;overflow-y:auto;padding:20px;padding-bottom:32px;display:flex;flex-direction:column;gap:24px;}
 .msg{display:flex;}
 .msg.user{justify-content:flex-end;}
@@ -139,7 +139,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .voice-play{background:none;border:none;color:var(--muted);font-size:0.7rem;cursor:pointer;padding:4px 8px;margin-top:4px;display:inline-flex;align-items:center;gap:4px;border-radius:8px;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
 .voice-play:hover{color:var(--accent);background:rgba(155,109,255,0.1);}
 .voice-play.speaking{color:var(--accent2);}
-.tier-badge{font-size:0.6rem;padding:2px 7px;border-radius:100px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.tier-badge{font-size:0.6rem;padding:2px 7px;border-radius:100px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
 .tier-guest{background:rgba(255,255,255,0.08);color:var(--muted);}
 .tier-free{background:rgba(155,109,255,0.15);color:var(--accent);}
 .tier-subscriber{background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(255,109,181,0.2));color:var(--gold);}
@@ -3171,16 +3171,20 @@ function renderChat(root) {
 
   root.innerHTML = '<div class="chat-wrap mode-' + currentMode + '">' +
     '<div class="chat-header">' +
-    '<div style="font-family:Playfair Display,serif;font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,#f5d87a 0%,#c9a840 50%,#f0c04a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Clarious</div>' +
-    '<div style="display:flex;gap:7px;align-items:center;flex-wrap:nowrap;">' +
-    '<button class="growth-btn" id="open-growth" data-testid="button-open-growth">' + ui('growthBtn') + '</button>' +
-    '<button class="patterns-btn" id="open-patterns" data-testid="button-open-patterns">Patterns</button>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
+    '<div style="font-family:Playfair Display,serif;font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,#f5d87a 0%,#c9a840 50%,#f0c04a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap;">Clarious</div>' +
+    '<div style="display:flex;gap:7px;align-items:center;">' +
     '<span id="tier-badge" class="tier-badge ' + getTierClass() + '" data-testid="badge-tier">' + getTierLabel() + '</span>' +
-    (AUTH.loggedIn && AUTH.tier !== 'partner' ? '<button id="real-upgrade-btn" data-testid="button-real-upgrade" style="font-size:0.68rem;padding:2px 9px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:100px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600">Upgrade</button>' : '') +
     Object.keys(LANGS).map(function(k) {
       var active = (ST.lang || 'en') === k ? ' active' : '';
       return '<button class="lang-mini' + active + '" data-lang="' + k + '" data-testid="lang-chat-' + k + '" style="font-size:0.9rem;padding:4px 6px">' + LANGS[k].flag + '</button>';
     }).join('') +
+    (AUTH.loggedIn ? '<button class="logout-btn" id="chat-logout-btn" data-testid="button-chat-logout" style="font-size:0.72rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;padding:0;">' + ui('logOut') + '</button>' : '') +
+    '</div></div>' +
+    '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">' +
+    '<button class="growth-btn" id="open-growth" data-testid="button-open-growth">' + ui('growthBtn') + '</button>' +
+    '<button class="patterns-btn" id="open-patterns" data-testid="button-open-patterns">Patterns</button>' +
+    (AUTH.loggedIn && AUTH.tier !== 'partner' ? '<button id="real-upgrade-btn" data-testid="button-real-upgrade" style="font-size:0.68rem;padding:2px 9px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:100px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600">Upgrade to Partner</button>' : '') +
     (AUTH.email === 'jyunta45@gmail.com' ?
       '<button id="dev-upgrade-btn" data-testid="button-dev-upgrade" onclick="fetch(\'/api/restore\',{method:\'POST\',credentials:\'include\'}).then(r=>r.json()).then(function(d){console.log(d);if(d.success){window.location.reload();}else{alert(\'Error: \'+JSON.stringify(d));}})" style="font-size:0.65rem;padding:2px 6px;background:#222;color:#0f0;border:1px solid #0f0;border-radius:4px;cursor:pointer">Upgrade (DEV)</button>' +
       '<button id="dev-downgrade-btn" data-testid="button-dev-downgrade" onclick="fetch(\'/api/dev/downgrade\',{method:\'POST\',credentials:\'include\'}).then(r=>r.json()).then(console.log)" style="font-size:0.65rem;padding:2px 6px;background:#222;color:#f80;border:1px solid #f80;border-radius:4px;cursor:pointer">Downgrade (DEV)</button>' +
