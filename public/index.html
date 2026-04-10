@@ -2360,7 +2360,8 @@ function updateStreamBubble() {
   if (lastBubble) {
     var aMsgs = getActiveMsgs();
     if (aMsgs.length > 0) {
-      lastBubble.innerHTML = esc(aMsgs[aMsgs.length - 1].content);
+      var content = aMsgs[aMsgs.length - 1].content;
+      lastBubble.innerHTML = content ? renderMarkdown(content) : '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
     }
     var cm = document.getElementById('cm');
     if (cm) cm.scrollTop = cm.scrollHeight;
@@ -3081,11 +3082,12 @@ function renderChat(root) {
     var isLastDoneAssistant = !ST.streaming && idx === activeMsgs.length - 1 && m.role === 'assistant';
     var bubbleId = isLastAssistant ? ' id="stream-bubble"' : '';
     var content;
-    if (m.role === 'assistant' && !isLastAssistant && m.content) {
+    if (m.role === 'assistant' && m.content) {
       content = renderMarkdown(m.content);
+    } else if (m.role === 'assistant' && isLastAssistant) {
+      content = '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
     } else {
       content = m.content ? m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-      if (isLastAssistant && !content) content = '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
     }
     var ttsBtn = '';
     if (m.role === 'assistant' && m.content && !isLastAssistant && hasVoiceOutput()) {
