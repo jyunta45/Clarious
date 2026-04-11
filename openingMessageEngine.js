@@ -108,6 +108,15 @@ export function buildOpeningMessage(params) {
       );
     }
 
+    // Prepend name to static time-based messages when name is available and not already in text
+    if (params.name && !opening.text.includes(params.name) &&
+        ['morning', 'afternoon', 'evening', 'latenight', 'fallback'].includes(opening.type)) {
+      const namePrefix = lang === 'th'
+        ? `สวัสดีครับ ${params.name}\n\n`
+        : `${params.name}.\n\n`;
+      opening.text = namePrefix + opening.text;
+    }
+
     return opening;
   } catch (error) {
     return buildFallbackOpening(

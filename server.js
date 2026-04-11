@@ -841,6 +841,13 @@ app.get('/api/opening-message', async (req, res) => {
         greetPrompt = isThai
           ? `สร้างคำทักทายอบอุ่น 1-2 ประโยค\n\nชื่อ: ${userName || 'ผู้ใช้'}\nเป้าหมาย: ${userGoal}\nโฟกัส: ${userFocus}\n\nทำให้รู้สึกเหมือนกลับมาพบกันอีกครั้ง เชิญชวนให้แชร์สิ่งที่อยู่ในใจ ตอบเป็นภาษาไทยเท่านั้น`
           : `Generate a warm 1-2 sentence greeting.\n\nName: ${userName || 'there'}\nGoal: ${userGoal}\nFocus: ${userFocus}\n\nMake it feel like reconnecting. Invite them to share what is on their mind. Plain text only.`;
+      } else if (guidanceComplete && !digest && userName) {
+        // Established user but no memory digest yet — warm name + time-of-day greeting
+        const hourNote = localHour >= 5 && localHour <= 11 ? 'morning'
+          : localHour >= 12 && localHour <= 17 ? 'afternoon' : 'evening';
+        greetPrompt = isThai
+          ? `1-2 ประโยคสั้น ทักทาย "${userName}" อบอุ่น ช่วงเวลา ${hourNote} ชวนให้แชร์สิ่งที่ค้างใจ ไม่ถามคำถามตรงๆ ภาษาไทยธรรมชาติ ไม่ใช้ markdown`
+          : `Write 1-2 short sentences. Warmly greet "${userName}" for the ${hourNote}. End with a gentle open invitation — no direct question. Plain text only.`;
       }
 
       if (greetPrompt) {
