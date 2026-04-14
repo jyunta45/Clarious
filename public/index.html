@@ -2543,9 +2543,9 @@ function renderOnboardingChat(root) {
     }
   }
 
-  // Input row (shown when conversation has started and not yet complete)
+  // Input row (shown on first open and after conversation starts, but not while waiting for AI)
   var inputHtml = '';
-  if (msgs.length > 0 && !OB_SENDING) {
+  if ((msgs.length > 0 || isFirstOpen) && !OB_SENDING) {
     inputHtml = '<div class="ob-input-row">' +
       '<textarea class="ob-input" id="ob-input" placeholder="' + esc(OB_PLACEHOLDER[lang] || OB_PLACEHOLDER.en) + '" data-testid="input-onboarding" rows="1"></textarea>' +
       '<button class="ob-send" id="ob-send" data-testid="button-ob-send">' + esc(OB_SEND_LABEL[lang] || OB_SEND_LABEL.en) + '</button>' +
