@@ -239,6 +239,18 @@ const DEEP_KEYWORDS = [
   "family pressure", "expectations", "disappointing",
   "letting go", "moving on", "grief",
 
+  // English — ego / self-concept / philosophy
+  "ego", "higher self", "true self", "authentic self", "real self",
+  "shadow self", "shadow work", "inner child", "subconscious",
+  "consciousness", "self-concept", "self-image", "self-worth",
+  "core belief", "belief system", "limiting belief",
+  "authenticity", "authentic", "genuine self",
+  "mindset shift", "inner work", "personal growth",
+  "spiritual", "soul", "deeper meaning", "bigger picture",
+  "my values", "what i believe", "who i really am",
+  "wake up call", "pattern i keep", "cycle i keep",
+  "narrative", "story i tell myself",
+
   // Thai — career & job
   "ลาออก", "ออกจากงาน", "เปลี่ยนงาน", "เปลี่ยนอาชีพ",
   "เปลี่ยนเส้นทาง", "หยุดทำงาน", "ลาออกจาก",
@@ -267,7 +279,16 @@ const DEEP_KEYWORDS = [
   "คุ้มค่าไหม", "คุ้มไหม", "มีคุณค่า",
   // Thai — quitting or giving up
   "ยอมแพ้", "เลิกทำ", "หยุดทำ", "ทิ้งทุกอย่าง",
-  "ไม่ไหวแล้ว", "เหนื่อยแล้ว", "อยากเลิก"
+  "ไม่ไหวแล้ว", "เหนื่อยแล้ว", "อยากเลิก",
+
+  // Thai — ego / self-concept / philosophy
+  "อีโก้", "ตัวตนที่แท้จริง", "ตัวตนจริงๆ", "ตัวตนระดับสูง",
+  "ความเชื่อหลัก", "ระบบความเชื่อ", "ความเชื่อที่จำกัดตัวเอง",
+  "จิตสำนึก", "จิตใต้สำนึก", "วิญญาณ",
+  "คุณค่าของตัวเอง", "ภาพลักษณ์ตัวเอง", "ความเชื่อเกี่ยวกับตัวเอง",
+  "การเติบโตส่วนตัว", "งานภายใน", "รูปแบบที่ทำซ้ำ",
+  "เรื่องราวที่บอกตัวเอง", "ความหมายที่ลึกกว่า",
+  "สิ่งที่ฉันเชื่อ", "ค่านิยมของฉัน", "จิตวิญญาณ"
 ];
 
 const DEEP_PATTERNS = [
