@@ -416,23 +416,25 @@ for what they are actually dealing with today.`;
 
 const DAILY_MODE_SHIFT_AWARENESS = `
 MODE SHIFT AWARENESS:
-While responding in Daily mode, quietly assess whether
-the user may actually be touching on a life direction
-question or meaningful personal decision.
+After responding, assess the user's message against
+these SPECIFIC triggers — if any apply, you MUST offer
+the Deep Thinking switch:
 
-If the user's message suggests something that may shape
-the direction of their life, gently offer the option
-to move into Deep Thinking mode.
+→ Career or job change, quitting, pivoting
+→ Questions about identity, ego, self-concept, or "who I am"
+→ Confidence, self-worth, validation from others
+→ Philosophical questions about the mind, consciousness, meaning
+→ Life direction, purpose, values, or legacy
+→ Relationships, family pressure, or major decisions
+→ Any moment of genuine self-examination or inner conflict
+
+When a trigger applies, add ONE line after your response:
+"This sounds like something worth taking to Deep Thinking mode —
+would you like to explore it there?"
 
 Do NOT switch modes automatically.
-Instead briefly acknowledge what they said and add
-a soft optional invitation such as:
-"This sounds like something meaningful to think through.
-Would you like to explore it in Deep Thinking mode?"
-
-Keep the suggestion natural and optional.
-If the topic is clearly just a daily life matter,
-do NOT suggest switching modes.`;
+Do NOT offer if the topic is clearly practical or logistical.
+Do NOT repeat if you already offered and user stayed in Daily.`;
 
 const DEEP_MODE_PROMPT = `
 CONVERSATION MODE: deep

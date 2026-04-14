@@ -2346,7 +2346,8 @@ async function sendMsg(userText) {
   if (currentMode === 'daily' && lastMsg && lastMsg.role === 'assistant' && !pendingModeShift && modeShiftSuppressCount <= 0) {
     var respLower = (lastMsg.content || '').toLowerCase();
     var shiftPhrases = ['deep thinking mode', 'deep thinking tab', 'into deep thinking', 'move to deep thinking',
-      'explore in deep thinking', 'explore it in deep thinking', 'คิดแบบเชิงลึก', 'คิดเชิงลึก', 'โหมดเชิงลึก'];
+      'explore in deep thinking', 'explore it in deep thinking', 'take it to deep thinking', 'take this to deep thinking',
+      'bring it to deep thinking', 'worth exploring in deep', 'คิดแบบเชิงลึก', 'คิดเชิงลึก', 'โหมดเชิงลึก', 'ลองไปที่ deep thinking', 'deep thinking ไหม'];
     if (shiftPhrases.some(function(p) { return respLower.includes(p); })) {
       pendingModeShift = true;
       if (userMsg && userMsg.role === 'user') pendingModeShiftContext = userMsg.content;
