@@ -2356,7 +2356,13 @@ async function sendMsg(userText) {
   ST.lastActiveDate = new Date().toISOString().slice(0, 10);
   save();
   render();
-  setTimeout(function() { var el = document.getElementById('chat-end'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100);
+  setTimeout(function() {
+    var cm2 = document.getElementById('cm');
+    if (cm2) {
+      var dist = cm2.scrollHeight - cm2.scrollTop - cm2.clientHeight;
+      if (dist < 120) { var el = document.getElementById('chat-end'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }
+    }
+  }, 100);
   if (ST.autoSpeak && lastMsg && lastMsg.role === 'assistant' && lastMsg.content && hasVoiceOutput()) {
     ST.autoSpeak = false;
     setTimeout(function() {
@@ -2375,7 +2381,10 @@ function updateStreamBubble() {
       lastBubble.innerHTML = content ? renderMarkdown(content) : '<span style="color:var(--muted)">' + ui('thinking') + '</span>';
     }
     var cm = document.getElementById('cm');
-    if (cm) cm.scrollTop = cm.scrollHeight;
+    if (cm) {
+      var distFromBottom = cm.scrollHeight - cm.scrollTop - cm.clientHeight;
+      if (distFromBottom < 120) cm.scrollTop = cm.scrollHeight;
+    }
   }
 }
 
