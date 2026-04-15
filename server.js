@@ -1305,14 +1305,14 @@ app.post('/api/chat', async (req, res) => {
       if (isThaiDeep) {
         // Thai Deep: Sonnet only when ALL THREE conditions are true
         modelName = (phase === 'decision' && complexity === 'HIGH' && wordCount >= 20)
-          ? 'claude-sonnet-4-20250514'
+          ? 'claude-sonnet-4-5-20251001'
           : 'claude-haiku-4-5-20251001';
       } else {
         // EN and others: Sonnet only when deep mode AND message is genuinely HIGH complexity
         // (stuck/looping, ambiguous multi-direction, synthesis, or deep reasoning required)
         // Decision phase alone is NOT sufficient — simple decision-phase messages use Haiku
         modelName = (chatMode === 'deep' && complexity === 'HIGH')
-          ? 'claude-sonnet-4-20250514'
+          ? 'claude-sonnet-4-5-20251001'
           : 'claude-haiku-4-5-20251001';
       }
     }
