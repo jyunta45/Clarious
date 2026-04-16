@@ -34,6 +34,78 @@ function detectThai(message) {
   return /[\u0E00-\u0E7F]/.test(message);
 }
 
+// ── WEB SEARCH (Brave Search API) ──────────────────────────────────────────
+
+const SEARCH_TRIGGERS = [
+  /\b(jobs?|hiring|vacancies|vacancy|openings?)\b/i,
+  /\b(salary|salaries|pay|wage|income|earnings)\b/i,
+  /\b(scholarships?|grants?|fellowships?|funding)\b/i,
+  /\b(visa|immigration|permit|requirements?)\b/i,
+  /\b(current(ly)?|latest|recent|right now|today|this week|this month|this year|2024|2025|2026)\b/i,
+  /\b(price|cost|fee|rate|interest rate)\b/i,
+  /\b(news|update|announcement|launched?|released?)\b/i,
+  /\b(available|exist|still (running|open|active))\b/i,
+  /\b(government|official|policy|regulation|law|legal)\b/i,
+  /\b(platform|app|tool|service|software) (exist|available|work|still)\b/i,
+  /\b(opportunities|accelerators?|programs?|competitions?)\b.*\b(apply|deadline|open)\b/i,
+  /\b(how much|what is the cost|current rate|exchange rate)\b/i
+];
+
+const SEARCH_NEVER = [
+  /\b(feel|feeling|emotion|sad|happy|anxious|stress|overwhelm|lonely)\b/i,
+  /\b(relationship|family|friend|love|breakup|conflict)\b/i,
+  /\b(meaning|purpose|philosophy|exist|consciousness)\b/i,
+  /\b(should I|what do you think|advice|opinion)\b/i
+];
+
+function shouldSearch(msg, chatMode) {
+  if (!process.env.BRAVE_API_KEY) return false;
+  if (!msg || msg.length < 10) return false;
+  const skip = SEARCH_NEVER.some(r => r.test(msg));
+  if (skip) return false;
+  if (chatMode === 'daily') {
+    const explicit = /\b(search|look up|find|what is the current|latest news)\b/i.test(msg);
+    return explicit && SEARCH_TRIGGERS.some(r => r.test(msg));
+  }
+  return SEARCH_TRIGGERS.some(r => r.test(msg));
+}
+
+async function braveSearch(query) {
+  try {
+    const url = 'https://api.search.brave.com/res/v1/web/search?q=' + encodeURIComponent(query) + '&count=5&text_decorations=false&safesearch=moderate';
+    const resp = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip',
+        'X-Subscription-Token': process.env.BRAVE_API_KEY
+      }
+    });
+    if (!resp.ok) {
+      console.error('[SEARCH] Brave API error:', resp.status);
+      return null;
+    }
+    const data = await resp.json();
+    const results = (data.web?.results || []).slice(0, 4);
+    if (!results.length) return null;
+    const summary = results.map((r, i) =>
+      `[${i + 1}] ${r.title}\n${r.description || ''}\nSource: ${r.url}`
+    ).join('\n\n');
+    return summary;
+  } catch (e) {
+    console.error('[SEARCH] Error:', e.message);
+    return null;
+  }
+}
+
+async function buildSearchContext(userMsg, chatMode) {
+  if (!shouldSearch(userMsg, chatMode)) return '';
+  const query = userMsg.length > 200 ? userMsg.slice(0, 200) : userMsg;
+  console.log('[SEARCH] Searching for:', query.slice(0, 80));
+  const results = await braveSearch(query);
+  if (!results) return '';
+  return `\n\n---\nCURRENT WEB SEARCH RESULTS (use these to inform your response — integrate naturally, do not list them raw):\n${results}\n---\n`;
+}
+
 const CJK_LANGS = ['th'];
 
 function phaseTokenLimit(phase, chatMode, userLang) {
@@ -1397,7 +1469,8 @@ app.post('/api/chat', async (req, res) => {
     if (budgetState.systemNotice) {
       budgetNotice = '\n' + budgetState.systemNotice + '\n';
     }
-    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + thaiBlock + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + questionControlLayer + '\n\n' + truncationNotice + budgetNotice + (req.body.system || '');
+    const searchContext = await buildSearchContext(userMsg, chatMode);
+    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + thaiBlock + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + questionControlLayer + '\n\n' + truncationNotice + budgetNotice + searchContext + (req.body.system || '');
 
     let guidanceData = null;
     if (req.session.userId) {

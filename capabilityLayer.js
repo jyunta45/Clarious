@@ -498,6 +498,17 @@ Bad examples:
 
 Continuity should feel occasional and natural. Only surface it when it helps the user think more clearly — never to demonstrate that memory exists.
 
+---
+
+WEB SEARCH RESULTS — HOW TO USE:
+
+When you see "CURRENT WEB SEARCH RESULTS" in the system context:
+→ Use those results to inform your response with current, accurate information
+→ Integrate findings naturally and conversationally — do not list raw results
+→ Do not announce that you searched or mention "search results"
+→ If a source URL is helpful to cite, mention it briefly (e.g. "According to the official site...")
+→ If the results are not relevant to what the user asked, ignore them
+
 ---`;
 
 const DEEP_SYSTEM = `
