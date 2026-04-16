@@ -664,7 +664,31 @@ app.post('/api/onboarding-chat', async (req, res) => {
     if (!onboardingState.started) {
       const q0 = qList[0];
       const isSystemAction = message === '__start__' || message === '__continue__';
-      const preferredName = isSystemAction ? null : message.trim().split(/\s+/)[0]; // first word only
+      let preferredName = null;
+      if (!isSystemAction) {
+        const raw = message.trim();
+        // Try to detect "My name is X", "I'm X", "Call me X", "I am X", "ผมชื่อ X", "ชื่อ X" etc.
+        const namePatterns = [
+          /(?:my name is|call me|i['']m|i am|they call me)\s+([^\s,!.?]+)/i,
+          /(?:ผมชื่อ|ฉันชื่อ|ชื่อ|เรียกว่า|เรียกผมว่า)\s*([^\s,!.?]+)/,
+        ];
+        let extracted = null;
+        for (const p of namePatterns) {
+          const m = raw.match(p);
+          if (m && m[1]) { extracted = m[1]; break; }
+        }
+        if (extracted) {
+          preferredName = extracted;
+        } else if (raw.split(/\s+/).length <= 3) {
+          // Short message (1-3 words) — treat whole thing or first word as name
+          // Capitalise first letter to clean up e.g. "john" → "John"
+          const firstWord = raw.split(/\s+/)[0];
+          preferredName = firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
+        } else {
+          // Long message — can't reliably extract; skip name rather than save a wrong word
+          preferredName = null;
+        }
+      }
       if (preferredName) onboardingProgress.preferredName = preferredName;
       const initialFn = INITIAL_MESSAGES[safeLang] || INITIAL_MESSAGES.en;
       const text = initialFn(q0, preferredName);
@@ -776,7 +800,7 @@ app.get('/api/opening-message', async (req, res) => {
           openLoops: uData.openLoops || [],
           mode: openingMode,
           localHour,
-          name: uData.onboardingProgress?.preferredName || null
+          name: uData.onboardingProgress?.preferredName || uData.answers?.name || uData.identityProfile?.name || null
         };
       }
     }
@@ -824,7 +848,7 @@ app.get('/api/opening-message', async (req, res) => {
       const isThai = greetLang === 'th';
       const guidanceComplete = (uData.guidanceDay || 0) > 8;
       const digest = uData.memoryDigest || '';
-      const userName = uData.onboardingProgress?.preferredName || uData.answers?.name || '';
+      const userName = uData.onboardingProgress?.preferredName || uData.answers?.name || uData.identityProfile?.name || '';
       let greetPrompt = '';
 
       if (guidanceComplete && digest) {
@@ -832,15 +856,15 @@ app.get('/api/opening-message', async (req, res) => {
         const hourNote = localHour >= 5 && localHour <= 11 ? 'morning'
           : localHour >= 12 && localHour <= 17 ? 'afternoon' : 'evening';
         greetPrompt = isThai
-          ? `คุณคือ Clarious\n\nรู้เกี่ยวกับผู้ใช้:\n${digest}\n\nชื่อ: ${userName || 'ผู้ใช้'}\nช่วงเวลา: ${hourNote}\n\n1-2 ประโยค อบอุ่น อ้างอิงสิ่งที่รู้จริงเกี่ยวกับเขา จบด้วยการเชิญแบบเปิดกว้าง ไม่ถามคำถามชัดเจน ภาษาไทยธรรมชาติ ไม่ใช้ markdown`
-          : `You are Clarious.\n\nWhat you know about this user:\n${digest}\n\nName: ${userName || 'there'}\nTime of day: ${hourNote}\n\n1-2 sentences. Warm. Reference something real from their context. End with a soft open invitation — no pointed question. Plain text only.`;
-      } else if ((uData.tier === 'free' || !uData.tier) && uData.lastActiveAt && !guidanceComplete) {
-        // Free tier, still in guidance phase — simple name/goal greeting
+          ? `คุณคือ Clarious\n\nรู้เกี่ยวกับผู้ใช้:\n${digest}\n\n${userName ? `เรียกเขาว่า "${userName}" — ต้องเริ่มด้วยการทักชื่อเขา` : 'ไม่รู้ชื่อ'}\nช่วงเวลา: ${hourNote}\n\n1-2 ประโยค อบอุ่น อ้างอิงสิ่งที่รู้จริงเกี่ยวกับเขา จบด้วยการเชิญแบบเปิดกว้าง ไม่ถามคำถามชัดเจน ภาษาไทยธรรมชาติ ไม่ใช้ markdown`
+          : `You are Clarious.\n\nWhat you know about this user:\n${digest}\n\n${userName ? `Their name is ${userName}. You MUST open by addressing them as "${userName}".` : 'Name unknown.'}\nTime of day: ${hourNote}\n\n1-2 sentences. Warm. Reference something real from their context. End with a soft open invitation — no pointed question. Plain text only.`;
+      } else if ((uData.tier === 'free' || !uData.tier) && uData.lastActiveAt && !guidanceComplete && userName) {
+        // Free tier, still in guidance phase — simple name/goal greeting (only when name is known)
         const userGoal = uData.answers?.goal || uData.answers?.['0'] || '';
         const userFocus = uData.identityProfile?.currentFocus || uData.answers?.focus || '';
         greetPrompt = isThai
-          ? `สร้างคำทักทายอบอุ่น 1-2 ประโยค\n\nชื่อ: ${userName || 'ผู้ใช้'}\nเป้าหมาย: ${userGoal}\nโฟกัส: ${userFocus}\n\nทำให้รู้สึกเหมือนกลับมาพบกันอีกครั้ง เชิญชวนให้แชร์สิ่งที่อยู่ในใจ ตอบเป็นภาษาไทยเท่านั้น`
-          : `Generate a warm 1-2 sentence greeting.\n\nName: ${userName || 'there'}\nGoal: ${userGoal}\nFocus: ${userFocus}\n\nMake it feel like reconnecting. Invite them to share what is on their mind. Plain text only.`;
+          ? `สร้างคำทักทายอบอุ่น 1-2 ประโยค\n\nต้องขึ้นต้นด้วยการทักชื่อ "${userName}" ก่อนเสมอ\nเป้าหมาย: ${userGoal}\nโฟกัส: ${userFocus}\n\nทำให้รู้สึกเหมือนกลับมาพบกันอีกครั้ง เชิญชวนให้แชร์สิ่งที่อยู่ในใจ ตอบเป็นภาษาไทยเท่านั้น`
+          : `Generate a warm 1-2 sentence greeting.\n\nYou MUST start by addressing the user as "${userName}".\nGoal: ${userGoal}\nFocus: ${userFocus}\n\nMake it feel like reconnecting. Invite them to share what is on their mind. Plain text only.`;
       } else if (guidanceComplete && !digest && userName) {
         // Established user but no memory digest yet — warm name + time-of-day greeting
         const hourNote = localHour >= 5 && localHour <= 11 ? 'morning'

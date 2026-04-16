@@ -2488,6 +2488,7 @@ var OB_RESUME_CHIPS = {
 var OB_SEND_LABEL = { en: "Send", ja: "送信", es: "Enviar", th: "ส่ง", ko: "보내기" };
 var OB_GOTO_LABEL = { en: "Go to app →", th: "ข้ามไปแอป →" };
 var OB_PLACEHOLDER = { en: "Type your answer…", ja: "入力してください…", es: "Escribe tu respuesta…", th: "พิมพ์คำตอบของคุณ…", ko: "답변을 입력하세요…" };
+var OB_NAME_PLACEHOLDER = { en: "Your name…", th: "ชื่อของคุณ…" };
 var OB_COMPLETION_CHIPS = {
   en: ["Let's start", "Ask me something"],
   ja: ["始めましょう", "何か聞いて"],
@@ -2555,8 +2556,11 @@ function renderOnboardingChat(root) {
   // Input row (shown on first open and after conversation starts, but not while waiting for AI)
   var inputHtml = '';
   if ((msgs.length > 0 || isFirstOpen) && !OB_SENDING) {
+    var obPlaceholder = (msgs.length === 0 && isFirstOpen)
+      ? (OB_NAME_PLACEHOLDER[lang] || OB_NAME_PLACEHOLDER.en)
+      : (OB_PLACEHOLDER[lang] || OB_PLACEHOLDER.en);
     inputHtml = '<div class="ob-input-row">' +
-      '<textarea class="ob-input" id="ob-input" placeholder="' + esc(OB_PLACEHOLDER[lang] || OB_PLACEHOLDER.en) + '" data-testid="input-onboarding" rows="1"></textarea>' +
+      '<textarea class="ob-input" id="ob-input" placeholder="' + esc(obPlaceholder) + '" data-testid="input-onboarding" rows="1"></textarea>' +
       '<button class="ob-send" id="ob-send" data-testid="button-ob-send">' + esc(OB_SEND_LABEL[lang] || OB_SEND_LABEL.en) + '</button>' +
       '</div>';
   }
