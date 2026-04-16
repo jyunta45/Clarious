@@ -1567,6 +1567,7 @@ app.post('/api/chat', async (req, res) => {
       let buffer = '';
       let fullReply = '';
 
+      let streamErrored = false;
       try {
         while (true) {
           const { done, value } = await reader.read();
@@ -1584,7 +1585,10 @@ app.post('/api/chat', async (req, res) => {
                   fullReply += event.delta.text;
                   res.write('data: ' + JSON.stringify({ text: event.delta.text }) + '\n\n');
                 } else if (event.type === 'error') {
-                  console.error('[STREAM ERROR]', JSON.stringify(event));
+                  const errMsg = event.error?.message || JSON.stringify(event.error) || 'Stream error';
+                  console.error('[STREAM ERROR] type=' + (event.error?.type || '?') + ' msg=' + errMsg + ' user=' + userId + ' model=' + modelName + ' msgs=' + chatMessages.length);
+                  res.write('data: ' + JSON.stringify({ type: 'error', error: { message: errMsg } }) + '\n\n');
+                  streamErrored = true;
                 }
               } catch(e) {}
             }
@@ -1609,6 +1613,11 @@ app.post('/api/chat', async (req, res) => {
         }
       } catch(streamErr) {
         console.error('[STREAM READ ERROR]', streamErr.message || streamErr);
+      }
+
+      if (!streamErrored && fullReply.trim() === '') {
+        console.error('[STREAM EMPTY] No reply received — user=' + userId + ' model=' + modelName + ' msgs=' + chatMessages.length + ' systemLen=' + systemContent.length);
+        res.write('data: ' + JSON.stringify({ type: 'error', error: { message: 'Empty response from AI' } }) + '\n\n');
       }
 
       try {

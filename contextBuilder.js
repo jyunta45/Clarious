@@ -551,7 +551,14 @@ function buildContext({
   messages.push({ role: "system", content: PRESENT_RULE });
 
   if (conversation.length <= TURN_THRESHOLD) {
-    messages.push(...conversation);
+    // Ensure messages always start with a user turn — Claude 4 rejects
+    // conversations that begin with an assistant message when the context grows.
+    // Strip any leading assistant messages (e.g. opening greeting).
+    let convoToSend = [...conversation];
+    while (convoToSend.length > 0 && convoToSend[0].role === 'assistant') {
+      convoToSend.shift();
+    }
+    messages.push(...convoToSend);
     return messages;
   }
 
@@ -562,7 +569,11 @@ function buildContext({
     messages.push({ role: "system", content: extractGuidance(rollingSummary) });
   }
 
-  const recentMessages = conversation.slice(-RECENT_LIMIT);
+  let recentMessages = conversation.slice(-RECENT_LIMIT);
+  // Ensure messages always start with a user turn
+  while (recentMessages.length > 0 && recentMessages[0].role === 'assistant') {
+    recentMessages = recentMessages.slice(1);
+  }
   messages.push(...recentMessages);
 
   return messages;
