@@ -832,6 +832,7 @@ app.post('/api/onboarding-chat', async (req, res) => {
       updateFields.guidanceMode = true;
       updateFields.guidanceDay = 1;
       updateFields.stage = 'chat';
+      updateFields.lastActiveAt = new Date().toISOString();
     }
     await db.update(userData).set(updateFields).where(eq(userData.userId, req.session.userId));
 
@@ -930,13 +931,14 @@ app.get('/api/opening-message', async (req, res) => {
         greetPrompt = isThai
           ? `คุณคือ Clarious\n\nรู้เกี่ยวกับผู้ใช้:\n${digest}\n\n${userName ? `เรียกเขาว่า "${userName}" — ต้องเริ่มด้วยการทักชื่อเขา` : 'ไม่รู้ชื่อ'}\nช่วงเวลา: ${hourNote}\n\n1-2 ประโยค อบอุ่น อ้างอิงสิ่งที่รู้จริงเกี่ยวกับเขา จบด้วยการเชิญแบบเปิดกว้าง ไม่ถามคำถามชัดเจน ภาษาไทยธรรมชาติ ไม่ใช้ markdown`
           : `You are Clarious.\n\nWhat you know about this user:\n${digest}\n\n${userName ? `Their name is ${userName}. You MUST open by addressing them as "${userName}".` : 'Name unknown.'}\nTime of day: ${hourNote}\n\n1-2 sentences. Warm. Reference something real from their context. End with a soft open invitation — no pointed question. Plain text only.`;
-      } else if ((uData.tier === 'free' || !uData.tier) && uData.lastActiveAt && !guidanceComplete && userName) {
-        // Free tier, still in guidance phase — simple name/goal greeting (only when name is known)
+      } else if (!guidanceComplete && userName) {
+        // In guidance phase — name-based greeting (works for first visit and returning users)
         const userGoal = uData.answers?.goal || uData.answers?.['0'] || '';
         const userFocus = uData.identityProfile?.currentFocus || uData.answers?.focus || '';
+        const isFirstVisit = !uData.lastActiveAt;
         greetPrompt = isThai
-          ? `สร้างคำทักทายอบอุ่น 1-2 ประโยค\n\nต้องขึ้นต้นด้วยการทักชื่อ "${userName}" ก่อนเสมอ\nเป้าหมาย: ${userGoal}\nโฟกัส: ${userFocus}\n\nทำให้รู้สึกเหมือนกลับมาพบกันอีกครั้ง เชิญชวนให้แชร์สิ่งที่อยู่ในใจ ตอบเป็นภาษาไทยเท่านั้น`
-          : `Generate a warm 1-2 sentence greeting.\n\nYou MUST start by addressing the user as "${userName}".\nGoal: ${userGoal}\nFocus: ${userFocus}\n\nMake it feel like reconnecting. Invite them to share what is on their mind. Plain text only.`;
+          ? `สร้างคำทักทายอบอุ่น 1-2 ประโยค\n\nต้องขึ้นต้นด้วยการทักชื่อ "${userName}" ก่อนเสมอ\nเป้าหมาย: ${userGoal}\nโฟกัส: ${userFocus}\n\n${isFirstVisit ? 'นี่คือการสนทนาครั้งแรก ทักทายแบบอบอุ่นและเชิญให้เริ่มต้น' : 'ทำให้รู้สึกเหมือนกลับมาพบกันอีกครั้ง เชิญชวนให้แชร์สิ่งที่อยู่ในใจ'} ตอบเป็นภาษาไทยเท่านั้น`
+          : `Generate a warm 1-2 sentence greeting.\n\nYou MUST start by addressing the user as "${userName}".\nGoal: ${userGoal}\nFocus: ${userFocus}\n\n${isFirstVisit ? "This is their first chat session. Welcome them warmly and invite them to begin." : "Make it feel like reconnecting. Invite them to share what is on their mind."} Plain text only.`;
       } else if (guidanceComplete && !digest && userName) {
         // Established user but no memory digest yet — warm name + time-of-day greeting
         const hourNote = localHour >= 5 && localHour <= 11 ? 'morning'
