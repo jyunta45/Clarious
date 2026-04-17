@@ -1568,6 +1568,7 @@ function sanitizeGoalProgress() {
   if (!gp || !gp.length) return;
   var changed = false;
   ST.patterns.goalProgress = gp.map(function(entry) {
+    if (!entry || typeof entry !== 'object') return null;
     var cleaned = cleanGoalText(entry.goal);
     if (!cleaned) return null;
     if (cleaned !== entry.goal) { entry.goal = cleaned; changed = true; }
@@ -1655,7 +1656,8 @@ function getHabitCompletionToday() {
 
 function habitsPromptBlock() {
   initHabits();
-  var active = ST.patterns.habits.filter(function(h) { return h.active; });
+  if (!Array.isArray(ST.patterns.habits)) ST.patterns.habits = [];
+  var active = ST.patterns.habits.filter(function(h) { return h && h.active; });
   if (active.length === 0) return '';
   var today = new Date().toISOString().slice(0, 10);
   var todayLog = ST.patterns.habitLog[today] || {};
@@ -2151,7 +2153,13 @@ function buildAssistantPrompt(profile, userInput) {
     return '\nAsk ONE thoughtful reflective question to understand the story behind the user\'s answers. No advice, no analysis.\n';
   }
 
-  return systemPrompt(userInput);
+  try {
+    return systemPrompt(userInput);
+  } catch(e) {
+    console.error('[PROMPT BUILD ERROR]', e && e.message, e && e.stack);
+    var safeName = (ST && ST.ans && ST.ans.name) ? ST.ans.name : 'there';
+    return 'You are Clarious, a personal AI coach. The user\'s name is ' + safeName + '. Be supportive, direct, and helpful. Match the length of your response to the question complexity.';
+  }
 }
 
 function systemPrompt(userText) {
