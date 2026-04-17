@@ -348,13 +348,13 @@ app.post('/api/restore', async (req, res) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
     await db.insert(userData)
-      .values({ userId: req.session.userId, tier: 'partner', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() })
+      .values({ userId: req.session.userId, tier: 'unlimited', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() })
       .onConflictDoUpdate({
         target: userData.userId,
-        set: { tier: 'partner', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() }
+        set: { tier: 'unlimited', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() }
       });
-    console.log('[RESTORE] Admin', user.email, 'restored to PARTNER');
-    res.json({ success: true, tier: 'partner' });
+    console.log('[RESTORE] Admin', user.email, 'restored to UNLIMITED');
+    res.json({ success: true, tier: 'unlimited' });
   } catch (e) {
     console.error('[RESTORE ERROR]', e.message || e);
     res.status(500).json({ error: e.message });
