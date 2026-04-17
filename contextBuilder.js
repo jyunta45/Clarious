@@ -465,6 +465,7 @@ function buildContext({
   mode,
   deepSignal,
   memoryDigest,
+  userProfileBlock,
   phaseOverride
 }) {
   const TURN_THRESHOLD = 5;
@@ -493,9 +494,16 @@ function buildContext({
 
   // ── Memory block (digest if available) ──────────────────
   // Always include — blocking at opening phase means "do you remember?" never works
-  const memoryBlock = memoryDigest
-    ? `ABOUT THIS USER (from previous conversations):\n${memoryDigest}\n\nIf the user asks whether you remember them, confirm you do — you have a sense of who they are.`
-    : `MEMORY NOTE: You do not yet have a stored cross-session digest for this user. Draw on everything available in this conversation and in the user profile above. Do not volunteer that your memory is limited. If asked directly whether you remember them, be honest but warm — say you're still building a fuller picture of them, but you're paying close attention.`;
+  let memoryBlock;
+  if (memoryDigest) {
+    memoryBlock = `ABOUT THIS USER (from previous conversations):\n${memoryDigest}\n\n`
+      + (userProfileBlock ? userProfileBlock + '\n\n' : '')
+      + `You know this person. If they ask whether you remember them, confirm you do.`;
+  } else if (userProfileBlock) {
+    memoryBlock = `${userProfileBlock}\n\nThis is who this user is. Treat this profile as real knowledge — not a guess. Do NOT say you are "still getting to know" them or that you lack context. You know their name, goals, and challenges. If asked whether you remember them across sessions, be honest that your cross-session memory is still building depth — but you already know who they are from their profile.`;
+  } else {
+    memoryBlock = `MEMORY NOTE: You do not yet have a detailed profile for this user. Pay close attention to this conversation and build understanding as you go. Do not claim you remember previous conversations, but do not say each conversation starts fresh either.`;
+  }
 
   // ── State block ──────────────────────────────────────────
   const stateBlock = (isDaily || isOpening)

@@ -14,7 +14,7 @@ import { buildCalmAuthorityPrompt } from './calmAuthority.js';
 import { buildCapabilityLayer, THAI_LANGUAGE_RULES, THAI_LANGUAGE_RULES_MINIMAL } from './capabilityLayer.js';
 import { buildAttentionLayer } from './hybridModel.js';
 import { resetDailyUsage, truncateInput, checkBudget, maxTokens as getMaxTokens, checkSessionTimeout, shouldUpdateSummary, isMeaningfulAssistantResponse } from './utils/aiController.js';
-import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave, extractOpenLoop, resolveMatchingLoop, generateMemoryDigest } from './continuityEngine.js';
+import { buildContinuityLayer, initMemory, loadMemoryFromDB, shouldUpdateMemory, shouldUpdateMemoryDeep, buildMemoryExtractionPrompt, mergeExtractedMemory, getMemoryForSave, extractOpenLoop, resolveMatchingLoop, generateMemoryDigest } from './continuityEngine.js';
 import { sessionStore, storeTurn, buildRollingSummary, finalizeSession, getSessionInjection } from './sessionMemory.js';
 import { buildContext, detectDeepTopic, detectConversationPhase } from './contextBuilder.js';
 import { seedMemoryFromOnboarding } from './onboardingIdentitySync.js';
@@ -1434,6 +1434,7 @@ app.post('/api/chat', async (req, res) => {
     let userOpenLoops = [];
     let userPatterns = null;
     let userMemoryDigest = null;
+    let userProfileBlock = null;
     if (req.session.userId) {
       try {
         const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
@@ -1442,6 +1443,32 @@ app.post('/api/chat', async (req, res) => {
           if (uData.openLoops) userOpenLoops = uData.openLoops;
           if (uData.patterns) userPatterns = uData.patterns;
           if (uData.memoryDigest) userMemoryDigest = uData.memoryDigest;
+          // Build a permanent user knowledge block from onboarding data — always available regardless of memory system
+          const a = uData.answers || {};
+          const ip = uData.identityProfile || {};
+          const op = uData.onboardingProgress || {};
+          const profileLines = [];
+          const nameVal = op.preferredName || a.name || ip.name || ip.core?.name || '';
+          if (nameVal) profileLines.push('Name: ' + nameVal);
+          const goalVal = a.goal || a['0'] || ip.goals?.tenYear || '';
+          if (goalVal) profileLines.push('Long-term goal: ' + goalVal);
+          const focusVal = ip.currentFocus || a.focus || a.mastering || ip.goals?.mastering || '';
+          if (focusVal) profileLines.push('Currently mastering: ' + focusVal);
+          const styleVal = a.style || ip.personality?.style || '';
+          if (styleVal) profileLines.push('Work style: ' + styleVal);
+          const toneVal = a.tone || ip.preferences?.tone || '';
+          if (toneVal) profileLines.push('Preferred tone: ' + toneVal);
+          const tiredVal = a.tired || ip.challenges?.tiredOf || '';
+          if (tiredVal) profileLines.push('Tired of: ' + tiredVal);
+          const blockerVal = a.blockers
+            ? (Array.isArray(a.blockers) ? a.blockers.join(', ') : a.blockers)
+            : (ip.challenges?.blockers || '');
+          if (blockerVal && blockerVal !== 'not specified') profileLines.push('Blockers: ' + blockerVal);
+          const proudVal = a.proud || ip.strengths?.proudOf || '';
+          if (proudVal) profileLines.push('Proud of: ' + proudVal);
+          if (profileLines.length >= 2) {
+            userProfileBlock = 'USER PROFILE (from onboarding):\n' + profileLines.join('\n');
+          }
         }
       } catch(dbErr) {
         console.error('[MEMORY LOAD ERROR]', dbErr.message || dbErr);
@@ -1494,6 +1521,7 @@ app.post('/api/chat', async (req, res) => {
       mode: chatMode,
       deepSignal,
       memoryDigest: userMemoryDigest,
+      userProfileBlock,
       phaseOverride: effectivePhase
     });
     const systemContent = builtMessages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
@@ -1643,7 +1671,7 @@ app.post('/api/chat', async (req, res) => {
       }
 
       const _shouldExtract = chatMode !== 'daily'
-        ? shouldUpdateMemory(userId, complexity, req.session)
+        ? shouldUpdateMemoryDeep(userId, req.session)
         : (!req.session.memoryUpdatedThisSession && Math.random() < 0.15);
       if (_shouldExtract) {
         try {
@@ -1801,7 +1829,7 @@ app.post('/api/chat', async (req, res) => {
       req.session.lastActive = Date.now();
 
       const _shouldExtract2 = chatMode !== 'daily'
-        ? shouldUpdateMemory(userId, complexity, req.session)
+        ? shouldUpdateMemoryDeep(userId, req.session)
         : (!req.session.memoryUpdatedThisSession && Math.random() < 0.15);
       if (_shouldExtract2) {
         try {

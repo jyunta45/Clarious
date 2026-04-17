@@ -118,6 +118,17 @@ function shouldUpdateMemory(userId, complexity, session) {
   return true;
 }
 
+// Deep Thinking mode: extract without complexity requirement — any conversation can build memory
+function shouldUpdateMemoryDeep(userId, session) {
+  if (session && session.memoryUpdatedThisSession) return false;
+  const mem = initMemory(userId);
+  if (mem.lastUpdated) {
+    const sixHours = 6 * 60 * 60 * 1000;
+    if (Date.now() - mem.lastUpdated < sixHours) return false;
+  }
+  return true;
+}
+
 function buildMemoryExtractionPrompt(userMessage) {
   return `Extract only explicitly stated facts from the user message below.
 Return JSON only. Use null for anything not clearly expressed.
@@ -293,6 +304,7 @@ export {
   initMemory,
   loadMemoryFromDB,
   shouldUpdateMemory,
+  shouldUpdateMemoryDeep,
   buildMemoryExtractionPrompt,
   mergeExtractedMemory,
   getMemoryForSave,
