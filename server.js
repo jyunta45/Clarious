@@ -333,7 +333,7 @@ async function isAdminSession(req) {
   if (!req.session || !req.session.userId) return false;
   try {
     const [user] = await db.select().from(users).where(eq(users.id, req.session.userId));
-    return user && user.email === ADMIN_EMAIL;
+    return user && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   } catch { return false; }
 }
 
@@ -342,18 +342,18 @@ app.post('/api/restore', async (req, res) => {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
+  const admin = await isAdminSession(req);
+  if (!admin) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
-    const [user] = await db.select().from(users).where(eq(users.id, req.session.userId));
-    if (!user || user.email !== ADMIN_EMAIL) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
     await db.insert(userData)
       .values({ userId: req.session.userId, tier: 'unlimited', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() })
       .onConflictDoUpdate({
         target: userData.userId,
         set: { tier: 'unlimited', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() }
       });
-    console.log('[RESTORE] Admin', user.email, 'restored to UNLIMITED');
+    console.log('[RESTORE] Admin', req.session.userId, 'restored to UNLIMITED');
     res.json({ success: true, tier: 'unlimited' });
   } catch (e) {
     console.error('[RESTORE ERROR]', e.message || e);
@@ -409,11 +409,12 @@ app.post('/api/dev/downgrade', async (req, res) => {
 });
 
 app.post('/api/dev/reset-count', async (req, res) => {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(403).json({ error: 'Forbidden in production' });
-  }
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
+  }
+  const admin = await isAdminSession(req);
+  if (!admin) {
+    return res.status(403).json({ error: 'Admin only' });
   }
   try {
     const yesterday = new Date();
@@ -423,7 +424,7 @@ app.post('/api/dev/reset-count', async (req, res) => {
       msgCountDate: yesterday.toISOString().slice(0, 10),
       updatedAt: new Date()
     }).where(eq(userData.userId, req.session.userId));
-    console.log('[DEV] User', req.session.userId, 'daily count reset');
+    console.log('[ADMIN] User', req.session.userId, 'daily count reset');
     res.json({ success: true, msgCount: 0 });
   } catch (e) {
     console.error('[DEV RESET ERROR]', e.message || e);
@@ -439,8 +440,8 @@ app.post('/api/admin/set-tier', async (req, res) => {
     return res.status(403).json({ error: 'Forbidden' });
   }
   const { email, tier } = req.body;
-  if (!email || !['free', 'partner'].includes(tier)) {
-    return res.status(400).json({ error: 'email and tier (free|partner) required' });
+  if (!email || !['free', 'partner', 'unlimited'].includes(tier)) {
+    return res.status(400).json({ error: 'email and tier (free|partner|unlimited) required' });
   }
   try {
     const [user] = await db.select().from(users).where(eq(users.email, email));
