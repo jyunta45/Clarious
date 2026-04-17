@@ -1216,10 +1216,10 @@ app.post('/api/chat', async (req, res) => {
         const today = new Date().toISOString().slice(0, 10);
         const isNewDay = !data || data.msgCountDate !== today;
         const currentCount = isNewDay ? 0 : (data.msgCount || 0);
-        const dailyLimit = tier === 'partner' ? 30 : 10;
+        const dailyLimit = tier === 'unlimited' ? Infinity : tier === 'partner' ? 30 : 10;
 
         // ── LIMIT CHECK — must return before any AI processing ──
-        if (currentCount >= dailyLimit) {
+        if (isFinite(dailyLimit) && currentCount >= dailyLimit) {
           return res.status(429).json({
             limitReached: true,
             tier,
