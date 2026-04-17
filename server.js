@@ -1203,6 +1203,7 @@ async function updateGuidanceDay(userId) {
 }
 
 app.post('/api/chat', async (req, res) => {
+  console.log('[CHAT-START] userId=' + (req.session && req.session.userId ? req.session.userId : 'guest') + ' msgs=' + (req.body && req.body.messages ? req.body.messages.length : 0));
   try {
     let tier = 'guest';
     let shouldNudge = false;
@@ -1372,6 +1373,7 @@ app.post('/api/chat', async (req, res) => {
       } catch(e) { console.error('[IDENTITY SHIFT ERROR]', e.message || e); }
     }
 
+    console.log('[CHAT-MID] userId=' + (req.session && req.session.userId) + ' past repair+shift blocks');
     const chatMode = req.body.mode || 'deep';
     const complexity = detectComplexity(userMsg);
 
