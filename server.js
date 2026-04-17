@@ -1642,7 +1642,10 @@ app.post('/api/chat', async (req, res) => {
         console.error('[POST-STREAM ERROR]', postErr.message || postErr);
       }
 
-      if (chatMode !== 'daily' && shouldUpdateMemory(userId, complexity, req.session)) {
+      const _shouldExtract = chatMode !== 'daily'
+        ? shouldUpdateMemory(userId, complexity, req.session)
+        : (!req.session.memoryUpdatedThisSession && Math.random() < 0.15);
+      if (_shouldExtract) {
         try {
           const extractPrompt = buildMemoryExtractionPrompt(userMsg);
           const memRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1797,7 +1800,10 @@ app.post('/api/chat', async (req, res) => {
       }
       req.session.lastActive = Date.now();
 
-      if (chatMode !== 'daily' && shouldUpdateMemory(userId, complexity, req.session)) {
+      const _shouldExtract2 = chatMode !== 'daily'
+        ? shouldUpdateMemory(userId, complexity, req.session)
+        : (!req.session.memoryUpdatedThisSession && Math.random() < 0.15);
+      if (_shouldExtract2) {
         try {
           const extractPrompt = buildMemoryExtractionPrompt(userMsg);
           const memRes = await fetch('https://api.anthropic.com/v1/messages', {

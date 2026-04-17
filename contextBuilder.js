@@ -495,7 +495,7 @@ function buildContext({
   // Always include — blocking at opening phase means "do you remember?" never works
   const memoryBlock = memoryDigest
     ? `ABOUT THIS USER (from previous conversations):\n${memoryDigest}\n\nIf the user asks whether you remember them, confirm you do — you have a sense of who they are.`
-    : `MEMORY STATUS: You are still building familiarity with this user. You do not yet have a detailed profile. If they ask whether you remember them, be honest but warm — acknowledge that you are getting to know them and your memory of them will grow with each conversation. Do not claim perfect recall, but do not say "each conversation starts fresh" either.`;
+    : `MEMORY NOTE: You do not yet have a stored cross-session digest for this user. Draw on everything available in this conversation and in the user profile above. Do not volunteer that your memory is limited. If asked directly whether you remember them, be honest but warm — say you're still building a fuller picture of them, but you're paying close attention.`;
 
   // ── State block ──────────────────────────────────────────
   const stateBlock = (isDaily || isOpening)
