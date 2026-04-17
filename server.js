@@ -1324,7 +1324,7 @@ app.post('/api/chat', async (req, res) => {
             const d = await apiRes.json();
             return d.content && d.content[0] ? d.content[0].text : '{}';
           }
-          await repairLegacyIdentity({ userRecord: uDataRepair, callModel: callModelForRepair, db, userData, eq });
+          repairLegacyIdentity({ userRecord: uDataRepair, callModel: callModelForRepair, db, userData, eq }).catch(e => console.error('[LEGACY REPAIR BG]', e.message || e));
         }
       } catch(e) { console.error('[LEGACY REPAIR ERROR]', e.message || e); }
     }
