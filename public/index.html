@@ -155,6 +155,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tier-partner{background:linear-gradient(90deg,#b8891e 0%,#f5e88a 25%,#f5c842 50%,#f5e88a 75%,#b8891e 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;border:1px solid rgba(255,210,60,0.38);cursor:pointer;animation:partner-shine 2.5s linear infinite,partner-aura 3s ease-in-out infinite;}
 @keyframes partner-shine{0%{background-position:0% center;}100%{background-position:200% center;}}
 @keyframes partner-aura{0%,100%{box-shadow:0 0 7px rgba(245,200,50,0.45),0 0 14px rgba(245,190,40,0.18);}50%{box-shadow:0 0 13px rgba(255,215,60,0.75),0 0 26px rgba(245,190,40,0.38),0 0 42px rgba(245,180,30,0.14);}}
+.tier-prime{background:linear-gradient(90deg,#9b6dff 0%,#e8c040 28%,#c97fff 55%,#f5d060 80%,#9b6dff 100%);background-size:250% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;border:1px solid rgba(180,130,255,0.45);cursor:pointer;animation:prime-shine 2.2s linear infinite,prime-aura 3.5s ease-in-out infinite;}
+@keyframes prime-shine{0%{background-position:0% center;}100%{background-position:250% center;}}
+@keyframes prime-aura{0%,100%{box-shadow:0 0 8px rgba(155,109,255,0.65),0 0 18px rgba(155,109,255,0.25),0 0 5px rgba(245,200,60,0.2);}50%{box-shadow:0 0 10px rgba(245,200,60,0.7),0 0 22px rgba(245,190,50,0.3),0 0 36px rgba(155,109,255,0.18),0 0 5px rgba(180,120,255,0.25);}}
 .msg-limit{text-align:center;padding:6px;font-size:0.7rem;color:var(--muted);}
 .usage-counter{text-align:center;font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(160,140,200,0.42);padding:4px 0 2px;letter-spacing:0.01em;}
 .clr-modal-overlay{position:fixed;inset:0;z-index:9200;background:rgba(2,2,10,0.88);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);animation:fadeIn 0.2s ease;}
@@ -786,6 +789,7 @@ function speakText(text, btnEl) {
 
 function getTierLabel() {
   var t = AUTH.tier || 'guest';
+  if (t === 'unlimited') return 'PRIME \u2022 Unlimited';
   if (t === 'partner' || t === 'subscriber') return 'PARTNER \u2022 Deep Access';
   if (t === 'free') return ui('tierFree');
   return ui('tierGuest');
@@ -793,6 +797,7 @@ function getTierLabel() {
 
 function getTierClass() {
   var t = AUTH.tier || 'guest';
+  if (t === 'unlimited') return 'tier-prime';
   if (t === 'partner' || t === 'subscriber') return 'tier-partner';
   if (t === 'free') return 'tier-free';
   return 'tier-guest';
@@ -806,6 +811,7 @@ function checkMsgLimit() {
 }
 
 function getDailyLimit() {
+  if (AUTH.tier === 'unlimited') return Infinity;
   if (AUTH.tier === 'partner' || AUTH.tier === 'subscriber') return 30;
   return 10;
 }
@@ -3235,7 +3241,7 @@ function renderChat(root) {
     '<input class="chat-input" id="ci" placeholder="' + ui('askAnything') + '" ' + (isBusy ? 'disabled' : '') + ' data-testid="input-chat">' +
     '<button class="chat-send" id="cs" ' + (isBusy ? 'disabled' : '') + ' data-testid="button-send">' + ui('send') + '</button>' +
     '</div>' +
-    (AUTH.loggedIn || AUTH.guest ? '<div class="usage-counter" data-testid="usage-counter">' + getDailyMsgCount() + ' / ' + getDailyLimit() + ' ' + ((ST.lang || 'en') === 'th' ? 'บทสนทนาวันนี้' : 'conversations today') + '</div>' : '') +
+    (AUTH.loggedIn || AUTH.guest ? '<div class="usage-counter" data-testid="usage-counter">' + (AUTH.tier === 'unlimited' ? getDailyMsgCount() + ' / \u221e ' : getDailyMsgCount() + ' / ' + getDailyLimit() + ' ') + ((ST.lang || 'en') === 'th' ? 'บทสนทนาวันนี้' : 'conversations today') + '</div>' : '') +
     '</div></div>';
 
   var cm = document.getElementById('cm');
@@ -3289,7 +3295,7 @@ function renderChat(root) {
   var rbEl = document.getElementById('rb'); if (rbEl) rbEl.onclick = reset;
 
   var tierBadgeEl = document.getElementById('tier-badge');
-  if (tierBadgeEl && (AUTH.tier === 'partner' || AUTH.tier === 'subscriber')) {
+  if (tierBadgeEl && (AUTH.tier === 'partner' || AUTH.tier === 'subscriber' || AUTH.tier === 'unlimited')) {
     tierBadgeEl.onclick = function(e) { e.stopPropagation(); showPartnerInfoModal(); };
   }
 
