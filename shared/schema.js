@@ -44,6 +44,7 @@ export const userData = pgTable("user_data", {
   onboardingState: jsonb("onboarding_state").default({}),
   deepSessionId: integer("deep_session_id").default(0),
   deepSessionSummaries: jsonb("deep_session_summaries").default([]),
+  deepSessionDate: text("deep_session_date").default(""),
   memoryDigest: text("memory_digest"),
   memoryDigestUpdatedAt: text("memory_digest_updated_at"),
   tierUpdatedAt: text("tier_updated_at").default(""),

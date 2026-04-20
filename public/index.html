@@ -699,7 +699,7 @@ function sectionName(s) {
   return UI[lang] && UI[lang].sections && UI[lang].sections[s] ? UI[lang].sections[s] : s;
 }
 
-var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [] };
+var ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: '', threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [], deepSessionDate: '' };
 var AUTH = { loggedIn: false, email: '', checked: false, guest: false, tier: 'guest' };
 var _streamJustEnded = false;
 var savePending = null;
@@ -900,7 +900,8 @@ function save() {
           onboarding_complete: ST.onboardingComplete || false,
           onboarding_progress: ST.onboardingProgress || {},
           deep_session_id: ST.deepSessionId || 0,
-          deep_session_summaries: ST.deepSessionSummaries || []
+          deep_session_summaries: ST.deepSessionSummaries || [],
+          deep_session_date: ST.deepSessionDate || ''
         })
       }).catch(function(){});
     }, 500);
@@ -979,6 +980,7 @@ async function loadServerData() {
       if (data.onboardingState && Object.keys(data.onboardingState).length > 0) ST.onboardingState = data.onboardingState;
       if (data.deepSessionId) ST.deepSessionId = data.deepSessionId;
       if (data.deepSessionSummaries && data.deepSessionSummaries.length > 0) ST.deepSessionSummaries = data.deepSessionSummaries;
+      if (data.deepSessionDate) ST.deepSessionDate = data.deepSessionDate;
       try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
     }
   } catch(e) {}
@@ -1077,14 +1079,14 @@ async function doLogout() {
   AUTH.guest = false;
   var keepLang = ST.lang || '';
   try { localStorage.removeItem('la'); } catch(e) {}
-  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [] };
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [], deepSessionDate: '' };
   render();
 }
 
 function enterGuest() {
   var keepLang = ST.lang || '';
   try { localStorage.removeItem('la'); } catch(e) {}
-  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [] };
+  ST = { stage: 'welcome', step: 0, ans: {}, msgs: [], selMulti: [], lang: keepLang, threads: [], activeThread: 0, lastCheckin: '', guestMsgCount: 0, identityProfile: {}, memories: [], moodLog: [], threadSummaries: {}, lastActiveDate: '', patterns: { topics: {}, recurringChallenges: [], activityLog: [], goalProgress: [], weeklyTopics: {} }, onboardingComplete: false, onboardingProgress: {}, onboardingState: {}, onboardingMsgs: [], deepSessionId: 0, deepSessionSummaries: [], deepSessionDate: '' };
   AUTH.guest = true;
   render();
 }
@@ -3021,13 +3023,18 @@ function showDeepConfirm(context) {
   document.body.appendChild(overlay);
   overlay.querySelector('.deep-confirm-yes').onclick = function() {
     document.body.removeChild(overlay);
-    var prevId = ST.deepSessionId || 0;
-    var prevMsgs = getAllMsgs().filter(function(m) { return m.mode === 'deep' && m.deepSessionId === prevId; });
-    var alreadySummarized = (ST.deepSessionSummaries || []).some(function(s) { return s.id === prevId; });
-    if (!alreadySummarized && prevMsgs.filter(function(m){ return m.role === 'user'; }).length > 0) {
-      summarizeDeepSession(prevMsgs, prevId);
+    var today = new Date().toISOString().slice(0, 10);
+    var isSameDay = ST.deepSessionDate === today && ST.deepSessionId > 0;
+    if (!isSameDay) {
+      var prevId = ST.deepSessionId || 0;
+      var prevMsgs = getAllMsgs().filter(function(m) { return m.mode === 'deep' && m.deepSessionId === prevId; });
+      var alreadySummarized = (ST.deepSessionSummaries || []).some(function(s) { return s.id === prevId; });
+      if (!alreadySummarized && prevMsgs.filter(function(m){ return m.role === 'user'; }).length > 0) {
+        summarizeDeepSession(prevMsgs, prevId);
+      }
+      ST.deepSessionId = prevId + 1;
+      ST.deepSessionDate = today;
     }
-    ST.deepSessionId = prevId + 1;
     currentMode = 'deep';
     pendingModeShift = false;
     pendingModeShiftContext = null;
@@ -3035,8 +3042,8 @@ function showDeepConfirm(context) {
     openingChips = null;
     openingNudge = null;
     responseNudge = null;
-    deepEnteredWithContext = !!(context);
-    pendingOpeningContext = context || null;
+    deepEnteredWithContext = !isSameDay && !!(context);
+    pendingOpeningContext = isSameDay ? null : (context || null);
     save();
     playDeepAura();
     render();
@@ -3347,19 +3354,24 @@ function renderChat(root) {
     pendingModeShift = false;
     pendingModeShiftContext = null;
     modeShiftSuppressCount = 0;
-    var prevId2 = ST.deepSessionId || 0;
-    var prevMsgs2 = getAllMsgs().filter(function(m) { return m.mode === 'deep' && m.deepSessionId === prevId2; });
-    var alreadySummarized2 = (ST.deepSessionSummaries || []).some(function(s) { return s.id === prevId2; });
-    if (!alreadySummarized2 && prevMsgs2.filter(function(m){ return m.role === 'user'; }).length > 0) {
-      summarizeDeepSession(prevMsgs2, prevId2);
+    var today = new Date().toISOString().slice(0, 10);
+    var isSameDay2 = ST.deepSessionDate === today && ST.deepSessionId > 0;
+    if (!isSameDay2) {
+      var prevId2 = ST.deepSessionId || 0;
+      var prevMsgs2 = getAllMsgs().filter(function(m) { return m.mode === 'deep' && m.deepSessionId === prevId2; });
+      var alreadySummarized2 = (ST.deepSessionSummaries || []).some(function(s) { return s.id === prevId2; });
+      if (!alreadySummarized2 && prevMsgs2.filter(function(m){ return m.role === 'user'; }).length > 0) {
+        summarizeDeepSession(prevMsgs2, prevId2);
+      }
+      ST.deepSessionId = prevId2 + 1;
+      ST.deepSessionDate = today;
     }
-    ST.deepSessionId = prevId2 + 1;
     currentMode = 'deep';
     openingChips = null;
     openingNudge = null;
     responseNudge = null;
-    deepEnteredWithContext = !!(ctx);
-    pendingOpeningContext = ctx || null;
+    deepEnteredWithContext = !isSameDay2 && !!(ctx);
+    pendingOpeningContext = isSameDay2 ? null : (ctx || null);
     save();
     playDeepAura();
     render();
