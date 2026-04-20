@@ -901,8 +901,7 @@ function save() {
           onboarding_complete: ST.onboardingComplete || false,
           onboarding_progress: ST.onboardingProgress || {},
           deep_session_id: ST.deepSessionId || 0,
-          deep_session_summaries: ST.deepSessionSummaries || [],
-          deep_session_date: ST.deepSessionDate || ''
+          deep_session_summaries: ST.deepSessionSummaries || []
         })
       }).catch(function(){});
     }, 500);
@@ -981,7 +980,6 @@ async function loadServerData() {
       if (data.onboardingState && Object.keys(data.onboardingState).length > 0) ST.onboardingState = data.onboardingState;
       if (data.deepSessionId) ST.deepSessionId = data.deepSessionId;
       if (data.deepSessionSummaries && data.deepSessionSummaries.length > 0) ST.deepSessionSummaries = data.deepSessionSummaries;
-      if (data.deepSessionDate) ST.deepSessionDate = data.deepSessionDate;
       try { localStorage.setItem('la', JSON.stringify(ST)); } catch(e) {}
     }
   } catch(e) {}
