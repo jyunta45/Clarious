@@ -2007,9 +2007,35 @@ process.on('unhandledRejection', (reason) => {
 
 export { app };
 
+// ── STARTUP: ensure admin accounts always have unlimited tier ─────────────────
+async function ensureAdminTiers() {
+  const adminEmails = ['jyunta45@gmail.com'];
+  for (const email of adminEmails) {
+    try {
+      const [user] = await db.select().from(users).where(sql`LOWER(${users.email}) = LOWER(${email})`);
+      if (!user) continue;
+      const [data] = await db.select().from(userData).where(eq(userData.userId, user.id));
+      if (!data || data.tier !== 'unlimited') {
+        await db.insert(userData)
+          .values({ userId: user.id, tier: 'unlimited', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() })
+          .onConflictDoUpdate({
+            target: userData.userId,
+            set: { tier: 'unlimited', tierUpdatedAt: new Date().toISOString(), updatedAt: new Date() }
+          });
+        console.log('[STARTUP] Upgraded', email, 'to unlimited tier');
+      }
+    } catch (e) {
+      console.error('[STARTUP] Failed to ensure admin tier for', email, e.message);
+    }
+  }
+}
+
 const PORT = parseInt(process.env.PORT || '5000', 10);
 
-const server = app.listen(PORT, '0.0.0.0', () => console.log('Running on port ' + PORT));
+const server = app.listen(PORT, '0.0.0.0', async () => {
+  console.log('Running on port ' + PORT);
+  await ensureAdminTiers();
+});
 
 function gracefulShutdown(signal) {
   console.log(`[SHUTDOWN] ${signal} received — closing server...`);

@@ -855,11 +855,12 @@ function showPartnerInfoModal() {
   var overlay = document.createElement('div');
   overlay.className = 'clr-modal-overlay';
   var isThai = (ST.lang || 'en') === 'th';
+  var isPrime = AUTH.tier === 'unlimited';
   overlay.innerHTML =
     '<div class="clr-modal-panel">' +
-    '<div class="clr-modal-title">' + (isThai ? 'Partner Access' : 'Partner Access') + '</div>' +
+    '<div class="clr-modal-title">' + (isPrime ? (isThai ? 'PRIME \u2022 Unlimited' : 'PRIME \u2022 Unlimited') : 'Partner Access') + '</div>' +
     '<ul class="clr-modal-list">' +
-    '<li><strong>' + (isThai ? '30 บทสนทนาต่อวัน' : '30 conversations per day') + '</strong></li>' +
+    '<li><strong>' + (isPrime ? (isThai ? 'ไม่จำกัดบทสนทนา' : 'Unlimited conversations') : (isThai ? '30 บทสนทนาต่อวัน' : '30 conversations per day')) + '</strong></li>' +
     '<li><strong>' + (isThai ? 'ความทรงจำถาวรเต็มรูปแบบ' : 'Full persistent memory') + '</strong><br>' +
       (isThai ? 'Clarious จำทุกบทสนทนาที่คุณเคยมี' : 'Clarious remembers every conversation you have had') + '</li>' +
     '<li>' + (isThai ? 'การจดจำรูปแบบตลอดเวลา' : 'Pattern recognition over time') + '</li>' +
