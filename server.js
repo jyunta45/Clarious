@@ -736,7 +736,7 @@ app.post('/api/onboarding-chat', async (req, res) => {
     // User's first message is their name — save it, then ask Q0 personally
     if (!onboardingState.started) {
       const q0 = qList[0];
-      const isSystemAction = message === '__start__' || message === '__continue__';
+      const isSystemAction = message === '__start__' || message === '__continue__' || message === 'start';
       let preferredName = null;
       if (!isSystemAction) {
         const raw = message.trim();
@@ -759,6 +759,10 @@ app.post('/api/onboarding-chat', async (req, res) => {
           preferredName = firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
         } else {
           // Long message — can't reliably extract; skip name rather than save a wrong word
+          preferredName = null;
+        }
+        // Validate: reject anything that isn't at least 2 letters (e.g. "?", "!", single punct)
+        if (preferredName && !/[a-zA-Zก-๙]{2,}/.test(preferredName)) {
           preferredName = null;
         }
       }
@@ -1450,7 +1454,8 @@ app.post('/api/chat', async (req, res) => {
           const ip = uData.identityProfile || {};
           const op = uData.onboardingProgress || {};
           const profileLines = [];
-          const nameVal = op.preferredName || a.name || ip.name || ip.core?.name || '';
+          const rawName = op.preferredName || a.name || ip.name || ip.core?.name || '';
+          const nameVal = (rawName && /[a-zA-Zก-๙]{2,}/.test(rawName)) ? rawName : '';
           if (nameVal) { profileLines.push('Name: ' + nameVal); resolvedUserName = nameVal; }
           const goalVal = a.goal || a['0'] || ip.goals?.tenYear || '';
           if (goalVal) profileLines.push('Long-term goal: ' + goalVal);
@@ -2009,6 +2014,26 @@ process.on('unhandledRejection', (reason) => {
 export { app };
 
 // ── STARTUP: ensure admin accounts always have unlimited tier ─────────────────
+async function cleanupInvalidNames() {
+  try {
+    // Find all userData rows where onboardingProgress has a preferredName that has no real letters
+    const allData = await db.select({ id: userData.id, onboardingProgress: userData.onboardingProgress })
+      .from(userData);
+    const invalidNameRegex = /[a-zA-Zก-๙]{2,}/;
+    for (const row of allData) {
+      const op = row.onboardingProgress || {};
+      if (op.preferredName && !invalidNameRegex.test(op.preferredName)) {
+        const cleaned = { ...op };
+        delete cleaned.preferredName;
+        await db.update(userData).set({ onboardingProgress: cleaned, updatedAt: new Date() }).where(eq(userData.id, row.id));
+        console.log('[STARTUP] Cleared invalid name for row', row.id, '→ was:', JSON.stringify(op.preferredName));
+      }
+    }
+  } catch(e) {
+    console.error('[STARTUP] cleanupInvalidNames error:', e.message);
+  }
+}
+
 async function ensureAdminTiers() {
   const adminEmails = ['jyunta45@gmail.com'];
   for (const email of adminEmails) {
@@ -2035,6 +2060,7 @@ const PORT = parseInt(process.env.PORT || '5000', 10);
 
 const server = app.listen(PORT, '0.0.0.0', async () => {
   console.log('Running on port ' + PORT);
+  await cleanupInvalidNames();
   await ensureAdminTiers();
 });
 
