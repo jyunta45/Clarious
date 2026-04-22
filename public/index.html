@@ -1264,7 +1264,10 @@ function doCheckin() {
   save(); // save before setting loading so transient flag isn't persisted
   ST.loading = true;
   render();
-  sendMsg(getCheckinMessage());
+  sendMsg(getCheckinMessage()).catch(function(err) {
+    console.error('[sendMsg catch]', err);
+    ST.loading = false; ST.streaming = false; render();
+  });
 }
 
 function dismissCheckin() {
@@ -2209,6 +2212,12 @@ function chatGreeting() {
 }
 
 async function sendMsg(userText) {
+  var _busyFailsafe = setTimeout(function() {
+    if (ST.loading || ST.streaming) {
+      console.warn('[FAILSAFE] loading/streaming stuck — force-resetting');
+      ST.loading = false; ST.streaming = false; render();
+    }
+  }, 65000);
   trackMood(userText);
   trackPatterns(userText);
   pendingModeShift = false;
@@ -2243,6 +2252,7 @@ async function sendMsg(userText) {
     });
     clearTimeout(fetchTimeout);
     if (res.status === 429) {
+      clearTimeout(_busyFailsafe);
       var curMsgs2 = getActiveMsgs();
       if (AUTH.tier === 'partner' || AUTH.tier === 'subscriber') {
         curMsgs2.pop();
@@ -2356,6 +2366,7 @@ async function sendMsg(userText) {
       }
     }
   }
+  clearTimeout(_busyFailsafe);
   ST.loading = false;
   _streamJustEnded = true;
   ST.streaming = false;
@@ -3287,7 +3298,10 @@ function renderChat(root) {
     if (!ST.autoSpeak) ST.autoSpeak = false;
     ST.loading = true;
     render();
-    sendMsg(txt);
+    sendMsg(txt).catch(function(err) {
+      console.error('[sendMsg catch]', err);
+      ST.loading = false; ST.streaming = false; render();
+    });
   }
   var isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   ci.onkeydown = function(e) {
@@ -3388,7 +3402,10 @@ function renderChat(root) {
       if (!txt || isBusy) return;
       ST.loading = true;
       render();
-      sendMsg(txt);
+      sendMsg(txt).catch(function(err) {
+        console.error('[sendMsg catch]', err);
+        ST.loading = false; ST.streaming = false; render();
+      });
     };
   });
 
@@ -3549,35 +3566,6 @@ function renderChat(root) {
 load();
 checkAuth();
 
-// ── Overlay blocker diagnostic & fix ─────────────────────────────────────────
-setTimeout(function() {
-  // Step 1 — Detect what's sitting over the input area
-  var elements = document.elementsFromPoint(
-    window.innerWidth / 2,
-    window.innerHeight - 50
-  );
-  console.log("Elements at input area:", elements);
-
-  // Step 2 — Disable pointer-events on fixed high-z-index overlays
-  var blockers = document.querySelectorAll('*');
-  blockers.forEach(function(el) {
-    var style = window.getComputedStyle(el);
-    if (
-      style.position === 'fixed' &&
-      parseInt(style.zIndex) > 10 &&
-      el !== document.body
-    ) {
-      el.style.pointerEvents = 'none';
-    }
-  });
-
-  // Step 3 — Ensure the input itself is always clickable
-  var input = document.querySelector('textarea, input');
-  if (input) {
-    input.style.pointerEvents = 'auto';
-    input.style.zIndex = '9999';
-  }
-}, 1000);
 
 } catch(e) {
   console.error('App error:', e);
