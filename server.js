@@ -1436,6 +1436,7 @@ app.post('/api/chat', async (req, res) => {
     let userPatterns = null;
     let userMemoryDigest = null;
     let userProfileBlock = null;
+    let resolvedUserName = '';
     if (req.session.userId) {
       try {
         const [uData] = await db.select().from(userData).where(eq(userData.userId, req.session.userId));
@@ -1450,7 +1451,7 @@ app.post('/api/chat', async (req, res) => {
           const op = uData.onboardingProgress || {};
           const profileLines = [];
           const nameVal = op.preferredName || a.name || ip.name || ip.core?.name || '';
-          if (nameVal) profileLines.push('Name: ' + nameVal);
+          if (nameVal) { profileLines.push('Name: ' + nameVal); resolvedUserName = nameVal; }
           const goalVal = a.goal || a['0'] || ip.goals?.tenYear || '';
           if (goalVal) profileLines.push('Long-term goal: ' + goalVal);
           const focusVal = ip.currentFocus || a.focus || a.mastering || ip.goals?.mastering || '';
@@ -1467,7 +1468,7 @@ app.post('/api/chat', async (req, res) => {
           if (blockerVal && blockerVal !== 'not specified') profileLines.push('Blockers: ' + blockerVal);
           const proudVal = a.proud || ip.strengths?.proudOf || '';
           if (proudVal) profileLines.push('Proud of: ' + proudVal);
-          if (profileLines.length >= 2) {
+          if (profileLines.length >= 1) {
             userProfileBlock = 'USER PROFILE (from onboarding):\n' + profileLines.join('\n');
           }
         }
@@ -1500,7 +1501,8 @@ app.post('/api/chat', async (req, res) => {
       budgetNotice = '\n' + budgetState.systemNotice + '\n';
     }
     const searchContext = await buildSearchContext(userMsg, chatMode);
-    const enhancedSystem = sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + thaiBlock + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + questionControlLayer + '\n\n' + truncationNotice + budgetNotice + searchContext + (req.body.system || '');
+    const nameInjection = resolvedUserName ? `\nIMPORTANT: This user's name is "${resolvedUserName}". Always address them by name. Never say you don't know their name.\n` : '';
+    const enhancedSystem = nameInjection + sessionLayer + '\n\n' + timeContext + '\n\n' + identityLayer + '\n\n' + calmLayer + '\n\n' + adaptiveLayer + '\n\n' + capabilityLayer + thaiBlock + '\n\n' + attentionLayer + '\n\n' + continuityLayer + '\n\n' + questionControlLayer + '\n\n' + truncationNotice + budgetNotice + searchContext + (req.body.system || '');
 
     let guidanceData = null;
     if (req.session.userId) {
